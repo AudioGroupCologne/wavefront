@@ -4,8 +4,8 @@ use na::{vector, Matrix4, Vector4};
 
 extern crate nalgebra as na;
 
-const SIMULATION_WIDTH: u32 = 64;
-const SIMULATION_HEIGHT: u32 = 64;
+const SIMULATION_WIDTH: u32 = 256;
+const SIMULATION_HEIGHT: u32 = 256;
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 enum NodeType {
@@ -13,6 +13,7 @@ enum NodeType {
     Normal,
     Wall,
     End,
+    Source,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -28,7 +29,7 @@ impl Node {
         (self.current.x + self.current.y + self.current.z + self.current.w) / 2.
     }
 
-    fn update(&mut self) {        
+    fn update(&mut self) {
         self.current = self.next;
         // if self.current.x > 0. {
         //     info!("{:?}", self.current);
@@ -94,15 +95,24 @@ struct GradientResource(colorgrad::Gradient);
 fn main() {
     let size = PixelBufferSize {
         size: UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT),
-        pixel_size: UVec2::new(8, 8),
+        pixel_size: UVec2::new(2, 2),
     };
 
     let mut grid = Grid(vec![
         Node::default();
         (SIMULATION_WIDTH * SIMULATION_HEIGHT) as usize
     ]);
-    let source = grid.get_mut(32, 32);
-    source.current = vector![1., 0., 0., 0.];
+    grid.set(
+        SIMULATION_WIDTH / 2,
+        SIMULATION_HEIGHT / 2,
+        Node {
+            node_type: NodeType::Source,
+            ..Default::default()
+        },
+    );
+
+    // let source = grid.get_mut(32, 32);
+    // source.current = vector![1., 0., 0., 0.];
 
     let gradient = GradientResource(colorgrad::magma());
 
@@ -111,7 +121,10 @@ fn main() {
         .insert_resource(grid)
         .insert_resource(gradient)
         .add_systems(Startup, pixel_buffer_setup(size))
-        .add_systems(Update, (draw_colors_system, update_nodes_system))
+        .add_systems(
+            Update,
+            (draw_colors_system, update_nodes_system, sine_system),
+        )
         .run();
 }
 
@@ -139,19 +152,34 @@ fn index_to_coords(index: usize) -> (i32, i32) {
     (x as i32, y as i32)
 }
 
-fn update_nodes_system(mut grid: ResMut<Grid>) {
+fn update_nodes_system(mut grid: ResMut<Grid>, time: Res<Time>) {
     for i in 0..grid.0.len() {
         let (x, y) = index_to_coords(i);
         let left = grid.get(x - 1, y);
         let right = grid.get(x + 1, y);
         let top = grid.get(x, y - 1);
         let bottom = grid.get(x, y + 1);
-        
+
         let node = grid.0[i].clone();
-        grid.0[i].next = node.calc(left, right, top, bottom);
+        match node.node_type {
+            NodeType::Source => {
+                let t = time.elapsed_seconds_f64();
+                let source = grid.get_mut(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2);
+                let sin = (10. * t).sin() * 2.;
+                source.current = vector![sin, sin, sin, sin];
+            }
+            _ => grid.0[i].next = node.calc(left, right, top, bottom),
+        }
     }
 
     grid.0.iter_mut().for_each(|node| {
         node.update();
     });
+}
+
+fn sine_system(time: Res<Time>, mut grid: ResMut<Grid>) {
+    let t = time.elapsed_seconds_f64();
+    let source = grid.get_mut(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2);
+    let sin = (2. * t).sin();
+    source.current = vector![sin, sin, sin, sin];
 }
