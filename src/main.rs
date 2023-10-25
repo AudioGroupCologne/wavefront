@@ -28,8 +28,12 @@ impl Node {
         (self.current.x + self.current.y + self.current.z + self.current.w) / 2.
     }
 
-    fn update(&mut self) {
-        self.next = self.current;
+    fn update(&mut self) {        
+        self.current = self.next;
+        // if self.current.x > 0. {
+        //     info!("{:?}", self.current);
+        //     info!("{:?}", self.next);
+        // }
     }
 
     fn calc(
@@ -47,6 +51,7 @@ impl Node {
                     top.current.z,
                     right.current.w,
                 ];
+
                 SCATTERING_MATRIX * v
             }
             _ => Vector4::zeros(),
@@ -73,6 +78,10 @@ impl Grid {
     fn set(&mut self, x: u32, y: u32, node: Node) {
         self.0[(y * SIMULATION_WIDTH + x) as usize] = node;
     }
+
+    fn set_next(&mut self, x: i32, y: i32, vec: Vector4<f64>) {
+        self.0[(y * SIMULATION_WIDTH as i32 + x) as usize].next = vec;
+    }
 }
 
 const SCATTERING_MATRIX: Matrix4<f64> = Matrix4::new(
@@ -94,7 +103,6 @@ fn main() {
     ]);
     let source = grid.get_mut(32, 32);
     source.current = vector![1., 0., 0., 0.];
-
 
     let gradient = GradientResource(colorgrad::magma());
 
@@ -138,7 +146,9 @@ fn update_nodes_system(mut grid: ResMut<Grid>) {
         let right = grid.get(x + 1, y);
         let top = grid.get(x, y - 1);
         let bottom = grid.get(x, y + 1);
-        grid.0[i].calc(left, right, top, bottom);
+        
+        let node = grid.0[i].clone();
+        grid.0[i].next = node.calc(left, right, top, bottom);
     }
 
     grid.0.iter_mut().for_each(|node| {
