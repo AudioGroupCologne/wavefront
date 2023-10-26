@@ -7,9 +7,9 @@ use rayon::{array, prelude::*};
 
 extern crate nalgebra as na;
 
-const SIMULATION_WIDTH: u32 = 100;
-const SIMULATION_HEIGHT: u32 = 100;
-const PIXEL_SIZE: u32 = 10;
+const SIMULATION_WIDTH: u32 = 700;
+const SIMULATION_HEIGHT: u32 = 700;
+const PIXEL_SIZE: u32 = 1;
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 enum NodeType {
@@ -123,11 +123,6 @@ fn main() {
             as usize
     ]);
 
-    grid.0[array_pos(50, 50, 0) as usize] = 1.;
-    grid.0[array_pos(50, 50, 1) as usize] = 1.;
-    grid.0[array_pos(50, 50, 2) as usize] = 1.;
-    grid.0[array_pos(50, 50, 3) as usize] = 1.;
-
     // BAUSTELLE ENDE !!!!
 
     // let source = grid.get_mut(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2);
@@ -143,7 +138,6 @@ fn main() {
         // .add_systems(FixedUpdate, update_nodes_system)
         // .add_systems(PostUpdate, draw_colors_system)
         .add_systems(FixedUpdate, full_grid_update)
-        // .add_systems(PostUpdate, draw_pixels)
         .run();
 }
 
@@ -264,7 +258,7 @@ fn array_pos(x: u32, y: u32, index: u32) -> u32 {
     return y * SIMULATION_WIDTH * NUM_INDEX + x * NUM_INDEX + index;
 }
 
-fn full_grid_update(mut grid: ResMut<GridFloat>, mut pb: QueryPixelBuffer) -> () {
+fn full_grid_update(mut grid: ResMut<GridFloat>, mut pb: QueryPixelBuffer, time: Res<Time>) -> () {
     pb.frame().per_pixel_par(|coords, _| {
         let p = grid.0[array_pos(coords.x, coords.y, 8) as usize];
         // let color = gradient.0.at(p);
@@ -277,18 +271,10 @@ fn full_grid_update(mut grid: ResMut<GridFloat>, mut pb: QueryPixelBuffer) -> ()
     });
     grid.calc_grid();
     grid.update_grid();
-}
 
-fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<GridFloat>, _gradient: Res<GradientResource>) {
-    //TODO: replace bevy_pixel_buffer with bevy_pixels for gpu rendering?
-    pb.frame().per_pixel_par(|coords, _| {
-        let p = grid.0[array_pos(coords.x, coords.y, 8) as usize];
-        // let color = gradient.0.at(p);
-        Pixel {
-            r: (p * 255.) as u8,
-            g: (p * 255.) as u8,
-            b: (p * 255.) as u8,
-            a: 255,
-        }
-    })
+    let sin_calc: f32 = time.elapsed_seconds().sin();
+    grid.0[array_pos(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 0) as usize] = sin_calc;
+    grid.0[array_pos(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 1) as usize] = sin_calc;
+    grid.0[array_pos(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 2) as usize] = sin_calc;
+    grid.0[array_pos(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 3) as usize] = sin_calc;
 }
