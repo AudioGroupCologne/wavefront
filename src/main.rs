@@ -1,11 +1,12 @@
 use bevy::prelude::*;
 use bevy_pixel_buffer::prelude::*;
 use na::{vector, Matrix4, Vector4};
+use rayon::prelude::*;
 
 extern crate nalgebra as na;
 
-const SIMULATION_WIDTH: u32 = 256;
-const SIMULATION_HEIGHT: u32 = 256;
+const SIMULATION_WIDTH: u32 = 128;
+const SIMULATION_HEIGHT: u32 = 128;
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 enum NodeType {
@@ -95,7 +96,7 @@ struct GradientResource(colorgrad::Gradient);
 fn main() {
     let size = PixelBufferSize {
         size: UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT),
-        pixel_size: UVec2::new(2, 2),
+        pixel_size: UVec2::new(8, 8),
     };
 
     let mut grid = Grid(vec![
@@ -153,7 +154,7 @@ fn index_to_coords(index: usize) -> (i32, i32) {
 }
 
 fn update_nodes_system(mut grid: ResMut<Grid>, time: Res<Time>) {
-    for i in 0..grid.0.len() {
+    (0..SIMULATION_HEIGHT as usize * SIMULATION_WIDTH as usize).for_each(|i| {
         let (x, y) = index_to_coords(i);
         let left = grid.get(x - 1, y);
         let right = grid.get(x + 1, y);
@@ -165,14 +166,14 @@ fn update_nodes_system(mut grid: ResMut<Grid>, time: Res<Time>) {
             NodeType::Source => {
                 let t = time.elapsed_seconds_f64();
                 let source = grid.get_mut(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2);
-                let sin = (10. * t).sin() * 2.;
+                let sin = (20. * t).sin() * 4.;
                 source.current = vector![sin, sin, sin, sin];
             }
             _ => grid.0[i].next = node.calc(left, right, top, bottom),
         }
-    }
+    });
 
-    grid.0.iter_mut().for_each(|node| {
+    grid.0.par_iter_mut().for_each(|node| {
         node.update();
     });
 }

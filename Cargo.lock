@@ -1457,6 +1457,7 @@ dependencies = [
  "bevy_pixel_buffer",
  "colorgrad",
  "nalgebra",
+ "rayon",
 ]
 
 [[package]]
