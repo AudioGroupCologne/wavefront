@@ -197,8 +197,10 @@ fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<Grid>, gradient: Res<Gradient
 }
 
 fn screen_to_grid(x: f32, y: f32, screen_width: f32, screen_height: f32) -> Option<(u32, u32)> {
-    let x = (x - (screen_width - SIMULATION_WIDTH as f32) / 2.) as u32;
-    let y = (y - (screen_height - SIMULATION_HEIGHT as f32) / 2.) as u32;
+    let x = (x - (screen_width - (SIMULATION_WIDTH/PIXEL_SIZE) as f32) / 2.) as u32;
+    let y = (y - (screen_height - (SIMULATION_HEIGHT/PIXEL_SIZE) as f32) / 2.) as u32;
+
+    println!("x: {}, y: {}", x, y);
 
     if x >= SIMULATION_WIDTH || y >= SIMULATION_HEIGHT {
         return None;
@@ -215,12 +217,9 @@ fn mouse_button_input(
     if buttons.just_pressed(MouseButton::Left) {
         let window = q_windows.single();
         if let Some(position) = window.cursor_position() {
-            if let Some((x, y)) = screen_to_grid(
-                position.x,
-                position.y,
-                window.width(),
-                window.height(),
-            ) {
+            if let Some((x, y)) =
+                screen_to_grid(position.x, position.y, window.width(), window.height())
+            {
                 grid.sources.push(Source::new(array_pos(x, y, 0), 0.0, 5.0));
             }
         }
@@ -229,7 +228,24 @@ fn mouse_button_input(
         // Left Button was released
     }
     if buttons.pressed(MouseButton::Right) {
-        // Right Button is being held down
+        let window = q_windows.single();
+        if let Some(position) = window.cursor_position() {
+            if let Some((x, y)) =
+                screen_to_grid(position.x, position.y, window.width(), window.height())
+            {
+                //TODO: because of the brush size, the indices may be out of bounds
+                //TODO: make bush size variable
+                grid.walls.push(array_pos(x, y, 0));
+                grid.walls.push(array_pos(x + 1, y, 0));
+                grid.walls.push(array_pos(x - 1, y, 0));
+                grid.walls.push(array_pos(x, y + 1, 0));
+                grid.walls.push(array_pos(x, y - 1, 0));
+                grid.walls.push(array_pos(x + 1, y + 1, 0));
+                grid.walls.push(array_pos(x - 1, y - 1, 0));
+                grid.walls.push(array_pos(x + 1, y - 1, 0));
+                grid.walls.push(array_pos(x - 1, y + 1, 0));
+            }
+        }
     }
     // we can check multiple at once with `.any_*`
     if buttons.any_just_pressed([MouseButton::Left, MouseButton::Right]) {
