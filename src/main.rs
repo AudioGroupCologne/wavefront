@@ -4,9 +4,9 @@ use bevy::prelude::*;
 use bevy_pixel_buffer::prelude::*;
 use rayon::{array, prelude::*};
 
-const SIMULATION_WIDTH: u32 = 700;
-const SIMULATION_HEIGHT: u32 = 700;
-const PIXEL_SIZE: u32 = 1;
+const SIMULATION_WIDTH: u32 = 500;
+const SIMULATION_HEIGHT: u32 = 500;
+const PIXEL_SIZE: u32 = 2;
 const NUM_INDEX: u32 = 9; //cur_bottom cur_left cur_top cur_right next_bottom next_left next_top next_right pressure
 
 fn main() {
@@ -111,7 +111,7 @@ impl GridFloat {
 
     fn apply_sources(&mut self, time: f32) -> () {
         for &i in self.1.iter() {
-            let sin_calc = ((time - i.1) * i.2).sin(); //needs to be optimized
+            let sin_calc = ((time - i.1) * i.2).sin(); //maybe needs to be optimized
             self.0[i.0 + 4] = sin_calc;
             self.0[i.0 + 5] = sin_calc;
             self.0[i.0 + 6] = sin_calc;
