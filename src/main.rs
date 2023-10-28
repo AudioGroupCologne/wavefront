@@ -1,7 +1,9 @@
 use std::f32::consts::PI;
 
 use bevy::prelude::*;
+use bevy::window::PrimaryWindow;
 use bevy_pixel_buffer::prelude::*;
+use rayon::array;
 
 const SIMULATION_WIDTH: u32 = 700;
 const SIMULATION_HEIGHT: u32 = 700;
@@ -43,7 +45,7 @@ fn main() {
         .insert_resource(grid)
         .insert_resource(gradient)
         .add_systems(Startup, pixel_buffer_setup(size))
-        .add_systems(Update, bevy::window::close_on_esc)
+        .add_systems(Update, (bevy::window::close_on_esc, mouse_button_input))
         .add_systems(Update, (full_grid_update, draw_pixels))
         .run();
 }
@@ -166,5 +168,36 @@ fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<GridFloat>, gradient: Res<Gra
                 a: 255,
             },
         );
+    }
+}
+
+// Bevy Stuff
+
+fn mouse_button_input(
+    buttons: Res<Input<MouseButton>>,
+    q_windows: Query<&Window, With<PrimaryWindow>>,
+    mut grid: ResMut<GridFloat>,
+) {
+    if buttons.just_pressed(MouseButton::Left) {
+        if let Some(position) = q_windows.single().cursor_position() {
+            let x =
+                (position.x - (q_windows.single().width() - SIMULATION_WIDTH as f32) / 2.) as u32;
+            let y =
+                (position.y - (q_windows.single().height() - SIMULATION_HEIGHT as f32) / 2.) as u32;
+
+            // Check Bounds
+
+            grid.1.push((array_pos(x as u32, y as u32, 0), 0.0, 5.0));
+        }
+    }
+    if buttons.just_released(MouseButton::Left) {
+        // Left Button was released
+    }
+    if buttons.pressed(MouseButton::Right) {
+        // Right Button is being held down
+    }
+    // we can check multiple at once with `.any_*`
+    if buttons.any_just_pressed([MouseButton::Left, MouseButton::Right]) {
+        // Either the left or the right button was just pressed
     }
 }
