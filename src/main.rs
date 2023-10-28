@@ -20,6 +20,7 @@ fn main() {
         cells: vec![0.; (SIMULATION_WIDTH * SIMULATION_HEIGHT * NUM_INDEX) as usize],
         sources: vec![Source::new(
             array_pos(SIMULATION_WIDTH / 2, SIMULATION_WIDTH / 2, 0),
+            1.,
             0.0,
             5.0,
         )],
@@ -62,19 +63,25 @@ struct Grid {
     walls: Vec<usize>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct Source {
+    /// index of the cell in the grid
     index: usize,
+    /// phase shift of the function (currently in seconds)
     phase: f32,
+    /// frequency of the function (in Hz)
     frequency: f32,
+    /// amplitude of the function (currently unitless)
+    amplitude: f32,
 }
 
 impl Source {
-    fn new(index: usize, phase: f32, frequency: f32) -> Self {
+    fn new(index: usize, amplitude: f32, phase: f32, frequency: f32) -> Self {
         Self {
             index,
             phase,
             frequency,
+            amplitude,
         }
     }
 }
@@ -130,7 +137,8 @@ impl Grid {
 
     fn apply_sources(&mut self, time: f32) {
         for source in self.sources.iter() {
-            let sin_calc = (2. * PI * source.frequency * (time - source.phase)).sin(); //maybe needs to be optimized
+            let sin_calc =
+                source.amplitude * (2. * PI * source.frequency * (time - source.phase)).sin(); //maybe needs to be optimized
             self.cells[source.index + 4] = sin_calc;
             self.cells[source.index + 5] = sin_calc;
             self.cells[source.index + 6] = sin_calc;
@@ -197,10 +205,8 @@ fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<Grid>, gradient: Res<Gradient
 }
 
 fn screen_to_grid(x: f32, y: f32, screen_width: f32, screen_height: f32) -> Option<(u32, u32)> {
-    let x = (x - (screen_width - (SIMULATION_WIDTH/PIXEL_SIZE) as f32) / 2.) as u32;
-    let y = (y - (screen_height - (SIMULATION_HEIGHT/PIXEL_SIZE) as f32) / 2.) as u32;
-
-    println!("x: {}, y: {}", x, y);
+    let x = (x - (screen_width - (SIMULATION_WIDTH / PIXEL_SIZE) as f32) / 2.) as u32;
+    let y = (y - (screen_height - (SIMULATION_HEIGHT / PIXEL_SIZE) as f32) / 2.) as u32;
 
     if x >= SIMULATION_WIDTH || y >= SIMULATION_HEIGHT {
         return None;
@@ -220,7 +226,8 @@ fn mouse_button_input(
             if let Some((x, y)) =
                 screen_to_grid(position.x, position.y, window.width(), window.height())
             {
-                grid.sources.push(Source::new(array_pos(x, y, 0), 0.0, 5.0));
+                grid.sources
+                    .push(Source::new(array_pos(x, y, 0), 1., 0.0, 5.0));
             }
         }
     }
