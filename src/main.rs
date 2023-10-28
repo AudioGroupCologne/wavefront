@@ -2,11 +2,10 @@ use std::f64::consts::PI;
 
 use bevy::prelude::*;
 use bevy_pixel_buffer::prelude::*;
-use rayon::{array, prelude::*};
 
-const SIMULATION_WIDTH: u32 = 500;
-const SIMULATION_HEIGHT: u32 = 500;
-const PIXEL_SIZE: u32 = 2;
+const SIMULATION_WIDTH: u32 = 700;
+const SIMULATION_HEIGHT: u32 = 700;
+const PIXEL_SIZE: u32 = 1;
 const NUM_INDEX: u32 = 9; //cur_bottom cur_left cur_top cur_right next_bottom next_left next_top next_right pressure
 
 fn main() {
@@ -17,31 +16,24 @@ fn main() {
 
     let mut grid = GridFloat(
         vec![0.; (SIMULATION_WIDTH * SIMULATION_HEIGHT * NUM_INDEX) as usize],
-        vec![
-            (
-                array_pos(SIMULATION_WIDTH / 2, SIMULATION_WIDTH / 2, 0),
-                0.0,
-                10.0,
-            ),
-            (
-                array_pos(SIMULATION_WIDTH / 2, SIMULATION_WIDTH / 2 + 5, 0),
-                1.0,
-                10.0,
-            ),
-        ],
+        vec![(
+            array_pos(SIMULATION_WIDTH / 2, SIMULATION_WIDTH / 2, 0),
+            0.0,
+            10.0,
+        )],
         vec![],
     );
 
-    for x in 1..SIMULATION_WIDTH {
-        if x < SIMULATION_WIDTH / 2 - 5 || x > SIMULATION_WIDTH / 2 + 5 {
-            grid.2.push(array_pos(x, 100, 0));
-            grid.1.push((
-                array_pos(x, SIMULATION_WIDTH / 2 + 5, 0),
-                (x * 5) as f32,
-                10.0,
-            ))
-        }
-    }
+    // for x in 1..SIMULATION_WIDTH {
+    //     if x < SIMULATION_WIDTH / 2 - 5 || x > SIMULATION_WIDTH / 2 + 5 {
+    //         grid.2.push(array_pos(x, 100, 0));
+    //         grid.1.push((
+    //             array_pos(x, SIMULATION_WIDTH / 2 + 5, 0),
+    //             (x * 5) as f32,
+    //             10.0,
+    //         ))
+    //     }
+    // }
 
     let gradient = GradientResource(colorgrad::blues());
 
