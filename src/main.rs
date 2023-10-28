@@ -7,9 +7,9 @@ use rayon::{array, prelude::*};
 
 extern crate nalgebra as na;
 
-const SIMULATION_WIDTH: u32 = 700;
-const SIMULATION_HEIGHT: u32 = 700;
-const PIXEL_SIZE: u32 = 1;
+const SIMULATION_WIDTH: u32 = 100;
+const SIMULATION_HEIGHT: u32 = 100;
+const PIXEL_SIZE: u32 = 10;
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 enum NodeType {
@@ -137,7 +137,7 @@ fn main() {
         .add_systems(Startup, pixel_buffer_setup(size))
         // .add_systems(FixedUpdate, update_nodes_system)
         // .add_systems(PostUpdate, draw_colors_system)
-        .add_systems(FixedUpdate, full_grid_update)
+        .add_systems(FixedUpdate, (full_grid_update, draw_pixels).chain())
         .run();
 }
 
@@ -259,6 +259,17 @@ fn array_pos(x: u32, y: u32, index: u32) -> u32 {
 }
 
 fn full_grid_update(mut grid: ResMut<GridFloat>, mut pb: QueryPixelBuffer, time: Res<Time>) -> () {
+    grid.calc_grid();
+    grid.update_grid();
+
+    let sin_calc: f32 = (time.elapsed_seconds() * 10.).sin();
+    grid.0[array_pos(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 0) as usize] = sin_calc;
+    grid.0[array_pos(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 1) as usize] = sin_calc;
+    grid.0[array_pos(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 2) as usize] = sin_calc;
+    grid.0[array_pos(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 3) as usize] = sin_calc;
+}
+
+fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<GridFloat>, _gradient: Res<GradientResource>) {
     pb.frame().per_pixel_par(|coords, _| {
         let p = grid.0[array_pos(coords.x, coords.y, 8) as usize];
         // let color = gradient.0.at(p);
@@ -269,12 +280,4 @@ fn full_grid_update(mut grid: ResMut<GridFloat>, mut pb: QueryPixelBuffer, time:
             a: 255,
         }
     });
-    grid.calc_grid();
-    grid.update_grid();
-
-    let sin_calc: f32 = time.elapsed_seconds().sin();
-    grid.0[array_pos(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 0) as usize] = sin_calc;
-    grid.0[array_pos(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 1) as usize] = sin_calc;
-    grid.0[array_pos(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 2) as usize] = sin_calc;
-    grid.0[array_pos(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 3) as usize] = sin_calc;
 }
