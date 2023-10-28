@@ -81,6 +81,7 @@ impl Source {
 
 impl Grid {
     fn update_grid(&mut self) {
+        //TODO: parallelize?
         for i in 0..SIMULATION_WIDTH * SIMULATION_HEIGHT {
             let array_pos: usize = (i * NUM_INDEX) as usize;
 
@@ -99,11 +100,10 @@ impl Grid {
     }
 
     fn calc_grid(&mut self) {
-        //TODO: parallelize
+        //TODO: parallelize?
         for x in 1..SIMULATION_WIDTH - 1 {
             for y in 1..SIMULATION_HEIGHT - 1 {
-                Grid::calc(
-                    self,
+                self.calc(
                     array_pos(x, y, 0),
                     self.cells[array_pos(x, y + 1, 2)],
                     self.cells[array_pos(x - 1, y, 3)],
@@ -212,8 +212,7 @@ fn mouse_button_input(
 
             // Check Bounds
 
-            grid.sources
-                .push(Source::new(array_pos(x, y, 0), 0.0, 5.0));
+            grid.sources.push(Source::new(array_pos(x, y, 0), 0.0, 5.0));
         }
     }
     if buttons.just_released(MouseButton::Left) {
