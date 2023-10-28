@@ -7,6 +7,7 @@ const SIMULATION_WIDTH: u32 = 700;
 const SIMULATION_HEIGHT: u32 = 700;
 const PIXEL_SIZE: u32 = 1;
 const NUM_INDEX: u32 = 9; //cur_bottom cur_left cur_top cur_right next_bottom next_left next_top next_right pressure
+const WALL_FAC: f32 = 1.;
 
 fn main() {
     let size: PixelBufferSize = PixelBufferSize {
@@ -114,10 +115,10 @@ impl GridFloat {
     fn apply_walls(&mut self) -> () {
         for &i in self.2.iter() {
             let (x, y) = array_pos_rev(i as u32);
-            self.0[i + 4] = self.0[array_pos(x, y + 1, 2)];
-            self.0[i + 5] = self.0[array_pos(x - 1, y, 3)];
-            self.0[i + 6] = self.0[array_pos(x, y - 1, 0)];
-            self.0[i + 7] = self.0[array_pos(x + 1, y, 1)];
+            self.0[i + 4] = WALL_FAC * self.0[array_pos(x, y + 1, 2)];
+            self.0[i + 5] = WALL_FAC * self.0[array_pos(x - 1, y, 3)];
+            self.0[i + 6] = WALL_FAC * self.0[array_pos(x, y - 1, 0)];
+            self.0[i + 7] = WALL_FAC * self.0[array_pos(x + 1, y, 1)];
         }
     }
 }
@@ -146,12 +147,6 @@ fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<GridFloat>, gradient: Res<Gra
     frame.per_pixel_par(|coords, _| {
         let p = grid.0[array_pos(coords.x, coords.y, 8) as usize];
         let color = gradient.0.at((p + 0.5) as f64);
-        // Pixel {
-        //     r: (p * 255.) as u8,
-        //     g: (p * 255.) as u8,
-        //     b: (p * 255.) as u8,
-        //     a: 255,
-        // }
         Pixel {
             r: (color.r * 255.) as u8,
             g: (color.g * 255.) as u8,
