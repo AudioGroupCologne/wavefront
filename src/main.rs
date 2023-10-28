@@ -127,8 +127,12 @@ fn main() {
         grid.2.push(array_pos(x, 25, 0));
     }
 
-    for x in 1..SIMULATION_WIDTH {
-        grid.1.push(array_pos(x, SIMULATION_WIDTH / 2, 0));
+    for x in 1..SIMULATION_WIDTH / 10 {
+        grid.1.push(array_pos(
+            x * SIMULATION_WIDTH / 10,
+            SIMULATION_WIDTH / 2,
+            0,
+        ));
     }
 
     // BAUSTELLE ENDE !!!!
@@ -145,7 +149,7 @@ fn main() {
         .add_systems(Startup, pixel_buffer_setup(size))
         // .add_systems(FixedUpdate, update_nodes_system)
         // .add_systems(PostUpdate, draw_colors_system)
-        .add_systems(FixedUpdate, (full_grid_update, draw_pixels).chain())
+        .add_systems(Update, (full_grid_update, draw_pixels))
         .run();
 }
 
@@ -261,7 +265,8 @@ impl GridFloat {
         self.0[coord_one_d + 7] = 0.5 * (bottom_top + left_right + top_bottom - right_left);
     }
 
-    fn apply_sources(&mut self, sin_calc: f32) -> () {
+    fn apply_sources(&mut self, time: f32) -> () {
+        let sin_calc = (time * 10.).sin();
         for &i in self.1.iter() {
             self.0[i + 4] = sin_calc;
             self.0[i + 5] = sin_calc;
@@ -294,8 +299,9 @@ fn array_pos_rev(i: u32) -> (u32, u32) {
 fn full_grid_update(mut grid: ResMut<GridFloat>, time: Res<Time>) -> () {
     grid.calc_grid();
 
-    let sin_calc: f32 = (time.elapsed_seconds() * 10.).sin();
-    grid.apply_sources(sin_calc);
+    // let sin_calc: f32 = (time.elapsed_seconds() * 10.).sin();
+    // grid.apply_sources(sin_calc);
+    grid.apply_sources(time.elapsed_seconds());
     grid.apply_walls();
 
     grid.update_grid();
