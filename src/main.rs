@@ -7,9 +7,9 @@ use rayon::{array, prelude::*};
 
 extern crate nalgebra as na;
 
-const SIMULATION_WIDTH: u32 = 100;
-const SIMULATION_HEIGHT: u32 = 100;
-const PIXEL_SIZE: u32 = 10;
+const SIMULATION_WIDTH: u32 = 700;
+const SIMULATION_HEIGHT: u32 = 700;
+const PIXEL_SIZE: u32 = 1;
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 enum NodeType {
@@ -119,13 +119,17 @@ fn main() {
 
     let mut grid = GridFloat(
         vec![0.; (SIMULATION_WIDTH * SIMULATION_HEIGHT * NUM_INDEX) as usize],
-        vec![array_pos(50, 50, 0), array_pos(75, 75, 0)],
-        vec![
-            array_pos(10, 10, 0),
-            array_pos(11, 10, 0),
-            array_pos(12, 10, 0),
-        ],
+        vec![array_pos(50, 50, 0)],
+        vec![],
     );
+
+    for x in 1..SIMULATION_WIDTH {
+        grid.2.push(array_pos(x, 25, 0));
+    }
+
+    for x in 1..SIMULATION_WIDTH {
+        grid.1.push(array_pos(x, SIMULATION_WIDTH / 2, 0));
+    }
 
     // BAUSTELLE ENDE !!!!
 
@@ -204,7 +208,7 @@ fn sin_source(t: f64, grid: &mut ResMut<Grid>) {
 
 // ACHTUNG BAUSTELLE !!!!
 
-const NUM_INDEX: u32 = 9;
+const NUM_INDEX: u32 = 9; //cur_bottom cur_left cur_top cur_right next_bottom next_left next_top next_right pressure
 
 #[derive(Debug, Resource)]
 struct GridFloat(Vec<f32>, Vec<usize>, Vec<usize>); //full grid, sources (1d coords), walls (1d coords)
@@ -233,11 +237,11 @@ impl GridFloat {
             for y in 1..SIMULATION_HEIGHT - 1 {
                 GridFloat::calc(
                     self,
-                    array_pos(x, y, 0) as usize,
-                    self.0[array_pos(x, y + 1, 2) as usize],
-                    self.0[array_pos(x - 1, y, 3) as usize],
-                    self.0[array_pos(x, y - 1, 0) as usize],
-                    self.0[array_pos(x + 1, y, 1) as usize],
+                    array_pos(x, y, 0),
+                    self.0[array_pos(x, y + 1, 2)],
+                    self.0[array_pos(x - 1, y, 3)],
+                    self.0[array_pos(x, y - 1, 0)],
+                    self.0[array_pos(x + 1, y, 1)],
                 );
             }
         }
@@ -258,21 +262,22 @@ impl GridFloat {
     }
 
     fn apply_sources(&mut self, sin_calc: f32) -> () {
-        for i in self.1.iter() {
-            self.0[*i + 4] = sin_calc;
-            self.0[*i + 5] = sin_calc;
-            self.0[*i + 6] = sin_calc;
-            self.0[*i + 7] = sin_calc;
+        for &i in self.1.iter() {
+            self.0[i + 4] = sin_calc;
+            self.0[i + 5] = sin_calc;
+            self.0[i + 6] = sin_calc;
+            self.0[i + 7] = sin_calc;
         }
     }
 
     fn apply_walls(&mut self) -> () {
-        // for i in self.2.iter() {
-        //     self.0[*i + 4] = self.0[array_pos(x, y + 1, 2)];
-        //     self.0[*i + 5] = self.0[array_pos(x - 1, y, 3)];
-        //     self.0[*i + 6] = self.0[array_pos(x, y - 1, 0)];
-        //     self.0[*i + 7] = self.0[array_pos(x + 1, y, 1)];
-        // }
+        for &i in self.2.iter() {
+            let (x, y) = array_pos_rev(i as u32);
+            self.0[i + 4] = self.0[array_pos(x, y + 1, 2)];
+            self.0[i + 5] = self.0[array_pos(x - 1, y, 3)];
+            self.0[i + 6] = self.0[array_pos(x, y - 1, 0)];
+            self.0[i + 7] = self.0[array_pos(x + 1, y, 1)];
+        }
     }
 }
 
@@ -280,18 +285,25 @@ fn array_pos(x: u32, y: u32, index: u32) -> usize {
     return (y * SIMULATION_WIDTH * NUM_INDEX + x * NUM_INDEX + index) as usize;
 }
 
+fn array_pos_rev(i: u32) -> (u32, u32) {
+    let x = (i / 9) % SIMULATION_WIDTH;
+    let y = i / 9 / SIMULATION_WIDTH;
+    return (x, y);
+}
+
 fn full_grid_update(mut grid: ResMut<GridFloat>, time: Res<Time>) -> () {
     grid.calc_grid();
 
     let sin_calc: f32 = (time.elapsed_seconds() * 10.).sin();
     grid.apply_sources(sin_calc);
-    // grid.apply_walls();
+    grid.apply_walls();
 
     grid.update_grid();
 }
 
 fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<GridFloat>, _gradient: Res<GradientResource>) {
-    pb.frame().per_pixel_par(|coords, _| {
+    let mut frame = pb.frame();
+    frame.per_pixel_par(|coords, _| {
         let p = grid.0[array_pos(coords.x, coords.y, 8) as usize];
         // let color = gradient.0.at(p);
         Pixel {
@@ -301,4 +313,17 @@ fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<GridFloat>, _gradient: Res<Gr
             a: 255,
         }
     });
+
+    for &i in grid.2.iter() {
+        let (x, y) = array_pos_rev(i as u32);
+        frame.set(
+            UVec2::new(x, y),
+            Pixel {
+                r: (255) as u8,
+                g: (0) as u8,
+                b: (0) as u8,
+                a: 255,
+            },
+        );
+    }
 }
