@@ -1,15 +1,13 @@
 use std::f64::consts::PI;
 
+use bevy::prelude::*;
 use bevy_pixel_buffer::prelude::*;
 use rayon::{array, prelude::*};
 
-const SIMULATION_WIDTH: u32 = 700;
-const SIMULATION_HEIGHT: u32 = 700;
-const PIXEL_SIZE: u32 = 1;
+const SIMULATION_WIDTH: u32 = 400;
+const SIMULATION_HEIGHT: u32 = 400;
+const PIXEL_SIZE: u32 = 4;
 const NUM_INDEX: u32 = 9; //cur_bottom cur_left cur_top cur_right next_bottom next_left next_top next_right pressure
-
-#[derive(Resource)]
-struct GradientResource(colorgrad::Gradient);
 
 fn main() {
     let size: PixelBufferSize = PixelBufferSize {
@@ -19,23 +17,28 @@ fn main() {
 
     let mut grid = GridFloat(
         vec![0.; (SIMULATION_WIDTH * SIMULATION_HEIGHT * NUM_INDEX) as usize],
-        vec![array_pos(50, 50, 0)],
+        vec![
+            (
+                array_pos(SIMULATION_WIDTH / 2, SIMULATION_WIDTH / 2, 0),
+                0.0,
+                10.0,
+            ),
+            (
+                array_pos(SIMULATION_WIDTH / 2, SIMULATION_WIDTH / 2 + 5, 0),
+                1.0,
+                10.0,
+            ),
+        ],
         vec![],
     );
 
     for x in 1..SIMULATION_WIDTH {
-        grid.2.push(array_pos(x, 25, 0));
+        if x < 195 || x > 205 {
+            grid.2.push(array_pos(x, 100, 0));
+        }
     }
 
-    for x in 1..SIMULATION_WIDTH / 10 {
-        grid.1.push(array_pos(
-            x * SIMULATION_WIDTH / 10,
-            SIMULATION_WIDTH / 2,
-            0,
-        ));
-    }
-
-    let gradient = GradientResource(colorgrad::magma());
+    let gradient = GradientResource(colorgrad::blues());
 
     App::new()
         .add_plugins((DefaultPlugins, PixelBufferPlugin))
@@ -47,8 +50,11 @@ fn main() {
         .run();
 }
 
+#[derive(Resource)]
+struct GradientResource(colorgrad::Gradient);
+
 #[derive(Debug, Resource)]
-struct GridFloat(Vec<f32>, Vec<usize>, Vec<usize>); //full grid, sources (1d coords), walls (1d coords)
+struct GridFloat(Vec<f32>, Vec<(usize, f32, f32)>, Vec<usize>); //full grid, sources (1d coords), walls (1d coords)
 
 impl GridFloat {
     fn update_grid(&mut self) -> () {
@@ -99,12 +105,12 @@ impl GridFloat {
     }
 
     fn apply_sources(&mut self, time: f32) -> () {
-        let sin_calc = (time * 10.).sin();
         for &i in self.1.iter() {
-            self.0[i + 4] = sin_calc;
-            self.0[i + 5] = sin_calc;
-            self.0[i + 6] = sin_calc;
-            self.0[i + 7] = sin_calc;
+            let sin_calc = ((time - i.1) * i.2).sin(); //needs to be optimized
+            self.0[i.0 + 4] = sin_calc;
+            self.0[i.0 + 5] = sin_calc;
+            self.0[i.0 + 6] = sin_calc;
+            self.0[i.0 + 7] = sin_calc;
         }
     }
 
@@ -132,33 +138,37 @@ fn array_pos_rev(i: u32) -> (u32, u32) {
 fn full_grid_update(mut grid: ResMut<GridFloat>, time: Res<Time>) -> () {
     grid.calc_grid();
 
-    // let sin_calc: f32 = (time.elapsed_seconds() * 10.).sin();
-    // grid.apply_sources(sin_calc);
     grid.apply_sources(time.elapsed_seconds());
     grid.apply_walls();
 
     grid.update_grid();
 }
 
-fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<GridFloat>, _gradient: Res<GradientResource>) {
+fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<GridFloat>, gradient: Res<GradientResource>) {
     let mut frame = pb.frame();
     frame.per_pixel_par(|coords, _| {
         let p = grid.0[array_pos(coords.x, coords.y, 8) as usize];
-        // let color = gradient.0.at(p);
+        let color = gradient.0.at((p + 0.5) as f64);
+        // Pixel {
+        //     r: (p * 255.) as u8,
+        //     g: (p * 255.) as u8,
+        //     b: (p * 255.) as u8,
+        //     a: 255,
+        // }
         Pixel {
-            r: (p * 255.) as u8,
-            g: (p * 255.) as u8,
-            b: (p * 255.) as u8,
+            r: (color.r * 255.) as u8,
+            g: (color.g * 255.) as u8,
+            b: (color.b * 255.) as u8,
             a: 255,
         }
     });
 
     for &i in grid.2.iter() {
         let (x, y) = array_pos_rev(i as u32);
-        frame.set(
+        let _ = frame.set(
             UVec2::new(x, y),
             Pixel {
-                r: (255) as u8,
+                r: (0) as u8,
                 g: (0) as u8,
                 b: (0) as u8,
                 a: 255,
