@@ -1,4 +1,4 @@
-use std::f64::consts::PI;
+use std::f32::consts::PI;
 
 use bevy::prelude::*;
 use bevy_pixel_buffer::prelude::*;
@@ -20,7 +20,7 @@ fn main() {
         vec![(
             array_pos(SIMULATION_WIDTH / 2, SIMULATION_WIDTH / 2, 0),
             0.0,
-            10.0,
+            5.0,
         )],
         vec![],
     );
@@ -104,7 +104,7 @@ impl GridFloat {
 
     fn apply_sources(&mut self, time: f32) -> () {
         for &i in self.1.iter() {
-            let sin_calc = ((time - i.1) * i.2).sin(); //maybe needs to be optimized
+            let sin_calc = (2. * PI * i.2 * (time - i.1)).sin(); //maybe needs to be optimized
             self.0[i.0 + 4] = sin_calc;
             self.0[i.0 + 5] = sin_calc;
             self.0[i.0 + 6] = sin_calc;
