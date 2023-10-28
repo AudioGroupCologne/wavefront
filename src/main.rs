@@ -1,25 +1,21 @@
 use std::f64::consts::PI;
 
-use bevy::prelude::*;
-// use bevy_pixel_buffer::prelude::*;
-use bevy_pixels::prelude::*;
-use na::{coordinates::X, vector, Matrix4, Vector4};
+use bevy_pixel_buffer::prelude::*;
 use rayon::{array, prelude::*};
-
-extern crate nalgebra as na;
 
 const SIMULATION_WIDTH: u32 = 700;
 const SIMULATION_HEIGHT: u32 = 700;
 const PIXEL_SIZE: u32 = 1;
+const NUM_INDEX: u32 = 9; //cur_bottom cur_left cur_top cur_right next_bottom next_left next_top next_right pressure
 
 #[derive(Resource)]
 struct GradientResource(colorgrad::Gradient);
 
 fn main() {
-    // let size: PixelBufferSize = PixelBufferSize {
-    //     size: UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT),
-    //     pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
-    // };
+    let size: PixelBufferSize = PixelBufferSize {
+        size: UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT),
+        pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
+    };
 
     let mut grid = GridFloat(
         vec![0.; (SIMULATION_WIDTH * SIMULATION_HEIGHT * NUM_INDEX) as usize],
@@ -42,30 +38,14 @@ fn main() {
     let gradient = GradientResource(colorgrad::magma());
 
     App::new()
-        // .add_plugins((DefaultPlugins, PixelBufferPlugin))
-        .add_plugins((DefaultPlugins, PixelsPlugin::default()))
+        .add_plugins((DefaultPlugins, PixelBufferPlugin))
         .insert_resource(grid)
         .insert_resource(gradient)
-        // .add_systems(Startup, pixel_buffer_setup(size))
-        // .add_systems(FixedUpdate, update_nodes_system)
-        // .add_systems(PostUpdate, draw_colors_system)
-        // .add_systems(Update, (full_grid_update, draw_pixels))
+        .add_systems(Startup, pixel_buffer_setup(size))
         .add_systems(Update, bevy::window::close_on_esc)
-        .add_systems(Draw, draw)
+        .add_systems(Update, (full_grid_update, draw_pixels))
         .run();
 }
-
-fn draw(mut wrapper_query: Query<&mut PixelsWrapper>) {
-    let Ok(mut wrapper) = wrapper_query.get_single_mut() else {
-        return;
-    };
-
-    let frame: &mut [u8] = wrapper.pixels.frame_mut();
-
-    frame.copy_from_slice(&[0x48, 0xb2, 0xe8, 0xff].repeat(frame.len() / 4));
-}
-
-const NUM_INDEX: u32 = 9; //cur_bottom cur_left cur_top cur_right next_bottom next_left next_top next_right pressure
 
 #[derive(Debug, Resource)]
 struct GridFloat(Vec<f32>, Vec<usize>, Vec<usize>); //full grid, sources (1d coords), walls (1d coords)
@@ -160,29 +140,29 @@ fn full_grid_update(mut grid: ResMut<GridFloat>, time: Res<Time>) -> () {
     grid.update_grid();
 }
 
-// fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<GridFloat>, _gradient: Res<GradientResource>) {
-//     let mut frame = pb.frame();
-//     frame.per_pixel_par(|coords, _| {
-//         let p = grid.0[array_pos(coords.x, coords.y, 8) as usize];
-//         // let color = gradient.0.at(p);
-//         Pixel {
-//             r: (p * 255.) as u8,
-//             g: (p * 255.) as u8,
-//             b: (p * 255.) as u8,
-//             a: 255,
-//         }
-//     });
+fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<GridFloat>, _gradient: Res<GradientResource>) {
+    let mut frame = pb.frame();
+    frame.per_pixel_par(|coords, _| {
+        let p = grid.0[array_pos(coords.x, coords.y, 8) as usize];
+        // let color = gradient.0.at(p);
+        Pixel {
+            r: (p * 255.) as u8,
+            g: (p * 255.) as u8,
+            b: (p * 255.) as u8,
+            a: 255,
+        }
+    });
 
-//     for &i in grid.2.iter() {
-//         let (x, y) = array_pos_rev(i as u32);
-//         frame.set(
-//             UVec2::new(x, y),
-//             Pixel {
-//                 r: (255) as u8,
-//                 g: (0) as u8,
-//                 b: (0) as u8,
-//                 a: 255,
-//             },
-//         );
-//     }
-// }
+    for &i in grid.2.iter() {
+        let (x, y) = array_pos_rev(i as u32);
+        frame.set(
+            UVec2::new(x, y),
+            Pixel {
+                r: (255) as u8,
+                g: (0) as u8,
+                b: (0) as u8,
+                a: 255,
+            },
+        );
+    }
+}
