@@ -196,7 +196,16 @@ fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<Grid>, gradient: Res<Gradient
     }
 }
 
-// Bevy Stuff
+fn screen_to_grid(x: f32, y: f32, screen_width: f32, screen_height: f32) -> Option<(u32, u32)> {
+    let x = (x - (screen_width - SIMULATION_WIDTH as f32) / 2.) as u32;
+    let y = (y - (screen_height - SIMULATION_HEIGHT as f32) / 2.) as u32;
+
+    if x >= SIMULATION_WIDTH || y >= SIMULATION_HEIGHT {
+        return None;
+    }
+
+    Some((x, y))
+}
 
 fn mouse_button_input(
     buttons: Res<Input<MouseButton>>,
@@ -204,15 +213,16 @@ fn mouse_button_input(
     mut grid: ResMut<Grid>,
 ) {
     if buttons.just_pressed(MouseButton::Left) {
-        if let Some(position) = q_windows.single().cursor_position() {
-            let x =
-                (position.x - (q_windows.single().width() - SIMULATION_WIDTH as f32) / 2.) as u32;
-            let y =
-                (position.y - (q_windows.single().height() - SIMULATION_HEIGHT as f32) / 2.) as u32;
-
-            // Check Bounds
-
-            grid.sources.push(Source::new(array_pos(x, y, 0), 0.0, 5.0));
+        let window = q_windows.single();
+        if let Some(position) = window.cursor_position() {
+            if let Some((x, y)) = screen_to_grid(
+                position.x,
+                position.y,
+                window.width(),
+                window.height(),
+            ) {
+                grid.sources.push(Source::new(array_pos(x, y, 0), 0.0, 5.0));
+            }
         }
     }
     if buttons.just_released(MouseButton::Left) {
