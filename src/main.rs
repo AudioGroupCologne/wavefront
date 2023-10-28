@@ -4,9 +4,9 @@ use bevy::prelude::*;
 use bevy_pixel_buffer::prelude::*;
 use rayon::{array, prelude::*};
 
-const SIMULATION_WIDTH: u32 = 400;
-const SIMULATION_HEIGHT: u32 = 400;
-const PIXEL_SIZE: u32 = 4;
+const SIMULATION_WIDTH: u32 = 700;
+const SIMULATION_HEIGHT: u32 = 700;
+const PIXEL_SIZE: u32 = 1;
 const NUM_INDEX: u32 = 9; //cur_bottom cur_left cur_top cur_right next_bottom next_left next_top next_right pressure
 
 fn main() {
@@ -33,8 +33,13 @@ fn main() {
     );
 
     for x in 1..SIMULATION_WIDTH {
-        if x < 195 || x > 205 {
+        if x < SIMULATION_WIDTH / 2 - 5 || x > SIMULATION_WIDTH / 2 + 5 {
             grid.2.push(array_pos(x, 100, 0));
+            grid.1.push((
+                array_pos(x, SIMULATION_WIDTH / 2 + 5, 0),
+                (x * 5) as f32,
+                10.0,
+            ))
         }
     }
 
