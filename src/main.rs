@@ -117,11 +117,15 @@ fn main() {
 
     // ACHTUNG BAUSTELLE !!!!
 
-    let mut grid = GridFloat(vec![
-        0.;
-        (SIMULATION_WIDTH * SIMULATION_HEIGHT * NUM_INDEX)
-            as usize
-    ]);
+    let mut grid = GridFloat(
+        vec![0.; (SIMULATION_WIDTH * SIMULATION_HEIGHT * NUM_INDEX) as usize],
+        vec![array_pos(50, 50, 0), array_pos(75, 75, 0)],
+        vec![
+            array_pos(10, 10, 0),
+            array_pos(11, 10, 0),
+            array_pos(12, 10, 0),
+        ],
+    );
 
     // BAUSTELLE ENDE !!!!
 
@@ -203,7 +207,7 @@ fn sin_source(t: f64, grid: &mut ResMut<Grid>) {
 const NUM_INDEX: u32 = 9;
 
 #[derive(Debug, Resource)]
-struct GridFloat(Vec<f32>);
+struct GridFloat(Vec<f32>, Vec<usize>, Vec<usize>); //full grid, sources (1d coords), walls (1d coords)
 
 impl GridFloat {
     fn update_grid(&mut self) -> () {
@@ -252,21 +256,38 @@ impl GridFloat {
         self.0[coord_one_d + 6] = 0.5 * (bottom_top + left_right - top_bottom + right_left);
         self.0[coord_one_d + 7] = 0.5 * (bottom_top + left_right + top_bottom - right_left);
     }
+
+    fn apply_sources(&mut self, sin_calc: f32) -> () {
+        for i in self.1.iter() {
+            self.0[*i + 4] = sin_calc;
+            self.0[*i + 5] = sin_calc;
+            self.0[*i + 6] = sin_calc;
+            self.0[*i + 7] = sin_calc;
+        }
+    }
+
+    fn apply_walls(&mut self) -> () {
+        // for i in self.2.iter() {
+        //     self.0[*i + 4] = self.0[array_pos(x, y + 1, 2)];
+        //     self.0[*i + 5] = self.0[array_pos(x - 1, y, 3)];
+        //     self.0[*i + 6] = self.0[array_pos(x, y - 1, 0)];
+        //     self.0[*i + 7] = self.0[array_pos(x + 1, y, 1)];
+        // }
+    }
 }
 
-fn array_pos(x: u32, y: u32, index: u32) -> u32 {
-    return y * SIMULATION_WIDTH * NUM_INDEX + x * NUM_INDEX + index;
+fn array_pos(x: u32, y: u32, index: u32) -> usize {
+    return (y * SIMULATION_WIDTH * NUM_INDEX + x * NUM_INDEX + index) as usize;
 }
 
-fn full_grid_update(mut grid: ResMut<GridFloat>, mut pb: QueryPixelBuffer, time: Res<Time>) -> () {
+fn full_grid_update(mut grid: ResMut<GridFloat>, time: Res<Time>) -> () {
     grid.calc_grid();
-    grid.update_grid();
 
     let sin_calc: f32 = (time.elapsed_seconds() * 10.).sin();
-    grid.0[array_pos(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 0) as usize] = sin_calc;
-    grid.0[array_pos(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 1) as usize] = sin_calc;
-    grid.0[array_pos(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 2) as usize] = sin_calc;
-    grid.0[array_pos(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 3) as usize] = sin_calc;
+    grid.apply_sources(sin_calc);
+    // grid.apply_walls();
+
+    grid.update_grid();
 }
 
 fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<GridFloat>, _gradient: Res<GradientResource>) {
