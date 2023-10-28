@@ -1,7 +1,8 @@
 use std::f64::consts::PI;
 
 use bevy::prelude::*;
-use bevy_pixel_buffer::prelude::*;
+// use bevy_pixel_buffer::prelude::*;
+use bevy_pixels::prelude::*;
 use na::{coordinates::X, vector, Matrix4, Vector4};
 use rayon::{array, prelude::*};
 
@@ -97,10 +98,10 @@ const SCATTERING_MATRIX: Matrix4<f64> = Matrix4::new(
 struct GradientResource(colorgrad::Gradient);
 
 fn main() {
-    let size: PixelBufferSize = PixelBufferSize {
-        size: UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT),
-        pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
-    };
+    // let size: PixelBufferSize = PixelBufferSize {
+    //     size: UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT),
+    //     pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
+    // };
 
     // let mut grid = Grid(vec![
     //     Node::default();
@@ -143,33 +144,46 @@ fn main() {
     let gradient = GradientResource(colorgrad::magma());
 
     App::new()
-        .add_plugins((DefaultPlugins, PixelBufferPlugin))
+        // .add_plugins((DefaultPlugins, PixelBufferPlugin))
+        .add_plugins((DefaultPlugins, PixelsPlugin::default()))
         .insert_resource(grid)
         .insert_resource(gradient)
-        .add_systems(Startup, pixel_buffer_setup(size))
+        // .add_systems(Startup, pixel_buffer_setup(size))
         // .add_systems(FixedUpdate, update_nodes_system)
         // .add_systems(PostUpdate, draw_colors_system)
-        .add_systems(Update, (full_grid_update, draw_pixels))
+        // .add_systems(Update, (full_grid_update, draw_pixels))
+        .add_systems(Update, bevy::window::close_on_esc)
+        .add_systems(Draw, draw)
         .run();
 }
 
-fn draw_colors_system(mut pb: QueryPixelBuffer, grid: Res<Grid>, _gradient: Res<GradientResource>) {
-    //TODO: replace bevy_pixel_buffer with bevy_pixels for gpu rendering?
-    pb.frame().per_pixel_par(|coords, _| {
-        let p = grid
-            .get(coords.x as i32, coords.y as i32)
-            .expect("grid matches canvas size")
-            .get_pressure();
-        // let color = gradient.0.at(p);
+fn draw(mut wrapper_query: Query<&mut PixelsWrapper>) {
+    let Ok(mut wrapper) = wrapper_query.get_single_mut() else {
+        return;
+    };
 
-        Pixel {
-            r: (p * 255.) as u8,
-            g: (p * 255.) as u8,
-            b: (p * 255.) as u8,
-            a: 255,
-        }
-    })
+    let frame: &mut [u8] = wrapper.pixels.frame_mut();
+
+    frame.copy_from_slice(&[0x48, 0xb2, 0xe8, 0xff].repeat(frame.len() / 4));
 }
+
+// fn draw_colors_system(mut pb: QueryPixelBuffer, grid: Res<Grid>, _gradient: Res<GradientResource>) {
+//     //TODO: replace bevy_pixel_buffer with bevy_pixels for gpu rendering?
+//     pb.frame().per_pixel_par(|coords, _| {
+//         let p = grid
+//             .get(coords.x as i32, coords.y as i32)
+//             .expect("grid matches canvas size")
+//             .get_pressure();
+//         // let color = gradient.0.at(p);
+
+//         Pixel {
+//             r: (p * 255.) as u8,
+//             g: (p * 255.) as u8,
+//             b: (p * 255.) as u8,
+//             a: 255,
+//         }
+//     })
+// }
 
 fn index_to_coords(index: usize) -> (i32, i32) {
     let x = index % SIMULATION_WIDTH as usize;
@@ -307,29 +321,29 @@ fn full_grid_update(mut grid: ResMut<GridFloat>, time: Res<Time>) -> () {
     grid.update_grid();
 }
 
-fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<GridFloat>, _gradient: Res<GradientResource>) {
-    let mut frame = pb.frame();
-    frame.per_pixel_par(|coords, _| {
-        let p = grid.0[array_pos(coords.x, coords.y, 8) as usize];
-        // let color = gradient.0.at(p);
-        Pixel {
-            r: (p * 255.) as u8,
-            g: (p * 255.) as u8,
-            b: (p * 255.) as u8,
-            a: 255,
-        }
-    });
+// fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<GridFloat>, _gradient: Res<GradientResource>) {
+//     let mut frame = pb.frame();
+//     frame.per_pixel_par(|coords, _| {
+//         let p = grid.0[array_pos(coords.x, coords.y, 8) as usize];
+//         // let color = gradient.0.at(p);
+//         Pixel {
+//             r: (p * 255.) as u8,
+//             g: (p * 255.) as u8,
+//             b: (p * 255.) as u8,
+//             a: 255,
+//         }
+//     });
 
-    for &i in grid.2.iter() {
-        let (x, y) = array_pos_rev(i as u32);
-        frame.set(
-            UVec2::new(x, y),
-            Pixel {
-                r: (255) as u8,
-                g: (0) as u8,
-                b: (0) as u8,
-                a: 255,
-            },
-        );
-    }
-}
+//     for &i in grid.2.iter() {
+//         let (x, y) = array_pos_rev(i as u32);
+//         frame.set(
+//             UVec2::new(x, y),
+//             Pixel {
+//                 r: (255) as u8,
+//                 g: (0) as u8,
+//                 b: (0) as u8,
+//                 a: 255,
+//             },
+//         );
+//     }
+// }
