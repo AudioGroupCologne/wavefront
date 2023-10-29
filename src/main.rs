@@ -4,11 +4,13 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_pixel_buffer::prelude::*;
 
-const SIMULATION_WIDTH: u32 = 700;
-const SIMULATION_HEIGHT: u32 = 700;
+use colorgrad::Color;
+
+const SIMULATION_WIDTH: u32 = 500;
+const SIMULATION_HEIGHT: u32 = 500;
 const PIXEL_SIZE: u32 = 1;
 const NUM_INDEX: u32 = 9; //cur_bottom cur_left cur_top cur_right next_bottom next_left next_top next_right pressure
-const WALL_FAC: f32 = 1.;
+const WALL_FAC: f32 = -0.171573;
 
 fn main() {
     let size: PixelBufferSize = PixelBufferSize {
@@ -20,26 +22,40 @@ fn main() {
         cells: vec![0.; (SIMULATION_WIDTH * SIMULATION_HEIGHT * NUM_INDEX) as usize],
         sources: vec![Source::new(
             array_pos(SIMULATION_WIDTH / 2, SIMULATION_WIDTH / 2, 0),
-            5.,
+            10.,
             0.0,
-            5.0,
-            SourceType::Gauss,
+            1.0,
+            SourceType::Sin,
         )],
         walls: vec![],
     };
 
-    // for x in 1..SIMULATION_WIDTH {
-    //     if x < SIMULATION_WIDTH / 2 - 5 || x > SIMULATION_WIDTH / 2 + 5 {
-    //         grid.2.push(array_pos(x, 100, 0));
-    //         grid.1.push((
-    //             array_pos(x, SIMULATION_WIDTH / 2 + 5, 0),
-    //             (x * 5) as f32,
-    //             10.0,
-    //         ))
-    //     }
-    // }
+    // Horizontal Walls
+    for x in 1..SIMULATION_WIDTH - 1 {
+        grid.walls.push(((SIMULATION_WIDTH + x) * 9) as usize)
+    }
+    for x in 1..SIMULATION_WIDTH - 1 {
+        grid.walls.push(array_pos(x, SIMULATION_HEIGHT - 2, 0))
+    }
+    // Vertical Walls
+    for y in 1..SIMULATION_HEIGHT - 1 {
+        grid.walls.push(array_pos(1, y, 0))
+    }
+    for y in 1..SIMULATION_HEIGHT - 1 {
+        grid.walls.push(array_pos(SIMULATION_WIDTH - 2, y, 0))
+    } // More Padding??
 
-    let gradient = GradientResource(colorgrad::blues());
+    let gradient = GradientResource(
+        colorgrad::CustomGradient::new()
+            .colors(&[
+                Color::from_rgba8(250, 172, 168, 255),
+                Color::from_rgba8(0, 0, 0, 255),
+                Color::from_rgba8(221, 214, 243, 255),
+            ])
+            .domain(&[-2.0, 2.0])
+            .build()
+            .unwrap(),
+    );
 
     App::new()
         .add_plugins((DefaultPlugins, PixelBufferPlugin))
@@ -53,6 +69,8 @@ fn main() {
 
 #[derive(Resource)]
 struct GradientResource(colorgrad::Gradient);
+
+// TLM Logic
 
 #[derive(Debug, Resource)]
 struct Grid {
@@ -211,7 +229,7 @@ fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<Grid>, gradient: Res<Gradient
     let mut frame = pb.frame();
     frame.per_pixel_par(|coords, _| {
         let p = grid.cells[array_pos(coords.x, coords.y, 8)];
-        let color = gradient.0.at((p + 0.5) as f64);
+        let color = gradient.0.at((p) as f64);
         Pixel {
             r: (color.r * 255.) as u8,
             g: (color.g * 255.) as u8,
@@ -226,9 +244,9 @@ fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<Grid>, gradient: Res<Gradient
         let _ = frame.set(
             UVec2::new(x, y),
             Pixel {
-                r: 0,
-                g: 0,
-                b: 0,
+                r: 255,
+                g: 255,
+                b: 255,
                 a: 255,
             },
         );
@@ -245,6 +263,8 @@ fn screen_to_grid(x: f32, y: f32, screen_width: f32, screen_height: f32) -> Opti
 
     Some((x, y))
 }
+
+//User Input
 
 fn mouse_button_input(
     buttons: Res<Input<MouseButton>>,
