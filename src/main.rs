@@ -21,13 +21,22 @@ fn main() {
 
     let mut grid = Grid {
         cells: vec![0.; (SIMULATION_WIDTH * SIMULATION_HEIGHT * NUM_INDEX) as usize],
-        sources: vec![Source::new(
-            array_pos(SIMULATION_WIDTH / 2, SIMULATION_WIDTH / 2, 0),
-            10.,
-            0.0,
-            1.0,
-            SourceType::Sin,
-        )],
+        sources: vec![
+            Source::new(
+                array_pos(SIMULATION_WIDTH / 2, SIMULATION_WIDTH / 2, 0),
+                10.,
+                0.0,
+                1.0,
+                SourceType::Sin,
+            ),
+            Source::new(
+                array_pos(SIMULATION_WIDTH / 4, SIMULATION_WIDTH / 4, 0),
+                10.,
+                1.0,
+                1.0,
+                SourceType::Sin,
+            ),
+        ],
         walls: vec![],
         boundaries: Boundary {
             bottom: vec![],
@@ -59,6 +68,8 @@ fn main() {
             .push(array_pos(SIMULATION_WIDTH - 1, y, 0))
     }
 
+    let mut drag = Drag { index: -1 };
+
     let gradient = GradientResource(
         colorgrad::CustomGradient::new()
             .colors(&[
@@ -75,6 +86,7 @@ fn main() {
         .add_plugins((DefaultPlugins, PixelBufferPlugin))
         .insert_resource(grid)
         .insert_resource(gradient)
+        .insert_resource(drag)
         .add_systems(Startup, pixel_buffer_setup(size))
         .add_systems(Update, (bevy::window::close_on_esc, mouse_button_input))
         .add_systems(Update, (full_grid_update, draw_pixels))
@@ -85,6 +97,10 @@ fn main() {
 struct GradientResource(colorgrad::Gradient);
 
 // TLM Logic
+#[derive(Resource)]
+struct Drag {
+    index: i32,
+}
 
 #[derive(Debug, Resource)]
 struct Grid {
@@ -320,6 +336,7 @@ fn mouse_button_input(
     buttons: Res<Input<MouseButton>>,
     q_windows: Query<&Window, With<PrimaryWindow>>,
     mut grid: ResMut<Grid>,
+    mut drag: ResMut<Drag>,
 ) {
     if buttons.just_pressed(MouseButton::Left) {
         let window = q_windows.single();
@@ -327,18 +344,36 @@ fn mouse_button_input(
             if let Some((x, y)) =
                 screen_to_grid(position.x, position.y, window.width(), window.height())
             {
-                grid.sources.push(Source::new(
-                    array_pos(x, y, 0),
-                    10.,
-                    0.0,
-                    1.0,
-                    SourceType::Sin,
-                ));
+                // grid.sources.push(Source::new(
+                //     array_pos(x, y, 0),
+                //     10.,
+                //     0.0,
+                //     1.0,
+                //     SourceType::Sin,
+                // ));
+                for (i, source) in grid.sources.iter().enumerate() {
+                    let (s_x, s_y) = array_pos_rev(source.index as u32);
+                    if s_x.abs_diff(x) <= 10 && s_y.abs_diff(y) <= 10 {
+                        drag.index = i as i32;
+                    }
+                }
             }
         }
     }
     if buttons.just_released(MouseButton::Left) {
-        // Left Button was released
+        drag.index = -1;
+    }
+    if buttons.pressed(MouseButton::Left) {
+        if drag.index >= 0 {
+            let window = q_windows.single();
+            if let Some(position) = window.cursor_position() {
+                if let Some((x, y)) =
+                    screen_to_grid(position.x, position.y, window.width(), window.height())
+                {
+                    grid.sources[drag.index as usize].index = array_pos(x, y, 0);
+                }
+            }
+        }
     }
     if buttons.pressed(MouseButton::Right) {
         let window = q_windows.single();
