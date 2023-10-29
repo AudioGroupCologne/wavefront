@@ -10,7 +10,8 @@ const SIMULATION_WIDTH: u32 = 500;
 const SIMULATION_HEIGHT: u32 = 500;
 const PIXEL_SIZE: u32 = 1;
 const NUM_INDEX: u32 = 9; //cur_bottom cur_left cur_top cur_right next_bottom next_left next_top next_right pressure
-const WALL_FAC: f32 = -0.171573;
+const WALL_FAC: f32 = 1.;
+const BOUNDARY_FAC: f32 = -0.171573;
 
 fn main() {
     let size: PixelBufferSize = PixelBufferSize {
@@ -20,30 +21,45 @@ fn main() {
 
     let mut grid = Grid {
         cells: vec![0.; (SIMULATION_WIDTH * SIMULATION_HEIGHT * NUM_INDEX) as usize],
-        sources: vec![Source::new(
-            array_pos(SIMULATION_WIDTH / 2, SIMULATION_WIDTH / 2, 0),
-            10.,
-            0.0,
-            1.0,
-            SourceType::Sin,
-        )],
+        sources: vec![
+            // Source::new(
+            // array_pos(SIMULATION_WIDTH / 2, SIMULATION_WIDTH / 2, 0),
+            // 10.,
+            // 0.0,
+            // 1.0,
+            // SourceType::Sin,
+            // )
+        ],
         walls: vec![],
+        boundaries: Boundary {
+            bottom: vec![],
+            left: vec![],
+            top: vec![],
+            right: vec![],
+        },
     };
 
-    // Horizontal Walls
-    for x in 1..SIMULATION_WIDTH - 1 {
-        grid.walls.push(((SIMULATION_WIDTH + x) * 9) as usize)
+    // Boundaries
+    // TOP
+    for x in 0..SIMULATION_WIDTH {
+        grid.boundaries.top.push(array_pos(x, 0, 0))
     }
-    for x in 1..SIMULATION_WIDTH - 1 {
-        grid.walls.push(array_pos(x, SIMULATION_HEIGHT - 2, 0))
+    // BOTTOM
+    for x in 0..SIMULATION_WIDTH {
+        grid.boundaries
+            .bottom
+            .push(array_pos(x, SIMULATION_HEIGHT - 1, 0))
     }
-    // Vertical Walls
-    for y in 1..SIMULATION_HEIGHT - 1 {
-        grid.walls.push(array_pos(1, y, 0))
+    // LEFT
+    for y in 0..SIMULATION_HEIGHT {
+        grid.boundaries.left.push(array_pos(0, y, 0))
     }
-    for y in 1..SIMULATION_HEIGHT - 1 {
-        grid.walls.push(array_pos(SIMULATION_WIDTH - 2, y, 0))
-    } // More Padding??
+    // RIGHT
+    for y in 0..SIMULATION_HEIGHT {
+        grid.boundaries
+            .right
+            .push(array_pos(SIMULATION_WIDTH - 1, y, 0))
+    }
 
     let gradient = GradientResource(
         colorgrad::CustomGradient::new()
@@ -80,6 +96,8 @@ struct Grid {
     sources: Vec<Source>,
     /// A list of walls, containing the indices of the corresponding cells
     walls: Vec<usize>,
+    /// A list of boundary nodes
+    boundaries: Boundary,
 }
 
 #[derive(Debug, Default)]
@@ -94,6 +112,19 @@ struct Source {
     amplitude: f32,
     /// type of the source
     r#type: SourceType,
+}
+
+#[derive(Debug, Default)]
+struct Boundary {
+    //Leo Smallvec und so
+    /// indecies of bottom boundary nodes
+    bottom: Vec<usize>,
+    /// indecies of left boundary nodes
+    left: Vec<usize>,
+    /// indecies of top boundary nodes
+    top: Vec<usize>,
+    /// indecies of right boundary nodes
+    right: Vec<usize>,
 }
 
 #[derive(Debug, Default)]
@@ -204,6 +235,26 @@ impl Grid {
             self.cells[wall_index + 7] = WALL_FAC * self.cells[array_pos(x + 1, y, 1)];
         }
     }
+
+    fn apply_boundaries(&mut self) {
+        //pls math check
+        for &boundary_index in self.boundaries.bottom.iter() {
+            self.cells[boundary_index + 6] =
+                BOUNDARY_FAC * self.cells[boundary_index - (NUM_INDEX * SIMULATION_WIDTH) as usize];
+        }
+        for &boundary_index in self.boundaries.left.iter() {
+            self.cells[boundary_index + 7] =
+                BOUNDARY_FAC * self.cells[boundary_index + NUM_INDEX as usize + 1];
+        }
+        for &boundary_index in self.boundaries.top.iter() {
+            self.cells[boundary_index + 4] = BOUNDARY_FAC
+                * self.cells[boundary_index + (NUM_INDEX * SIMULATION_WIDTH) as usize + 2];
+        }
+        for &boundary_index in self.boundaries.right.iter() {
+            self.cells[boundary_index + 5] =
+                BOUNDARY_FAC * self.cells[boundary_index - NUM_INDEX as usize + 3];
+        }
+    }
 }
 
 fn array_pos(x: u32, y: u32, index: u32) -> usize {
@@ -221,6 +272,7 @@ fn full_grid_update(mut grid: ResMut<Grid>, time: Res<Time>) {
 
     grid.apply_sources(time.elapsed_seconds());
     grid.apply_walls();
+    grid.apply_boundaries();
 
     grid.update_grid();
 }
@@ -237,7 +289,7 @@ fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<Grid>, gradient: Res<Gradient
             a: 255,
         }
     });
-
+    // Walls
     for &wall_index in grid.walls.iter() {
         let (x, y) = array_pos_rev(wall_index as u32);
         //TODO: handle result
@@ -253,6 +305,8 @@ fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<Grid>, gradient: Res<Gradient
     }
 }
 
+//User Input
+
 fn screen_to_grid(x: f32, y: f32, screen_width: f32, screen_height: f32) -> Option<(u32, u32)> {
     let x = (x - (screen_width - (SIMULATION_WIDTH / PIXEL_SIZE) as f32) / 2.) as u32;
     let y = (y - (screen_height - (SIMULATION_HEIGHT / PIXEL_SIZE) as f32) / 2.) as u32;
@@ -263,8 +317,6 @@ fn screen_to_grid(x: f32, y: f32, screen_width: f32, screen_height: f32) -> Opti
 
     Some((x, y))
 }
-
-//User Input
 
 fn mouse_button_input(
     buttons: Res<Input<MouseButton>>,
@@ -279,9 +331,9 @@ fn mouse_button_input(
             {
                 grid.sources.push(Source::new(
                     array_pos(x, y, 0),
-                    1.,
+                    10.,
                     0.0,
-                    5.0,
+                    1.0,
                     SourceType::Sin,
                 ));
             }
