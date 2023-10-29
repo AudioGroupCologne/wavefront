@@ -21,15 +21,13 @@ fn main() {
 
     let mut grid = Grid {
         cells: vec![0.; (SIMULATION_WIDTH * SIMULATION_HEIGHT * NUM_INDEX) as usize],
-        sources: vec![
-            // Source::new(
-            // array_pos(SIMULATION_WIDTH / 2, SIMULATION_WIDTH / 2, 0),
-            // 10.,
-            // 0.0,
-            // 1.0,
-            // SourceType::Sin,
-            // )
-        ],
+        sources: vec![Source::new(
+            array_pos(SIMULATION_WIDTH / 2, SIMULATION_WIDTH / 2, 0),
+            10.,
+            0.0,
+            1.0,
+            SourceType::Sin,
+        )],
         walls: vec![],
         boundaries: Boundary {
             bottom: vec![],
