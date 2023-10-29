@@ -5,6 +5,7 @@ use bevy::window::PrimaryWindow;
 use bevy_pixel_buffer::prelude::*;
 
 use colorgrad::Color;
+use smallvec::{SmallVec, smallvec};
 
 const SIMULATION_WIDTH: u32 = 500;
 const SIMULATION_HEIGHT: u32 = 500;
@@ -30,10 +31,10 @@ fn main() {
         )],
         walls: vec![],
         boundaries: Boundary {
-            bottom: vec![],
-            left: vec![],
-            top: vec![],
-            right: vec![],
+            bottom: smallvec![],
+            left: smallvec![],
+            top: smallvec![],
+            right: smallvec![],
         },
     };
 
@@ -116,13 +117,13 @@ struct Source {
 struct Boundary {
     //Leo Smallvec und so
     /// indecies of bottom boundary nodes
-    bottom: Vec<usize>,
+    bottom: SmallVec<[usize; SIMULATION_WIDTH as usize]>,
     /// indecies of left boundary nodes
-    left: Vec<usize>,
+    left: SmallVec<[usize; SIMULATION_HEIGHT as usize]>,
     /// indecies of top boundary nodes
-    top: Vec<usize>,
+    top: SmallVec<[usize; SIMULATION_WIDTH as usize]>,
     /// indecies of right boundary nodes
-    right: Vec<usize>,
+    right: SmallVec<[usize; SIMULATION_HEIGHT as usize]>,
 }
 
 #[derive(Debug, Default)]
