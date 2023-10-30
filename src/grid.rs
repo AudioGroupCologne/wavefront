@@ -16,7 +16,6 @@ pub struct Grid {
 
 #[derive(Debug, Default)]
 pub struct Boundary {
-    //Leo Smallvec und so
     /// indecies of bottom boundary nodes
     bottom: SmallVec<[usize; SIMULATION_WIDTH as usize]>,
     /// indecies of left boundary nodes
