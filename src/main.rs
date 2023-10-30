@@ -174,7 +174,6 @@ fn periodic_gaussian(x: f32, period: f32, amplitude: f32, mean: f32, variance: f
 
 impl Grid {
     fn update(&mut self) {
-        //TODO: parallelize?
         for i in 0..SIMULATION_WIDTH * SIMULATION_HEIGHT {
             let array_pos: usize = (i * NUM_INDEX) as usize;
 
@@ -193,7 +192,6 @@ impl Grid {
     }
 
     fn calc(&mut self) {
-        //TODO: parallelize?
         for x in 1..SIMULATION_WIDTH - 1 {
             for y in 1..SIMULATION_HEIGHT - 1 {
                 self.calc_cell(
