@@ -8,7 +8,7 @@ use crate::{grid::Grid, constants::{SIMULATION_WIDTH, SIMULATION_HEIGHT}};
 pub struct GradientResource(pub colorgrad::Gradient);
 
 impl GradientResource {
-    pub fn custom() -> Self {
+    pub fn with_custom() -> Self {
         Self(
             colorgrad::CustomGradient::new()
                 .colors(&[

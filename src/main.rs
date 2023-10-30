@@ -14,7 +14,7 @@ fn main() {
 
     let grid = Grid::default();
 
-    let gradient = GradientResource::custom();
+    let gradient = GradientResource::with_custom();
 
     App::new()
         .add_plugins((DefaultPlugins, PixelBufferPlugin))
