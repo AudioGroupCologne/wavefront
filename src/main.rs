@@ -124,8 +124,6 @@ struct Drag;
 struct Grid {
     /// full grid: [cur_bottom, cur_left, cur_top, cur_right, next_bottom, next_left, next_top, next_right, pressure]
     cells: Vec<f32>,
-    // /// A list of sources (all sin for now), containing the indices of the corresponding cells (index, phase, frequency)
-    // sources: Vec<Source>,
     /// A list of walls, containing the indices of the corresponding cells
     walls: Vec<usize>,
     /// A list of boundary nodes
@@ -239,7 +237,7 @@ impl Grid {
         self.cells[coord_one_d + 7] = 0.5 * (bottom_top + left_right + top_bottom - right_left);
     }
 
-    fn apply_sources(&mut self, time: f32, sources: Query<&Source>) {
+    fn apply_sources(&mut self, time: f32, sources: &Query<&Source>) {
         for source in sources.iter() {
             //? maybe needs to be optimized
             let calc = match source.r#type {
@@ -306,7 +304,7 @@ fn calc_system(mut grid: ResMut<Grid>) {
 }
 
 fn apply_system(mut grid: ResMut<Grid>, time: Res<Time>, sources: Query<&Source>) {
-    grid.apply_sources(time.elapsed_seconds(), sources);
+    grid.apply_sources(time.elapsed_seconds(), &sources);
     grid.apply_walls();
     grid.apply_boundaries();
 }
