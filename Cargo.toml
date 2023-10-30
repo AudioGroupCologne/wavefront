@@ -1,5 +1,5 @@
 [package]
-name = "tlm-rs"
+name = "tlm_rs"
 version = "0.1.0"
 edition = "2021"
 
