@@ -1298,6 +1298,7 @@ dependencies = [
  "bevy_pixel_buffer",
  "colorgrad",
  "rayon",
+ "smallvec",
 ]
 
 [[package]]
