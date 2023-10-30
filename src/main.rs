@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 use bevy_pixel_buffer::prelude::*;
-use demo::components::{GradientResource, Source};
-use demo::constants::*;
-use demo::grid::{apply_system, calc_system, update_system, Grid};
-use demo::input::mouse_button_input;
-use demo::render::draw_pixels;
+use tlm_rs::components::{GradientResource, Source};
+use tlm_rs::constants::*;
+use tlm_rs::grid::{apply_system, calc_system, update_system, Grid};
+use tlm_rs::input::mouse_button_input;
+use tlm_rs::render::draw_pixels;
 
 fn main() {
     let size: PixelBufferSize = PixelBufferSize {
