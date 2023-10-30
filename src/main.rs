@@ -21,7 +21,6 @@ fn main() {
 
     let mut grid = Grid {
         cells: vec![0.; (SIMULATION_WIDTH * SIMULATION_HEIGHT * NUM_INDEX) as usize],
-        walls: vec![],
         boundaries: Boundary {
             bottom: vec![],
             left: vec![],
@@ -108,8 +107,6 @@ struct Drag;
 struct Grid {
     /// full grid: [cur_bottom, cur_left, cur_top, cur_right, next_bottom, next_left, next_top, next_right, pressure]
     cells: Vec<f32>,
-    /// A list of walls, containing the indices of the corresponding cells
-    walls: Vec<usize>,
     /// A list of boundary nodes
     boundaries: Boundary,
 }
@@ -140,6 +137,9 @@ struct Boundary {
     /// indecies of right boundary nodes
     right: Vec<usize>,
 }
+
+#[derive(Debug, Component)]
+struct Wall(usize);
 
 #[derive(Debug, Default)]
 enum SourceType {
@@ -240,13 +240,13 @@ impl Grid {
         }
     }
 
-    fn apply_walls(&mut self) {
-        for &wall_index in self.walls.iter() {
-            let (x, y) = array_pos_rev(wall_index as u32);
-            self.cells[wall_index + 4] = WALL_FAC * self.cells[array_pos(x, y + 1, 2)];
-            self.cells[wall_index + 5] = WALL_FAC * self.cells[array_pos(x - 1, y, 3)];
-            self.cells[wall_index + 6] = WALL_FAC * self.cells[array_pos(x, y - 1, 0)];
-            self.cells[wall_index + 7] = WALL_FAC * self.cells[array_pos(x + 1, y, 1)];
+    fn apply_walls(&mut self, walls: &Query<&Wall>) {
+        for wall in walls.iter() {
+            let (x, y) = array_pos_rev(wall.0 as u32);
+            self.cells[wall.0 + 4] = WALL_FAC * self.cells[array_pos(x, y + 1, 2)];
+            self.cells[wall.0 + 5] = WALL_FAC * self.cells[array_pos(x - 1, y, 3)];
+            self.cells[wall.0 + 6] = WALL_FAC * self.cells[array_pos(x, y - 1, 0)];
+            self.cells[wall.0 + 7] = WALL_FAC * self.cells[array_pos(x + 1, y, 1)];
         }
     }
 
@@ -287,9 +287,14 @@ fn calc_system(mut grid: ResMut<Grid>) {
     grid.calc();
 }
 
-fn apply_system(mut grid: ResMut<Grid>, time: Res<Time>, sources: Query<&Source>) {
+fn apply_system(
+    mut grid: ResMut<Grid>,
+    time: Res<Time>,
+    sources: Query<&Source>,
+    walls: Query<&Wall>,
+) {
     grid.apply_sources(time.elapsed_seconds(), &sources);
-    grid.apply_walls();
+    grid.apply_walls(&walls);
     grid.apply_boundaries();
 }
 
@@ -297,7 +302,12 @@ fn update_system(mut grid: ResMut<Grid>) {
     grid.update();
 }
 
-fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<Grid>, gradient: Res<GradientResource>) {
+fn draw_pixels(
+    mut pb: QueryPixelBuffer,
+    grid: Res<Grid>,
+    gradient: Res<GradientResource>,
+    walls: Query<&Wall>,
+) {
     let mut frame = pb.frame();
     frame.per_pixel_par(|coords, _| {
         let p = grid.cells[array_pos(coords.x, coords.y, 8)];
@@ -310,8 +320,8 @@ fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<Grid>, gradient: Res<Gradient
         }
     });
     // Walls
-    for &wall_index in grid.walls.iter() {
-        let (x, y) = array_pos_rev(wall_index as u32);
+    for wall in walls.iter() {
+        let (x, y) = array_pos_rev(wall.0 as u32);
         //TODO: handle result
         let _ = frame.set(
             UVec2::new(x, y),
@@ -343,7 +353,6 @@ fn mouse_button_input(
     q_windows: Query<&Window, With<PrimaryWindow>>,
     sources: Query<(Entity, &Source), Without<Drag>>,
     mut drag_sources: Query<(Entity, &mut Source), With<Drag>>,
-    mut grid: ResMut<Grid>,
     mut commands: Commands,
 ) {
     if buttons.just_pressed(MouseButton::Left) {
@@ -393,15 +402,15 @@ fn mouse_button_input(
             {
                 //TODO: because of the brush size, the indices may be out of bounds
                 //TODO: make bush size variable
-                grid.walls.push(array_pos(x, y, 0));
-                grid.walls.push(array_pos(x + 1, y, 0));
-                grid.walls.push(array_pos(x - 1, y, 0));
-                grid.walls.push(array_pos(x, y + 1, 0));
-                grid.walls.push(array_pos(x, y - 1, 0));
-                grid.walls.push(array_pos(x + 1, y + 1, 0));
-                grid.walls.push(array_pos(x - 1, y - 1, 0));
-                grid.walls.push(array_pos(x + 1, y - 1, 0));
-                grid.walls.push(array_pos(x - 1, y + 1, 0));
+                commands.spawn(Wall(array_pos(x, y, 0)));
+                commands.spawn(Wall(array_pos(x + 1, y, 0)));
+                commands.spawn(Wall(array_pos(x - 1, y, 0)));
+                commands.spawn(Wall(array_pos(x, y + 1, 0)));
+                commands.spawn(Wall(array_pos(x + 1, y + 1, 0)));
+                commands.spawn(Wall(array_pos(x, y - 1, 0)));
+                commands.spawn(Wall(array_pos(x - 1, y - 1, 0)));
+                commands.spawn(Wall(array_pos(x + 1, y - 1, 0)));
+                commands.spawn(Wall(array_pos(x - 1, y + 1, 0)));
             }
         }
     }
