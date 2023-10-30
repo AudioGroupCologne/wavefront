@@ -36,7 +36,7 @@ pub fn mouse_button_input(
                 //     SourceType::Sin,
                 // ));
                 for (entity, source) in sources.iter() {
-                    let (s_x, s_y) = Grid::array_pos_rev(source.index as u32);
+                    let (s_x, s_y) = Grid::index_to_coords(source.index as u32);
                     if s_x.abs_diff(x) <= 10 && s_y.abs_diff(y) <= 10 {
                         commands.entity(entity).insert(Drag);
                     }
@@ -56,7 +56,7 @@ pub fn mouse_button_input(
                 screen_to_grid(position.x, position.y, window.width(), window.height())
             {
                 drag_sources.iter_mut().for_each(|(_, mut source)| {
-                    source.index = Grid::array_pos(x, y, 0);
+                    source.index = Grid::coords_to_index(x, y, 0);
                 });
             }
         }
@@ -69,15 +69,15 @@ pub fn mouse_button_input(
             {
                 //TODO: because of the brush size, the indices may be out of bounds
                 //TODO: make bush size variable
-                commands.spawn(Wall(Grid::array_pos(x, y, 0)));
-                commands.spawn(Wall(Grid::array_pos(x + 1, y, 0)));
-                commands.spawn(Wall(Grid::array_pos(x - 1, y, 0)));
-                commands.spawn(Wall(Grid::array_pos(x, y + 1, 0)));
-                commands.spawn(Wall(Grid::array_pos(x + 1, y + 1, 0)));
-                commands.spawn(Wall(Grid::array_pos(x, y - 1, 0)));
-                commands.spawn(Wall(Grid::array_pos(x - 1, y - 1, 0)));
-                commands.spawn(Wall(Grid::array_pos(x + 1, y - 1, 0)));
-                commands.spawn(Wall(Grid::array_pos(x - 1, y + 1, 0)));
+                commands.spawn(Wall(Grid::coords_to_index(x, y, 0)));
+                commands.spawn(Wall(Grid::coords_to_index(x + 1, y, 0)));
+                commands.spawn(Wall(Grid::coords_to_index(x - 1, y, 0)));
+                commands.spawn(Wall(Grid::coords_to_index(x, y + 1, 0)));
+                commands.spawn(Wall(Grid::coords_to_index(x + 1, y + 1, 0)));
+                commands.spawn(Wall(Grid::coords_to_index(x, y - 1, 0)));
+                commands.spawn(Wall(Grid::coords_to_index(x - 1, y - 1, 0)));
+                commands.spawn(Wall(Grid::coords_to_index(x + 1, y - 1, 0)));
+                commands.spawn(Wall(Grid::coords_to_index(x - 1, y + 1, 0)));
             }
         }
     }

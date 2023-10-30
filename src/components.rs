@@ -79,14 +79,14 @@ impl Source {
 
     pub fn spawn_initial_sources(mut commands: Commands) {
         commands.spawn(Source::new(
-            Grid::array_pos(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 0),
+            Grid::coords_to_index(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 0),
             10.,
             0.0,
             1.0,
             SourceType::Sin,
         ));
         commands.spawn(Source::new(
-            Grid::array_pos(SIMULATION_WIDTH / 4, SIMULATION_HEIGHT / 4, 0),
+            Grid::coords_to_index(SIMULATION_WIDTH / 4, SIMULATION_HEIGHT / 4, 0),
             10.,
             1.0,
             1.0,

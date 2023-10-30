@@ -12,7 +12,7 @@ pub fn draw_pixels(
 ) {
     let mut frame = pb.frame();
     frame.per_pixel_par(|coords, _| {
-        let p = grid.cells[Grid::array_pos(coords.x, coords.y, 8)];
+        let p = grid.cells[Grid::coords_to_index(coords.x, coords.y, 8)];
         let color = gradient.0.at((p) as f64);
         Pixel {
             r: (color.r * 255.) as u8,
@@ -23,7 +23,7 @@ pub fn draw_pixels(
     });
     // Walls
     for wall in walls.iter() {
-        let (x, y) = Grid::array_pos_rev(wall.0 as u32);
+        let (x, y) = Grid::index_to_coords(wall.0 as u32);
         //TODO: handle result
         let _ = frame.set(
             UVec2::new(x, y),

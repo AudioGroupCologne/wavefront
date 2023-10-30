@@ -60,11 +60,11 @@ impl Grid {
         for x in 1..SIMULATION_WIDTH - 1 {
             for y in 1..SIMULATION_HEIGHT - 1 {
                 self.calc_cell(
-                    Grid::array_pos(x, y, 0),
-                    self.cells[Grid::array_pos(x, y + 1, 2)],
-                    self.cells[Grid::array_pos(x - 1, y, 3)],
-                    self.cells[Grid::array_pos(x, y - 1, 0)],
-                    self.cells[Grid::array_pos(x + 1, y, 1)],
+                    Grid::coords_to_index(x, y, 0),
+                    self.cells[Grid::coords_to_index(x, y + 1, 2)],
+                    self.cells[Grid::coords_to_index(x - 1, y, 3)],
+                    self.cells[Grid::coords_to_index(x, y - 1, 0)],
+                    self.cells[Grid::coords_to_index(x + 1, y, 1)],
                 );
             }
         }
@@ -105,11 +105,11 @@ impl Grid {
 
     fn apply_walls(&mut self, walls: &Query<&Wall>) {
         for wall in walls.iter() {
-            let (x, y) = Grid::array_pos_rev(wall.0 as u32);
-            self.cells[wall.0 + 4] = WALL_FAC * self.cells[Grid::array_pos(x, y + 1, 2)];
-            self.cells[wall.0 + 5] = WALL_FAC * self.cells[Grid::array_pos(x - 1, y, 3)];
-            self.cells[wall.0 + 6] = WALL_FAC * self.cells[Grid::array_pos(x, y - 1, 0)];
-            self.cells[wall.0 + 7] = WALL_FAC * self.cells[Grid::array_pos(x + 1, y, 1)];
+            let (x, y) = Grid::index_to_coords(wall.0 as u32);
+            self.cells[wall.0 + 4] = WALL_FAC * self.cells[Grid::coords_to_index(x, y + 1, 2)];
+            self.cells[wall.0 + 5] = WALL_FAC * self.cells[Grid::coords_to_index(x - 1, y, 3)];
+            self.cells[wall.0 + 6] = WALL_FAC * self.cells[Grid::coords_to_index(x, y - 1, 0)];
+            self.cells[wall.0 + 7] = WALL_FAC * self.cells[Grid::coords_to_index(x + 1, y, 1)];
         }
     }
 
@@ -136,33 +136,33 @@ impl Grid {
     pub fn init_boundaries(&mut self) {
         // TOP
         for x in 0..SIMULATION_WIDTH {
-            self.boundaries.top.push(Grid::array_pos(x, 0, 0))
+            self.boundaries.top.push(Grid::coords_to_index(x, 0, 0))
         }
         // BOTTOM
         for x in 0..SIMULATION_WIDTH {
             self.boundaries
                 .bottom
-                .push(Grid::array_pos(x, SIMULATION_HEIGHT - 1, 0))
+                .push(Grid::coords_to_index(x, SIMULATION_HEIGHT - 1, 0))
         }
         // LEFT
         for y in 0..SIMULATION_HEIGHT {
-            self.boundaries.left.push(Grid::array_pos(0, y, 0))
+            self.boundaries.left.push(Grid::coords_to_index(0, y, 0))
         }
         // RIGHT
         for y in 0..SIMULATION_HEIGHT {
             self.boundaries
                 .right
-                .push(Grid::array_pos(SIMULATION_WIDTH - 1, y, 0))
+                .push(Grid::coords_to_index(SIMULATION_WIDTH - 1, y, 0))
         }
     }
 
-    //TODO: doc string and maybe rename (coords_to_index)?
-    pub fn array_pos(x: u32, y: u32, index: u32) -> usize {
+    /// Calculates 1D array index from x,y coordinates (and an offset `index`) 
+    pub fn coords_to_index(x: u32, y: u32, index: u32) -> usize {
         (y * SIMULATION_WIDTH * NUM_INDEX + x * NUM_INDEX + index) as usize
     }
 
-    //TODO: doc string and maybe rename (index_to_coords)?
-    pub fn array_pos_rev(i: u32) -> (u32, u32) {
+    /// Calculates x,y coordinates from 1D array index
+    pub fn index_to_coords(i: u32) -> (u32, u32) {
         let x = (i / 9) % SIMULATION_WIDTH;
         let y = i / 9 / SIMULATION_WIDTH;
         (x, y)
