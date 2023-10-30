@@ -363,15 +363,13 @@ fn mouse_button_input(
     if buttons.just_released(MouseButton::Left) {
         drag.index = -1;
     }
-    if buttons.pressed(MouseButton::Left) {
-        if drag.index >= 0 {
-            let window = q_windows.single();
-            if let Some(position) = window.cursor_position() {
-                if let Some((x, y)) =
-                    screen_to_grid(position.x, position.y, window.width(), window.height())
-                {
-                    grid.sources[drag.index as usize].index = array_pos(x, y, 0);
-                }
+    if buttons.pressed(MouseButton::Left) && drag.index >= 0 {
+        let window = q_windows.single();
+        if let Some(position) = window.cursor_position() {
+            if let Some((x, y)) =
+                screen_to_grid(position.x, position.y, window.width(), window.height())
+            {
+                grid.sources[drag.index as usize].index = array_pos(x, y, 0);
             }
         }
     }
