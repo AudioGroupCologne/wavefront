@@ -1,6 +1,7 @@
 use std::f32::consts::PI;
 
 use bevy::prelude::*;
+use smallvec::SmallVec;
 
 use crate::components::{Source, SourceType, Wall};
 use crate::constants::*;
@@ -17,13 +18,13 @@ pub struct Grid {
 pub struct Boundary {
     //Leo Smallvec und so
     /// indecies of bottom boundary nodes
-    bottom: Vec<usize>,
+    bottom: SmallVec<[usize; SIMULATION_WIDTH as usize]>,
     /// indecies of left boundary nodes
-    left: Vec<usize>,
+    left: SmallVec<[usize; SIMULATION_HEIGHT as usize]>,
     /// indecies of top boundary nodes
-    top: Vec<usize>,
+    top: SmallVec<[usize; SIMULATION_WIDTH as usize]>,
     /// indecies of right boundary nodes
-    right: Vec<usize>,
+    right: SmallVec<[usize; SIMULATION_HEIGHT as usize]>,
 }
 
 impl Default for Grid {
