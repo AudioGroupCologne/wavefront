@@ -21,22 +21,22 @@ fn main() {
 
     let mut grid = Grid {
         cells: vec![0.; (SIMULATION_WIDTH * SIMULATION_HEIGHT * NUM_INDEX) as usize],
-        sources: vec![
-            Source::new(
-                array_pos(SIMULATION_WIDTH / 2, SIMULATION_WIDTH / 2, 0),
-                10.,
-                0.0,
-                1.0,
-                SourceType::Sin,
-            ),
-            Source::new(
-                array_pos(SIMULATION_WIDTH / 4, SIMULATION_WIDTH / 4, 0),
-                10.,
-                1.0,
-                1.0,
-                SourceType::Sin,
-            ),
-        ],
+        // sources: vec![
+        //     Source::new(
+        //         array_pos(SIMULATION_WIDTH / 2, SIMULATION_WIDTH / 2, 0),
+        //         10.,
+        //         0.0,
+        //         1.0,
+        //         SourceType::Sin,
+        //     ),
+        //     Source::new(
+        //         array_pos(SIMULATION_WIDTH / 4, SIMULATION_WIDTH / 4, 0),
+        //         10.,
+        //         1.0,
+        //         1.0,
+        //         SourceType::Sin,
+        //     ),
+        // ],
         walls: vec![],
         boundaries: Boundary {
             bottom: vec![],
@@ -68,8 +68,6 @@ fn main() {
             .push(array_pos(SIMULATION_WIDTH - 1, y, 0))
     }
 
-    let mut drag = Drag { index: -1 };
-
     let gradient = GradientResource(
         colorgrad::CustomGradient::new()
             .colors(&[
@@ -86,35 +84,55 @@ fn main() {
         .add_plugins((DefaultPlugins, PixelBufferPlugin))
         .insert_resource(grid)
         .insert_resource(gradient)
-        .insert_resource(drag)
-        .add_systems(Startup, pixel_buffer_setup(size))
+        .add_systems(Startup, (pixel_buffer_setup(size), spawn_initial_sources))
         .add_systems(Update, (bevy::window::close_on_esc, mouse_button_input))
-        .add_systems(Update, (full_grid_update, draw_pixels))
+        .add_systems(
+            Update,
+            (
+                (calc_system, apply_system, update_system).chain(),
+                draw_pixels,
+            ),
+        )
         .run();
+}
+
+fn spawn_initial_sources(mut commands: Commands) {
+    commands.spawn(Source::new(
+        array_pos(SIMULATION_WIDTH / 2, SIMULATION_WIDTH / 2, 0),
+        10.,
+        0.0,
+        1.0,
+        SourceType::Sin,
+    ));
+    commands.spawn(Source::new(
+        array_pos(SIMULATION_WIDTH / 4, SIMULATION_WIDTH / 4, 0),
+        10.,
+        1.0,
+        1.0,
+        SourceType::Sin,
+    ));
 }
 
 #[derive(Resource)]
 struct GradientResource(colorgrad::Gradient);
 
 // TLM Logic
-#[derive(Resource)]
-struct Drag {
-    index: i32,
-}
+#[derive(Component)]
+struct Drag;
 
 #[derive(Debug, Resource)]
 struct Grid {
     /// full grid: [cur_bottom, cur_left, cur_top, cur_right, next_bottom, next_left, next_top, next_right, pressure]
     cells: Vec<f32>,
-    /// A list of sources (all sin for now), containing the indices of the corresponding cells (index, phase, frequency)
-    sources: Vec<Source>,
+    // /// A list of sources (all sin for now), containing the indices of the corresponding cells (index, phase, frequency)
+    // sources: Vec<Source>,
     /// A list of walls, containing the indices of the corresponding cells
     walls: Vec<usize>,
     /// A list of boundary nodes
     boundaries: Boundary,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Component)]
 struct Source {
     /// index of the cell in the grid
     index: usize,
@@ -173,7 +191,7 @@ fn periodic_gaussian(x: f32, period: f32, amplitude: f32, mean: f32, variance: f
 }
 
 impl Grid {
-    fn update_grid(&mut self) {
+    fn update(&mut self) {
         //TODO: parallelize?
         for i in 0..SIMULATION_WIDTH * SIMULATION_HEIGHT {
             let array_pos: usize = (i * NUM_INDEX) as usize;
@@ -192,11 +210,11 @@ impl Grid {
         }
     }
 
-    fn calc_grid(&mut self) {
+    fn calc(&mut self) {
         //TODO: parallelize?
         for x in 1..SIMULATION_WIDTH - 1 {
             for y in 1..SIMULATION_HEIGHT - 1 {
-                self.calc(
+                self.calc_cell(
                     array_pos(x, y, 0),
                     self.cells[array_pos(x, y + 1, 2)],
                     self.cells[array_pos(x - 1, y, 3)],
@@ -207,7 +225,7 @@ impl Grid {
         }
     }
 
-    fn calc(
+    fn calc_cell(
         &mut self,
         coord_one_d: usize,
         bottom_top: f32,
@@ -221,8 +239,8 @@ impl Grid {
         self.cells[coord_one_d + 7] = 0.5 * (bottom_top + left_right + top_bottom - right_left);
     }
 
-    fn apply_sources(&mut self, time: f32) {
-        for source in self.sources.iter() {
+    fn apply_sources(&mut self, time: f32, sources: Query<&Source>) {
+        for source in sources.iter() {
             //? maybe needs to be optimized
             let calc = match source.r#type {
                 SourceType::Sin => {
@@ -281,14 +299,20 @@ fn array_pos_rev(i: u32) -> (u32, u32) {
     (x, y)
 }
 
-fn full_grid_update(mut grid: ResMut<Grid>, time: Res<Time>) {
-    grid.calc_grid();
+// systems
 
-    grid.apply_sources(time.elapsed_seconds());
+fn calc_system(mut grid: ResMut<Grid>) {
+    grid.calc();
+}
+
+fn apply_system(mut grid: ResMut<Grid>, time: Res<Time>, sources: Query<&Source>) {
+    grid.apply_sources(time.elapsed_seconds(), sources);
     grid.apply_walls();
     grid.apply_boundaries();
+}
 
-    grid.update_grid();
+fn update_system(mut grid: ResMut<Grid>) {
+    grid.update();
 }
 
 fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<Grid>, gradient: Res<GradientResource>) {
@@ -335,8 +359,10 @@ fn screen_to_grid(x: f32, y: f32, screen_width: f32, screen_height: f32) -> Opti
 fn mouse_button_input(
     buttons: Res<Input<MouseButton>>,
     q_windows: Query<&Window, With<PrimaryWindow>>,
+    sources: Query<(Entity, &Source), Without<Drag>>,
+    mut drag_sources: Query<(Entity, &mut Source), With<Drag>>,
     mut grid: ResMut<Grid>,
-    mut drag: ResMut<Drag>,
+    mut commands: Commands,
 ) {
     if buttons.just_pressed(MouseButton::Left) {
         let window = q_windows.single();
@@ -351,25 +377,29 @@ fn mouse_button_input(
                 //     1.0,
                 //     SourceType::Sin,
                 // ));
-                for (i, source) in grid.sources.iter().enumerate() {
+                for (entity, source) in sources.iter() {
                     let (s_x, s_y) = array_pos_rev(source.index as u32);
                     if s_x.abs_diff(x) <= 10 && s_y.abs_diff(y) <= 10 {
-                        drag.index = i as i32;
+                        commands.entity(entity).insert(Drag);
                     }
                 }
             }
         }
     }
     if buttons.just_released(MouseButton::Left) {
-        drag.index = -1;
+        drag_sources.iter_mut().for_each(|(entity, _)| {
+            commands.entity(entity).remove::<Drag>();
+        });
     }
-    if buttons.pressed(MouseButton::Left) && drag.index >= 0 {
+    if buttons.pressed(MouseButton::Left) && drag_sources.iter_mut().count() >= 1 {
         let window = q_windows.single();
         if let Some(position) = window.cursor_position() {
             if let Some((x, y)) =
                 screen_to_grid(position.x, position.y, window.width(), window.height())
             {
-                grid.sources[drag.index as usize].index = array_pos(x, y, 0);
+                drag_sources.iter_mut().for_each(|(_, mut source)| {
+                    source.index = array_pos(x, y, 0);
+                });
             }
         }
     }
