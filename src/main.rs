@@ -1,12 +1,10 @@
 use bevy::prelude::*;
 use bevy_pixel_buffer::prelude::*;
-
 use demo::components::{GradientResource, Source};
 use demo::constants::*;
 use demo::grid::{apply_system, calc_system, update_system, Grid};
 use demo::input::mouse_button_input;
 use demo::render::draw_pixels;
-
 
 fn main() {
     let size: PixelBufferSize = PixelBufferSize {
