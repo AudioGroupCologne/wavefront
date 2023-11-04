@@ -1,7 +1,7 @@
 // use bevy::prelude::*;
 // use bevy_pixel_buffer::prelude::*;
 // use tlm_rs::components::{GradientResource, Source};
-// use tlm_rs::constants::*;
+use tlm_rs::constants::*;
 // use tlm_rs::grid::{apply_system, calc_system, update_system, Grid};
 // use tlm_rs::input::mouse_button_input;
 // use tlm_rs::render::draw_pixels;
@@ -27,8 +27,9 @@
 //         .run();
 // }
 
-use bevy::{prelude::*, reflect::TypeUuid, render::render_resource::ShaderRef};
+use bevy::{prelude::*, reflect::TypeUuid, core::Pod};
 use bevy_app_compute::prelude::*;
+use bytemuck::Zeroable;
 
 #[derive(TypeUuid)]
 #[uuid = "2545ae14-a9bc-4f03-9ea4-4eb43d1075a7"]
@@ -46,15 +47,38 @@ struct SimpleComputeWorker;
 impl ComputeWorker for SimpleComputeWorker {
     fn build(world: &mut World) -> AppComputeWorker<Self> {
         let worker = AppComputeWorkerBuilder::new(world)
-            .add_staging("grid", &vec![0., 1., 2.])
+            .add_staging(
+                "grid",
+                &vec![0.; (SIMULATION_HEIGHT * SIMULATION_WIDTH * NUM_INDEX) as usize],
+            )
+            .add_staging("sources", &vec![Source { index: 0, value: 0. }])
             // .add_staging("source_pos", &vec![0, 1, 2])
             // .add_staging("wall_pos", &vec![0, 1, 2])
+            .add_uniform("SIMULATION_WIDTH", &SIMULATION_WIDTH)
+            .add_uniform("SIMULATION_HEIGHT", &SIMULATION_HEIGHT)
+            .add_uniform("NUM_INDEX", &NUM_INDEX)
             // .add_pass::<SimpleShader>([3, 1, 1], &["grid", "source_pos", "wall_pos"])
-            .add_pass::<SimpleShader>([3, 1, 1], &["grid"])
+            .add_pass::<SimpleShader>(
+                [4, 1, 1],
+                &[
+                    "SIMULATION_WIDTH",
+                    "SIMULATION_HEIGHT",
+                    "NUM_INDEX",
+                    "grid",
+                    "sources"
+                ],
+            )
             .build();
 
         worker
     }
+}
+
+#[derive(ShaderType, Pod, Zeroable, Clone, Copy)]
+#[repr(C)]
+struct Source {
+    index: u32,
+    value: f32,
 }
 
 fn main() {
@@ -66,14 +90,21 @@ fn main() {
         .run();
 }
 
-fn test(mut compute_worker: ResMut<AppComputeWorker<SimpleComputeWorker>>) {
+fn test(mut compute_worker: ResMut<AppComputeWorker<SimpleComputeWorker>>, time: Res<Time>) {
     if !compute_worker.ready() {
         return;
     };
 
     let result: Vec<f32> = compute_worker.read_vec("grid");
 
-    // compute_worker.write_slice::<f32>("values", &[2., 3., 4., 5.]);
+    //TODO: destructure vec<f32> into vec<Source>
+    let sources: Vec<f32> = compute_worker.read_vec("sources");
+    let destructured_sources: Vec<Source> = sources.iter().map(|x| Source { index: 0, value: *x }).collect();
+    
+    // compute_worker.write_slice::<f32>("sources", &[2., 3., 4., 5.]);
 
-    println!("{:?}", result)
+    compute_worker.write_slice::<f32>("sources", &[0., (10. * time.elapsed_seconds()).sin()]);
+
+    println!("{:?}", result[0])
+    // println!("{:?}", sources)
 }

@@ -6,9 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = "0.10.1"
+bevy = { version = "0.10.1", features = ["wayland"] }
 bevy_app_compute = "0.10.3"
 bevy_pixel_buffer = { version = "0.4.0", features = ["egui"] }
+bytemuck = "1.14.0"
 colorgrad = "0.6.2"
 rayon = "1.8.0"
 smallvec = "1.11.1"
