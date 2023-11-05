@@ -77,7 +77,7 @@ impl ComputeWorker for SimpleComputeWorker {
             .add_staging(
                 "sources",
                 &vec![Source {
-                    index: Grid::coords_to_index(250, 250, 0) as u32,
+                    index: Grid::coords_to_index(25, 25, 0) as u32,
                     value: 0.,
                 }],
             )
@@ -91,7 +91,7 @@ impl ComputeWorker for SimpleComputeWorker {
             .add_pass::<SourceShader>([1, 1, 1], &["grid", "sources"])
             .add_pass::<UpdateShader>(
                 [SIMULATION_WIDTH, SIMULATION_HEIGHT, 1],
-                &["NUM_INDEX", "grid"],
+                &["SIMULATION_HEIGHT", "NUM_INDEX", "grid"],
             )
             .build();
 
@@ -148,12 +148,10 @@ fn simple_draw(
     compute_worker.write_slice::<f32>(
         "sources",
         &[
-            Grid::coords_to_index(10, 10, 0) as f32,
+            Grid::coords_to_index(25, 25, 0) as f32,
             (10. * time.elapsed_seconds()).sin(),
         ],
     );
-    // println!("{}", Grid::coords_to_index(10, 10, 0) as f32);
-    // println!("{}", result[Grid::coords_to_index(10, 10, 4)]);
 
     let mut frame = pb.frame();
     frame.per_pixel_par(|coords, _| {

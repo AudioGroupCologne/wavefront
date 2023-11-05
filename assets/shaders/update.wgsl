@@ -1,7 +1,10 @@
 @group(0) @binding(0)
-var<uniform> NUM_INDEX: u32;
+var<uniform> SIMULATION_WIDTH: u32;
 
 @group(0) @binding(1)
+var<uniform> NUM_INDEX: u32;
+
+@group(0) @binding(2)
 var<storage, read_write> grid: array<f32>;
 
 
@@ -9,7 +12,7 @@ var<storage, read_write> grid: array<f32>;
 fn main(
     @builtin(global_invocation_id) global_id: vec3<u32>,
 ) {
-    let array_pos = global_id.x * global_id.y * NUM_INDEX;
+    let array_pos = coords_to_index(global_id.x, global_id.y, 0u);
 
     grid[array_pos] = grid[array_pos + 4u];
     grid[array_pos + 1u] = grid[array_pos + 5u];
@@ -18,4 +21,8 @@ fn main(
 
     //calculate pressure
     grid[array_pos + 8u] = 0.5 * (grid[array_pos] + grid[array_pos + 1u] + grid[array_pos + 2u] + grid[array_pos + 3u]);
+}
+
+fn coords_to_index(x: u32, y: u32, index: u32) -> u32 {
+    return y * SIMULATION_WIDTH * NUM_INDEX + x * NUM_INDEX + index;
 }
