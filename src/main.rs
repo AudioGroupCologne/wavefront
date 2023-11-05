@@ -148,7 +148,7 @@ fn simple_draw(
     compute_worker.write_slice::<f32>(
         "sources",
         &[
-            Grid::coords_to_index(25, 25, 0) as f32,
+            Grid::coords_to_index(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 0) as f32,
             (10. * time.elapsed_seconds()).sin(),
         ],
     );
