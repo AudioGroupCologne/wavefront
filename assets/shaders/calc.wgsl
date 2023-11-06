@@ -8,15 +8,11 @@ var<uniform> NUM_INDEX: u32;
 var<storage, read_write> grid: array<f32>;
 
 @compute @workgroup_size(8, 8)
-// @compute @workgroup_size(1)
 fn main(
     @builtin(global_invocation_id) global_id: vec3<u32>,
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) workgroup_id: vec3<u32>,
 ) {
-    // let x = (workgroup_id.x + 1u) * local_id.x;
-    // let y = (workgroup_id.y + 1u) * local_id.y;
-
     let x = global_id.x;
     let y = global_id.y;
 
