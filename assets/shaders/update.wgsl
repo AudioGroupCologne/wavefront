@@ -7,11 +7,19 @@ var<uniform> NUM_INDEX: u32;
 @group(0) @binding(2)
 var<storage, read_write> grid: array<f32>;
 
-
-@compute @workgroup_size(1)
+@compute @workgroup_size(8, 8)
+// @compute @workgroup_size(1)
 fn main(
     @builtin(global_invocation_id) global_id: vec3<u32>,
+    @builtin(local_invocation_id) local_id: vec3<u32>,
+    @builtin(workgroup_id) workgroup_id: vec3<u32>,
 ) {
+
+    // let cur_x = (workgroup_id.x + 1u) * local_id.x;
+    // let cur_y = (workgroup_id.y + 1u) * local_id.y;
+
+    // let array_pos = coords_to_index(cur_x, cur_y, 0u);
+
     let array_pos = coords_to_index(global_id.x, global_id.y, 0u);
 
     grid[array_pos] = grid[array_pos + 4u];

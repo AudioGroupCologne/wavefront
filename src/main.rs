@@ -85,12 +85,20 @@ impl ComputeWorker for SimpleComputeWorker {
             .add_uniform("SIMULATION_HEIGHT", &SIMULATION_HEIGHT)
             .add_uniform("NUM_INDEX", &NUM_INDEX)
             .add_pass::<CalcShader>(
-                [SIMULATION_WIDTH - 2, SIMULATION_HEIGHT - 2, 1],
+                [
+                    SIMULATION_WIDTH / NUM_WORKGROUP,
+                    SIMULATION_WIDTH / NUM_WORKGROUP,
+                    1,
+                ],
                 &["SIMULATION_WIDTH", "NUM_INDEX", "grid"],
             )
             .add_pass::<SourceShader>([1, 1, 1], &["grid", "sources"])
             .add_pass::<UpdateShader>(
-                [SIMULATION_WIDTH, SIMULATION_HEIGHT, 1],
+                [
+                    SIMULATION_WIDTH / NUM_WORKGROUP,
+                    SIMULATION_WIDTH / NUM_WORKGROUP,
+                    1,
+                ],
                 &["SIMULATION_HEIGHT", "NUM_INDEX", "grid"],
             )
             .build();
