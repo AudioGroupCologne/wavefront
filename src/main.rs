@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_pixel_buffer::prelude::*;
-use tlm_rs::components::{GradientResource, Source};
+use tlm_rs::components::{GameTicks, GradientResource, Source};
 use tlm_rs::constants::*;
 use tlm_rs::grid::{apply_system, calc_system, update_system, Grid};
 use tlm_rs::input::mouse_button_input;
@@ -13,6 +13,7 @@ fn main() {
     };
 
     let grid = Grid::default();
+    let game_ticks = GameTicks::default();
 
     let gradient = GradientResource::with_custom();
 
@@ -20,6 +21,7 @@ fn main() {
         .add_plugins((DefaultPlugins, PixelBufferPlugin))
         .insert_resource(grid)
         .insert_resource(gradient)
+        .insert_resource(game_ticks)
         .add_systems(
             Startup,
             (pixel_buffer_setup(size), Source::spawn_initial_sources),

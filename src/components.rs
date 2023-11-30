@@ -2,7 +2,10 @@ use std::f32::consts::PI;
 
 use bevy::prelude::*;
 
-use crate::{grid::Grid, constants::{SIMULATION_WIDTH, SIMULATION_HEIGHT}};
+use crate::{
+    constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH},
+    grid::Grid,
+};
 
 #[derive(Resource)]
 pub struct GradientResource(pub colorgrad::Gradient);
@@ -82,19 +85,34 @@ impl Source {
             Grid::coords_to_index(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 0),
             10.,
             0.0,
-            1.0,
+            10000.0,
             SourceType::Sin,
         ));
-        commands.spawn(Source::new(
-            Grid::coords_to_index(SIMULATION_WIDTH / 4, SIMULATION_HEIGHT / 4, 0),
-            10.,
-            1.0,
-            1.0,
-            SourceType::Sin,
-        ));
+        // Doesn't work anymore ._.
+        // commands.spawn(Source::new(
+        //     Grid::coords_to_index(SIMULATION_WIDTH / 4, SIMULATION_HEIGHT / 4, 0),
+        //     10.,
+        //     10000.0,
+        //     10000.0,
+        //     SourceType::Gauss,
+        // ));
     }
 }
 
 #[derive(Debug, Component)]
 /// A wall component containing the index of the corresponding cell in the grid
 pub struct Wall(pub usize);
+
+#[derive(Resource)]
+pub struct GameTicks {
+    pub ticks_since_start: u64,
+}
+
+impl Default for GameTicks {
+    fn default() -> Self {
+        let game_ticks = Self {
+            ticks_since_start: 0,
+        };
+        game_ticks
+    }
+}
