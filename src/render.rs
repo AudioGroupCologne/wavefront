@@ -2,22 +2,18 @@ use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::{bevy_egui::egui, prelude::*};
 
-use crate::components::{GradientResource, Wall};
+use crate::components::{GradientResource, Wall, Source, SourceType};
 use crate::constants::*;
 use crate::grid::Grid;
 
 #[derive(Resource)]
 pub struct UiState {
-    pub value: f32,
     pub delta_l: f32,
 }
 
 impl Default for UiState {
     fn default() -> Self {
-        Self {
-            value: 10000.0,
-            delta_l: 0.001,
-        }
+        Self { delta_l: 0.001 }
     }
 }
 
@@ -27,6 +23,7 @@ pub fn draw_pixels(
     grid: Res<Grid>,
     gradient: Res<GradientResource>,
     walls: Query<&Wall>,
+    mut sources: Query<&mut Source>,
     mut ui_state: ResMut<UiState>,
 ) {
     let mut frame = pb.frame();
@@ -56,18 +53,50 @@ pub fn draw_pixels(
     }
 
     let ctx = egui_context.ctx_mut();
-    egui::SidePanel::left("left_panel").show(ctx, |ui| {
-        ui.heading("Settings");
-        ui.separator();
-        ui.label("TODO");
+    egui::SidePanel::left("left_panel")
+        .default_width(300.)
+        .show(ctx, |ui| {
+            ui.spacing_mut().slider_width = 200.0;
+            ui.heading("Settings");
+            ui.separator();
 
-        ui.add(egui::Slider::new(&mut ui_state.value, 0.0..=20000.0).text("value"));
-        ui.add(
-            egui::Slider::new(&mut ui_state.delta_l, 0.0..=10.0)
-                .text("Delta L")
-                .logarithmic(true),
-        );
-    });
+            egui::ScrollArea::vertical()
+                .max_height(400.)
+                .show(ui, |ui| {
+                    for (index, mut s) in sources.iter_mut().enumerate() {
+                        ui.collapsing(format!("Source {}", index), |ui| {
+                            // debug ui
+                            // ui.label(format!("Source {}", s.index));
+                            // ui.label(format!("Type: {:?}", s.r#type));
+                            // ui.label(format!("Amplitude: {}", s.amplitude));
+                            // ui.label(format!("Frequency: {}", s.frequency));
+                            // ui.label(format!("Phase: {}", s.phase));
+
+                            ui.add(
+                                egui::Slider::new(&mut s.frequency, 0.0..=20000.0)
+                                    .text("Frequency (Hz)"),
+                            );
+                            ui.add(
+                                egui::Slider::new(&mut s.amplitude, 0.0..=25.0).text("Amplitude"),
+                            );
+                            ui.add(egui::Slider::new(&mut s.phase, 0.0..=360.0).text("Phase (°)"));
+                            egui::ComboBox::from_label("Waveform")
+                                .selected_text(format!("{:?}", s.r#type))
+                                .show_ui(ui, |ui| {
+                                    ui.selectable_value(&mut s.r#type, SourceType::Sin, "Sinus");
+                                    ui.selectable_value(&mut s.r#type, SourceType::Gauss, "Gauss");
+                                });
+                        });
+                    }
+                });
+
+            // ui.add(egui::Slider::new(&mut ui_state.freq, 0.0..=20000.0).texts("Frequency (Hz)"));
+            ui.add(
+                egui::Slider::new(&mut ui_state.delta_l, 0.0..=10.0)
+                    .text("Delta L")
+                    .logarithmic(true),
+            );
+        });
     egui::CentralPanel::default().show(ctx, |ui| {
         // pb.update_fill_egui(ui.available_size());
 

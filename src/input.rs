@@ -1,6 +1,6 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
-use crate::components::{Drag, Source, Wall};
+use crate::components::{Drag, Source, SourceType, Wall};
 use crate::constants::*;
 use crate::grid::Grid;
 
@@ -8,7 +8,7 @@ fn screen_to_grid(x: f32, y: f32, screen_width: f32, screen_height: f32) -> Opti
     let x = (x - (screen_width - (SIMULATION_WIDTH / PIXEL_SIZE) as f32) / 2.) as u32;
     let y = (y - (screen_height - (SIMULATION_HEIGHT / PIXEL_SIZE) as f32) / 2.) as u32;
 
-    if x >= SIMULATION_WIDTH || y >= SIMULATION_HEIGHT {
+    if x >= SIMULATION_WIDTH || x <= 0 || y <= 0 || y >= SIMULATION_HEIGHT {
         return None;
     }
 
@@ -67,17 +67,26 @@ pub fn mouse_button_input(
             if let Some((x, y)) =
                 screen_to_grid(position.x, position.y, window.width(), window.height())
             {
-                //TODO: because of the brush size, the indices may be out of bounds
-                //TODO: make bush size variable
-                commands.spawn(Wall(Grid::coords_to_index(x, y, 0)));
-                commands.spawn(Wall(Grid::coords_to_index(x + 1, y, 0)));
-                commands.spawn(Wall(Grid::coords_to_index(x - 1, y, 0)));
-                commands.spawn(Wall(Grid::coords_to_index(x, y + 1, 0)));
-                commands.spawn(Wall(Grid::coords_to_index(x + 1, y + 1, 0)));
-                commands.spawn(Wall(Grid::coords_to_index(x, y - 1, 0)));
-                commands.spawn(Wall(Grid::coords_to_index(x - 1, y - 1, 0)));
-                commands.spawn(Wall(Grid::coords_to_index(x + 1, y - 1, 0)));
-                commands.spawn(Wall(Grid::coords_to_index(x - 1, y + 1, 0)));
+                // this produces overlaping sources
+                commands.spawn(Source::new(
+                    Grid::coords_to_index(x, y, 0),
+                    10.,
+                    0.0,
+                    10_000.0,
+                    SourceType::Sin,
+                ));
+
+                // //TODO: because of the brush size, the indices may be out of bounds
+                // //TODO: make bush size variable
+                // commands.spawn(Wall(Grid::coords_to_index(x, y, 0)));
+                // commands.spawn(Wall(Grid::coords_to_index(x + 1, y, 0)));
+                // commands.spawn(Wall(Grid::coords_to_index(x - 1, y, 0)));
+                // commands.spawn(Wall(Grid::coords_to_index(x, y + 1, 0)));
+                // commands.spawn(Wall(Grid::coords_to_index(x + 1, y + 1, 0)));
+                // commands.spawn(Wall(Grid::coords_to_index(x, y - 1, 0)));
+                // commands.spawn(Wall(Grid::coords_to_index(x - 1, y - 1, 0)));
+                // commands.spawn(Wall(Grid::coords_to_index(x + 1, y - 1, 0)));
+                // commands.spawn(Wall(Grid::coords_to_index(x - 1, y + 1, 0)));
             }
         }
     }

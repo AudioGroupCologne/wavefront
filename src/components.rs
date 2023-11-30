@@ -35,7 +35,7 @@ pub struct Drag;
 pub struct Source {
     /// index of the cell in the grid
     pub index: usize,
-    /// phase shift of the function (currently in seconds)
+    /// phase shift of the function in degrees
     pub phase: f32,
     /// frequency of the function (in Hz)
     pub frequency: f32,
@@ -45,7 +45,7 @@ pub struct Source {
     pub r#type: SourceType,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq)]
 pub enum SourceType {
     #[default]
     Sin,
@@ -93,6 +93,13 @@ impl Source {
             10000.0,
             SourceType::Sin,
         ));
+        commands.spawn(Source::new(
+            Grid::coords_to_index(SIMULATION_WIDTH / 4, SIMULATION_HEIGHT / 4, 0),
+            10.,
+            180.0,
+            10000.0,
+            SourceType::Sin,
+        ));
         // Doesn't work anymore ._.
         // commands.spawn(Source::new(
         //     Grid::coords_to_index(SIMULATION_WIDTH / 4, SIMULATION_HEIGHT / 4, 0),
@@ -108,16 +115,7 @@ impl Source {
 /// A wall component containing the index of the corresponding cell in the grid
 pub struct Wall(pub usize);
 
-#[derive(Resource)]
+#[derive(Default, Resource)]
 pub struct GameTicks {
     pub ticks_since_start: u64,
-}
-
-impl Default for GameTicks {
-    fn default() -> Self {
-        let game_ticks = Self {
-            ticks_since_start: 0,
-        };
-        game_ticks
-    }
 }
