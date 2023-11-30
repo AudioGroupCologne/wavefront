@@ -44,7 +44,7 @@ pub struct Source {
     pub r#type: SourceType,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq)]
 pub enum SourceType {
     #[default]
     Sin,
@@ -103,16 +103,7 @@ impl Source {
 /// A wall component containing the index of the corresponding cell in the grid
 pub struct Wall(pub usize);
 
-#[derive(Resource)]
+#[derive(Default, Resource)]
 pub struct GameTicks {
     pub ticks_since_start: u64,
-}
-
-impl Default for GameTicks {
-    fn default() -> Self {
-        let game_ticks = Self {
-            ticks_since_start: 0,
-        };
-        game_ticks
-    }
 }

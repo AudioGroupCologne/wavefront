@@ -1,6 +1,6 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
-use crate::components::{Drag, Source, Wall};
+use crate::components::{Drag, Source, Wall, SourceType};
 use crate::constants::*;
 use crate::grid::Grid;
 
@@ -67,17 +67,27 @@ pub fn mouse_button_input(
             if let Some((x, y)) =
                 screen_to_grid(position.x, position.y, window.width(), window.height())
             {
-                //TODO: because of the brush size, the indices may be out of bounds
-                //TODO: make bush size variable
-                commands.spawn(Wall(Grid::coords_to_index(x, y, 0)));
-                commands.spawn(Wall(Grid::coords_to_index(x + 1, y, 0)));
-                commands.spawn(Wall(Grid::coords_to_index(x - 1, y, 0)));
-                commands.spawn(Wall(Grid::coords_to_index(x, y + 1, 0)));
-                commands.spawn(Wall(Grid::coords_to_index(x + 1, y + 1, 0)));
-                commands.spawn(Wall(Grid::coords_to_index(x, y - 1, 0)));
-                commands.spawn(Wall(Grid::coords_to_index(x - 1, y - 1, 0)));
-                commands.spawn(Wall(Grid::coords_to_index(x + 1, y - 1, 0)));
-                commands.spawn(Wall(Grid::coords_to_index(x - 1, y + 1, 0)));
+
+                // this produces overlaping sources
+                commands.spawn(Source::new(
+                    Grid::coords_to_index(x, y, 0),
+                    10.,
+                    0.0,
+                    10_000.0,
+                    SourceType::Sin,
+                ));
+
+                // //TODO: because of the brush size, the indices may be out of bounds
+                // //TODO: make bush size variable
+                // commands.spawn(Wall(Grid::coords_to_index(x, y, 0)));
+                // commands.spawn(Wall(Grid::coords_to_index(x + 1, y, 0)));
+                // commands.spawn(Wall(Grid::coords_to_index(x - 1, y, 0)));
+                // commands.spawn(Wall(Grid::coords_to_index(x, y + 1, 0)));
+                // commands.spawn(Wall(Grid::coords_to_index(x + 1, y + 1, 0)));
+                // commands.spawn(Wall(Grid::coords_to_index(x, y - 1, 0)));
+                // commands.spawn(Wall(Grid::coords_to_index(x - 1, y - 1, 0)));
+                // commands.spawn(Wall(Grid::coords_to_index(x + 1, y - 1, 0)));
+                // commands.spawn(Wall(Grid::coords_to_index(x - 1, y + 1, 0)));
             }
         }
     }

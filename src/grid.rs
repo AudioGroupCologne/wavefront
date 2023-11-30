@@ -99,15 +99,13 @@ impl Grid {
         &mut self,
         ticks_since_start: u64,
         sources: &Query<&Source>,
-        ui_state: Res<UiState>,
     ) {
         let time = self.delta_t * ticks_since_start as f32; //the cast feels wrong, but it works for now
         for source in sources.iter() {
             //? maybe needs to be optimized
             let calc = match source.r#type {
                 SourceType::Sin => {
-                    // source.amplitude * (2. * PI * source.frequency * (time - source.phase)).sin()
-                    source.amplitude * (2. * PI * ui_state.value * (time - source.phase)).sin()
+                    source.amplitude * (2. * PI * source.frequency * (time - source.phase)).sin()
                 }
                 SourceType::Gauss => {
                     Source::periodic_gaussian(time, source.frequency, source.amplitude, 5., 1.)
@@ -195,10 +193,9 @@ pub fn apply_system(
     mut grid: ResMut<Grid>,
     sources: Query<&Source>,
     walls: Query<&Wall>,
-    ui_state: Res<UiState>,
     game_ticks: Res<GameTicks>,
 ) {
-    grid.apply_sources(game_ticks.ticks_since_start, &sources, ui_state);
+    grid.apply_sources(game_ticks.ticks_since_start, &sources);
     grid.apply_walls(&walls);
     grid.apply_boundaries();
 }
