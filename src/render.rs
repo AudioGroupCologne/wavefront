@@ -12,7 +12,7 @@ pub struct UiState {
 
 impl Default for UiState {
     fn default() -> Self {
-        Self { value: 1.0 }
+        Self { value: 10000.0 }
     }
 }
 
@@ -56,7 +56,7 @@ pub fn draw_pixels(
         ui.separator();
         ui.label("TODO");
 
-        ui.add(egui::Slider::new(&mut ui_state.value, 0.0..=5.0).text("value"));
+        ui.add(egui::Slider::new(&mut ui_state.value, 0.0..=20000.0).text("value"));
     });
     egui::CentralPanel::default().show(ctx, |ui| {
         // pb.update_fill_egui(ui.available_size());

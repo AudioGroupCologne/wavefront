@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use bevy::prelude::*;
 use smallvec::SmallVec;
 
-use crate::components::{Source, SourceType, Wall};
+use crate::components::{GameTicks, Source, SourceType, Wall};
 use crate::constants::*;
 use crate::render::UiState;
 
@@ -13,6 +13,10 @@ pub struct Grid {
     pub cells: Vec<f32>,
     /// A list of boundary nodes
     pub boundaries: Boundary,
+    /// Delta L in meters
+    pub delta_l: f32,
+    /// Delta s in seconds
+    pub delta_t: f32,
 }
 
 #[derive(Debug, Default)]
@@ -32,6 +36,8 @@ impl Default for Grid {
         let mut grid = Self {
             cells: vec![0.; (SIMULATION_WIDTH * SIMULATION_HEIGHT * NUM_INDEX) as usize],
             boundaries: Default::default(),
+            delta_l: 0.001,
+            delta_t: 0.001 / PROPAGATION_SPEED,
         };
         grid.init_boundaries();
         grid
@@ -39,6 +45,10 @@ impl Default for Grid {
 }
 
 impl Grid {
+    fn update_delta_t(&mut self) {
+        self.delta_t = self.delta_l / PROPAGATION_SPEED;
+    }
+
     fn update(&mut self) {
         for i in 0..SIMULATION_WIDTH * SIMULATION_HEIGHT {
             let array_pos: usize = (i * NUM_INDEX) as usize;
@@ -85,7 +95,13 @@ impl Grid {
         self.cells[coord_one_d + 7] = 0.5 * (bottom_top + left_right + top_bottom - right_left);
     }
 
-    fn apply_sources(&mut self, time: f32, sources: &Query<&Source>, ui_state: Res<UiState>) {
+    fn apply_sources(
+        &mut self,
+        ticks_since_start: u64,
+        sources: &Query<&Source>,
+        ui_state: Res<UiState>,
+    ) {
+        let time = self.delta_t * ticks_since_start as f32; //the cast feels wrong, but it works for now
         for source in sources.iter() {
             //? maybe needs to be optimized
             let calc = match source.r#type {
@@ -177,16 +193,17 @@ pub fn calc_system(mut grid: ResMut<Grid>) {
 
 pub fn apply_system(
     mut grid: ResMut<Grid>,
-    time: Res<Time>,
     sources: Query<&Source>,
     walls: Query<&Wall>,
     ui_state: Res<UiState>,
+    game_ticks: Res<GameTicks>,
 ) {
-    grid.apply_sources(time.elapsed_seconds(), &sources, ui_state);
+    grid.apply_sources(game_ticks.ticks_since_start, &sources, ui_state);
     grid.apply_walls(&walls);
     grid.apply_boundaries();
 }
 
-pub fn update_system(mut grid: ResMut<Grid>) {
+pub fn update_system(mut grid: ResMut<Grid>, mut game_ticks: ResMut<GameTicks>) {
     grid.update();
+    game_ticks.ticks_since_start += 1;
 }
