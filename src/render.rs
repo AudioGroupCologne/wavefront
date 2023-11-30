@@ -63,8 +63,8 @@ pub fn draw_pixels(
             egui::ScrollArea::vertical()
                 .max_height(400.)
                 .show(ui, |ui| {
-                    sources.iter_mut().for_each(|mut s| {
-                        ui.collapsing(format!("Source {}", s.index), |ui| {
+                    for (index, mut s) in sources.iter_mut().enumerate() {
+                        ui.collapsing(format!("Source {}", index), |ui| {
                             // debug ui
                             // ui.label(format!("Source {}", s.index));
                             // ui.label(format!("Type: {:?}", s.r#type));
@@ -77,13 +77,9 @@ pub fn draw_pixels(
                                     .text("Frequency (Hz)"),
                             );
                             ui.add(
-                                egui::Slider::new(&mut s.amplitude, 0.0..=25.0)
-                                    .text("Amplitude"),
+                                egui::Slider::new(&mut s.amplitude, 0.0..=25.0).text("Amplitude"),
                             );
-                            ui.add(
-                                egui::Slider::new(&mut s.phase, 0.0..=360.0)
-                                    .text("Phase (°)"),
-                            );
+                            ui.add(egui::Slider::new(&mut s.phase, 0.0..=360.0).text("Phase (°)"));
                             egui::ComboBox::from_label("Waveform")
                                 .selected_text(format!("{:?}", s.r#type))
                                 .show_ui(ui, |ui| {
@@ -91,7 +87,7 @@ pub fn draw_pixels(
                                     ui.selectable_value(&mut s.r#type, SourceType::Gauss, "Gauss");
                                 });
                         });
-                    })
+                    }
                 });
 
             // ui.add(egui::Slider::new(&mut ui_state.freq, 0.0..=20000.0).texts("Frequency (Hz)"));

@@ -34,7 +34,7 @@ pub struct Drag;
 pub struct Source {
     /// index of the cell in the grid
     pub index: usize,
-    /// phase shift of the function (currently in seconds)
+    /// phase shift of the function in degrees
     pub phase: f32,
     /// frequency of the function (in Hz)
     pub frequency: f32,
@@ -85,6 +85,13 @@ impl Source {
             Grid::coords_to_index(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 0),
             10.,
             0.0,
+            10000.0,
+            SourceType::Sin,
+        ));
+        commands.spawn(Source::new(
+            Grid::coords_to_index(SIMULATION_WIDTH / 4, SIMULATION_HEIGHT / 4, 0),
+            10.,
+            180.0,
             10000.0,
             SourceType::Sin,
         ));
