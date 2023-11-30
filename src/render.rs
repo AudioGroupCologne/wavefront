@@ -3,6 +3,7 @@ use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::{bevy_egui::egui, prelude::*};
 
 use crate::components::{GradientResource, Wall};
+use crate::constants::*;
 use crate::grid::Grid;
 
 #[derive(Resource)]
@@ -30,7 +31,7 @@ pub fn draw_pixels(
 ) {
     let mut frame = pb.frame();
     frame.per_pixel_par(|coords, _| {
-        let p = grid.cells[Grid::coords_to_index(coords.x, coords.y, 8)];
+        let p = grid.cells[Grid::coords_to_index(coords.x + E_AL, coords.y + E_AL, 8)];
         let color = gradient.0.at((p) as f64);
         Pixel {
             r: (color.r * 255.) as u8,
