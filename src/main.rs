@@ -9,7 +9,7 @@ use tlm_rs::render::{draw_pixels, UiState};
 
 fn main() {
     let size: PixelBufferSize = PixelBufferSize {
-        size: UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT),
+        size: UVec2::new(SIMULATION_WIDTH + 2 * E_AL, SIMULATION_HEIGHT + 2 * E_AL),
         pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
     };
 
@@ -35,12 +35,13 @@ fn main() {
                 Source::spawn_initial_sources,
             ),
         )
-        .add_systems(Update, (bevy::window::close_on_esc, mouse_button_input))
         .add_systems(
             Update,
             (
                 (calc_system, apply_system, update_system).chain(),
                 draw_pixels,
+                mouse_button_input,
+                bevy::window::close_on_esc,
             ),
         )
         .run();
