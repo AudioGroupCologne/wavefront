@@ -1,5 +1,6 @@
 use std::f32::consts::PI;
 
+use crate::constants::*;
 use bevy::prelude::*;
 
 use crate::{
@@ -82,7 +83,11 @@ impl Source {
 
     pub fn spawn_initial_sources(mut commands: Commands) {
         commands.spawn(Source::new(
-            Grid::coords_to_index(SIMULATION_WIDTH / 2, SIMULATION_HEIGHT / 2, 0),
+            Grid::coords_to_index(
+                (SIMULATION_WIDTH + 2 * E_AL) / 2,
+                (SIMULATION_HEIGHT + 2 * E_AL) / 2,
+                0,
+            ),
             10.,
             0.0,
             10000.0,

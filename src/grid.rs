@@ -34,7 +34,11 @@ pub struct Boundary {
 impl Default for Grid {
     fn default() -> Self {
         let mut grid = Self {
-            cells: vec![0.; (SIMULATION_WIDTH * SIMULATION_HEIGHT * NUM_INDEX) as usize],
+            cells: vec![
+                0.;
+                ((SIMULATION_WIDTH + 2 * E_AL) * (SIMULATION_HEIGHT + 2 * E_AL) * NUM_INDEX)
+                    as usize
+            ],
             boundaries: Default::default(),
             delta_l: 0.001, //basically useless when using val from ui
             delta_t: 0.001 / PROPAGATION_SPEED,
@@ -50,7 +54,7 @@ impl Grid {
     }
 
     fn update(&mut self) {
-        for i in 0..SIMULATION_WIDTH * SIMULATION_HEIGHT {
+        for i in 0..(SIMULATION_WIDTH + 2 * E_AL) * (SIMULATION_HEIGHT + 2 * E_AL) {
             let array_pos: usize = (i * NUM_INDEX) as usize;
 
             self.cells[array_pos] = self.cells[array_pos + 4];
@@ -68,8 +72,8 @@ impl Grid {
     }
 
     fn calc(&mut self) {
-        for x in 1..SIMULATION_WIDTH - 1 {
-            for y in 1..SIMULATION_HEIGHT - 1 {
+        for x in E_AL..(SIMULATION_WIDTH + E_AL) {
+            for y in E_AL..(SIMULATION_HEIGHT + E_AL) {
                 self.calc_cell(
                     Grid::coords_to_index(x, y, 0),
                     self.cells[Grid::coords_to_index(x, y + 1, 2)],
@@ -127,22 +131,238 @@ impl Grid {
     }
 
     fn apply_boundaries(&mut self) {
-        //pls math check
-        for &boundary_index in self.boundaries.bottom.iter() {
-            self.cells[boundary_index + 6] =
-                BOUNDARY_FAC * self.cells[boundary_index - (NUM_INDEX * SIMULATION_WIDTH) as usize];
+        let b = (E_AL * E_AL) as f32 / (f32::ln(EPSILON));
+        //Left
+        for x in 1..E_AL {
+            for y in E_AL..(SIMULATION_HEIGHT + E_AL) {
+                let attenuation_factor =
+                    1.0 - ((1. + EPSILON) - f32::exp(((E_AL - x) * (E_AL - x)) as f32 / b));
+                let current_cell = Grid::coords_to_index(x, y, 0);
+                let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2)];
+                let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3)];
+                let top_bottom = self.cells[Grid::coords_to_index(x, y - 1, 0)];
+                let right_left = self.cells[Grid::coords_to_index(x + 1, y, 1)];
+                self.cells[current_cell + 4] =
+                    0.5 * (-bottom_top + left_right + top_bottom + attenuation_factor * right_left);
+                self.cells[current_cell + 5] =
+                    0.5 * (bottom_top - left_right + top_bottom + attenuation_factor * right_left);
+                self.cells[current_cell + 6] =
+                    0.5 * (bottom_top + left_right - top_bottom + attenuation_factor * right_left);
+                self.cells[current_cell + 7] =
+                    0.5 * (bottom_top + left_right + top_bottom - attenuation_factor * right_left);
+            }
         }
-        for &boundary_index in self.boundaries.left.iter() {
-            self.cells[boundary_index + 7] =
-                BOUNDARY_FAC * self.cells[boundary_index + NUM_INDEX as usize + 1];
+        //Top
+        for x in E_AL..(SIMULATION_WIDTH + E_AL) {
+            for y in 1..E_AL {
+                let attenuation_factor =
+                    1.0 - ((1. + EPSILON) - f32::exp(((E_AL - y) * (E_AL - y)) as f32 / b));
+                let current_cell = Grid::coords_to_index(x, y, 0);
+                let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2)];
+                let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3)];
+                let top_bottom = self.cells[Grid::coords_to_index(x, y - 1, 0)];
+                let right_left = self.cells[Grid::coords_to_index(x + 1, y, 1)];
+                self.cells[current_cell + 4] =
+                    0.5 * (-attenuation_factor * bottom_top + left_right + top_bottom + right_left);
+                self.cells[current_cell + 5] =
+                    0.5 * (attenuation_factor * bottom_top - left_right + top_bottom + right_left);
+                self.cells[current_cell + 6] =
+                    0.5 * (attenuation_factor * bottom_top + left_right - top_bottom + right_left);
+                self.cells[current_cell + 7] =
+                    0.5 * (attenuation_factor * bottom_top + left_right + top_bottom - right_left);
+            }
         }
-        for &boundary_index in self.boundaries.top.iter() {
-            self.cells[boundary_index + 4] = BOUNDARY_FAC
-                * self.cells[boundary_index + (NUM_INDEX * SIMULATION_WIDTH) as usize + 2];
+        //Right
+        for x in (SIMULATION_WIDTH + E_AL)..(SIMULATION_WIDTH + 2 * E_AL - 1) {
+            for y in E_AL..(SIMULATION_HEIGHT + E_AL) {
+                let attenuation_factor = 1.0
+                    - ((1. + EPSILON)
+                        - f32::exp(
+                            ((x - (SIMULATION_WIDTH + E_AL)) * (x - (SIMULATION_WIDTH + E_AL)))
+                                as f32
+                                / b,
+                        ));
+                let current_cell = Grid::coords_to_index(x, y, 0);
+                let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2)];
+                let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3)];
+                let top_bottom = self.cells[Grid::coords_to_index(x, y - 1, 0)];
+                let right_left = self.cells[Grid::coords_to_index(x + 1, y, 1)];
+                self.cells[current_cell + 4] =
+                    0.5 * (-bottom_top + attenuation_factor * left_right + top_bottom + right_left);
+                self.cells[current_cell + 5] =
+                    0.5 * (bottom_top - attenuation_factor * left_right + top_bottom + right_left);
+                self.cells[current_cell + 6] =
+                    0.5 * (bottom_top + attenuation_factor * left_right - top_bottom + right_left);
+                self.cells[current_cell + 7] =
+                    0.5 * (bottom_top + attenuation_factor * left_right + top_bottom - right_left);
+            }
         }
-        for &boundary_index in self.boundaries.right.iter() {
-            self.cells[boundary_index + 5] =
-                BOUNDARY_FAC * self.cells[boundary_index - NUM_INDEX as usize + 3];
+        //Bottom
+        for x in E_AL..(SIMULATION_WIDTH + E_AL) {
+            for y in (SIMULATION_HEIGHT + E_AL)..(SIMULATION_HEIGHT + 2 * E_AL - 1) {
+                let attenuation_factor = 1.0
+                    - ((1. + EPSILON)
+                        - f32::exp(
+                            ((y - (SIMULATION_HEIGHT + E_AL)) * (y - (SIMULATION_HEIGHT + E_AL)))
+                                as f32
+                                / b,
+                        ));
+                let current_cell = Grid::coords_to_index(x, y, 0);
+                let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2)];
+                let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3)];
+                let top_bottom = self.cells[Grid::coords_to_index(x, y - 1, 0)];
+                let right_left = self.cells[Grid::coords_to_index(x + 1, y, 1)];
+                self.cells[current_cell + 4] =
+                    0.5 * (-bottom_top + left_right + attenuation_factor * top_bottom + right_left);
+                self.cells[current_cell + 5] =
+                    0.5 * (bottom_top - left_right + attenuation_factor * top_bottom + right_left);
+                self.cells[current_cell + 6] =
+                    0.5 * (bottom_top + left_right - attenuation_factor * top_bottom + right_left);
+                self.cells[current_cell + 7] =
+                    0.5 * (bottom_top + left_right + attenuation_factor * top_bottom - right_left);
+            }
+        }
+        //LeftTop
+        for x in 1..E_AL {
+            for y in 1..E_AL {
+                let attenuation_factor_left =
+                    1.0 - ((1. + EPSILON) - f32::exp(((E_AL - x) * (E_AL - x)) as f32 / b));
+                let attenuation_factor_top =
+                    1.0 - ((1. + EPSILON) - f32::exp(((E_AL - y) * (E_AL - y)) as f32 / b));
+                let current_cell = Grid::coords_to_index(x, y, 0);
+                let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2)];
+                let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3)];
+                let top_bottom = self.cells[Grid::coords_to_index(x, y - 1, 0)];
+                let right_left = self.cells[Grid::coords_to_index(x + 1, y, 1)];
+                self.cells[current_cell + 4] = 0.5
+                    * (-attenuation_factor_top * bottom_top
+                        + left_right
+                        + top_bottom
+                        + attenuation_factor_left * right_left);
+                self.cells[current_cell + 5] = 0.5
+                    * (attenuation_factor_top * bottom_top - left_right
+                        + top_bottom
+                        + attenuation_factor_left * right_left);
+                self.cells[current_cell + 6] = 0.5
+                    * (attenuation_factor_top * bottom_top + left_right - top_bottom
+                        + attenuation_factor_left * right_left);
+                self.cells[current_cell + 7] = 0.5
+                    * (attenuation_factor_top * bottom_top + left_right + top_bottom
+                        - attenuation_factor_left * right_left);
+            }
+        }
+        //RightTop
+        for x in (SIMULATION_WIDTH + E_AL)..(SIMULATION_WIDTH + 2 * E_AL - 1) {
+            for y in 1..E_AL {
+                let attenuation_factor_right = 1.0
+                    - ((1. + EPSILON)
+                        - f32::exp(
+                            ((x - (SIMULATION_WIDTH + E_AL)) * (x - (SIMULATION_WIDTH + E_AL)))
+                                as f32
+                                / b,
+                        ));
+                let attenuation_factor_top =
+                    1.0 - ((1. + EPSILON) - f32::exp(((E_AL - y) * (E_AL - y)) as f32 / b));
+                let current_cell = Grid::coords_to_index(x, y, 0);
+                let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2)];
+                let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3)];
+                let top_bottom = self.cells[Grid::coords_to_index(x, y - 1, 0)];
+                let right_left = self.cells[Grid::coords_to_index(x + 1, y, 1)];
+                self.cells[current_cell + 4] = 0.5
+                    * (-attenuation_factor_top * bottom_top
+                        + attenuation_factor_right * left_right
+                        + top_bottom
+                        + right_left);
+                self.cells[current_cell + 5] = 0.5
+                    * (attenuation_factor_top * bottom_top - attenuation_factor_right * left_right
+                        + top_bottom
+                        + right_left);
+                self.cells[current_cell + 6] = 0.5
+                    * (attenuation_factor_top * bottom_top + attenuation_factor_right * left_right
+                        - top_bottom
+                        + right_left);
+                self.cells[current_cell + 7] = 0.5
+                    * (attenuation_factor_top * bottom_top
+                        + attenuation_factor_right * left_right
+                        + top_bottom
+                        - right_left);
+            }
+        }
+        //RightBottom
+        for x in (SIMULATION_WIDTH + E_AL)..(SIMULATION_WIDTH + 2 * E_AL - 1) {
+            for y in (SIMULATION_HEIGHT + E_AL)..(SIMULATION_HEIGHT + 2 * E_AL - 1) {
+                let attenuation_factor_right = 1.0
+                    - ((1. + EPSILON)
+                        - f32::exp(
+                            ((x - (SIMULATION_WIDTH + E_AL)) * (x - (SIMULATION_WIDTH + E_AL)))
+                                as f32
+                                / b,
+                        ));
+                let attenuation_factor_bottom = 1.0
+                    - ((1. + EPSILON)
+                        - f32::exp(
+                            ((y - (SIMULATION_HEIGHT + E_AL)) * (y - (SIMULATION_HEIGHT + E_AL)))
+                                as f32
+                                / b,
+                        ));
+                let current_cell = Grid::coords_to_index(x, y, 0);
+                let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2)];
+                let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3)];
+                let top_bottom = self.cells[Grid::coords_to_index(x, y - 1, 0)];
+                let right_left = self.cells[Grid::coords_to_index(x + 1, y, 1)];
+                self.cells[current_cell + 4] = 0.5
+                    * (-bottom_top
+                        + attenuation_factor_right * left_right
+                        + attenuation_factor_bottom * top_bottom
+                        + right_left);
+                self.cells[current_cell + 5] = 0.5
+                    * (bottom_top - attenuation_factor_right * left_right
+                        + attenuation_factor_bottom * top_bottom
+                        + right_left);
+                self.cells[current_cell + 6] = 0.5
+                    * (bottom_top + attenuation_factor_right * left_right
+                        - attenuation_factor_bottom * top_bottom
+                        + right_left);
+                self.cells[current_cell + 7] = 0.5
+                    * (bottom_top
+                        + attenuation_factor_right * left_right
+                        + attenuation_factor_bottom * top_bottom
+                        - right_left);
+            }
+        }
+        //LeftBottom
+        for x in 1..E_AL {
+            for y in (SIMULATION_HEIGHT + E_AL)..(SIMULATION_HEIGHT + 2 * E_AL - 1) {
+                let attenuation_factor_left =
+                    1.0 - ((1. + EPSILON) - f32::exp(((E_AL - x) * (E_AL - x)) as f32 / b));
+                let attenuation_factor_bottom = 1.0
+                    - ((1. + EPSILON)
+                        - f32::exp(
+                            ((y - (SIMULATION_HEIGHT + E_AL)) * (y - (SIMULATION_HEIGHT + E_AL)))
+                                as f32
+                                / b,
+                        ));
+                let current_cell = Grid::coords_to_index(x, y, 0);
+                let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2)];
+                let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3)];
+                let top_bottom = self.cells[Grid::coords_to_index(x, y - 1, 0)];
+                let right_left = self.cells[Grid::coords_to_index(x + 1, y, 1)];
+                self.cells[current_cell + 4] = 0.5
+                    * (-bottom_top
+                        + left_right
+                        + attenuation_factor_bottom * top_bottom
+                        + attenuation_factor_left * right_left);
+                self.cells[current_cell + 5] = 0.5
+                    * (bottom_top - left_right
+                        + attenuation_factor_bottom * top_bottom
+                        + attenuation_factor_left * right_left);
+                self.cells[current_cell + 6] = 0.5
+                    * (bottom_top + left_right - attenuation_factor_bottom * top_bottom
+                        + attenuation_factor_left * right_left);
+                self.cells[current_cell + 7] = 0.5
+                    * (bottom_top + left_right + attenuation_factor_bottom * top_bottom
+                        - attenuation_factor_left * right_left);
+            }
         }
     }
 
@@ -171,13 +391,13 @@ impl Grid {
 
     /// Calculates 1D array index from x,y coordinates (and an offset `index`)
     pub fn coords_to_index(x: u32, y: u32, index: u32) -> usize {
-        (y * SIMULATION_WIDTH * NUM_INDEX + x * NUM_INDEX + index) as usize
+        (y * (SIMULATION_WIDTH + 2 * E_AL) * NUM_INDEX + x * NUM_INDEX + index) as usize
     }
 
     /// Calculates x,y coordinates from 1D array index
     pub fn index_to_coords(i: u32) -> (u32, u32) {
-        let x = (i / 9) % SIMULATION_WIDTH;
-        let y = i / 9 / SIMULATION_WIDTH;
+        let x = (i / 9) % (SIMULATION_WIDTH + 2 * E_AL);
+        let y = i / 9 / (SIMULATION_WIDTH + 2 * E_AL);
         (x, y)
     }
 }
