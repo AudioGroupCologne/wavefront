@@ -1,14 +1,28 @@
 use bevy::prelude::*;
-use bevy_pixel_buffer::prelude::*;
+use bevy_pixel_buffer::bevy_egui::EguiContexts;
+use bevy_pixel_buffer::{bevy_egui::egui, prelude::*};
 
 use crate::components::{GradientResource, Wall};
 use crate::grid::Grid;
 
+#[derive(Resource)]
+pub struct UiState {
+    pub value: f32,
+}
+
+impl Default for UiState {
+    fn default() -> Self {
+        Self { value: 1.0 }
+    }
+}
+
 pub fn draw_pixels(
     mut pb: QueryPixelBuffer,
+    mut egui_context: EguiContexts,
     grid: Res<Grid>,
     gradient: Res<GradientResource>,
     walls: Query<&Wall>,
+    mut ui_state: ResMut<UiState>,
 ) {
     let mut frame = pb.frame();
     frame.per_pixel_par(|coords, _| {
@@ -35,4 +49,19 @@ pub fn draw_pixels(
             },
         );
     }
+
+    let ctx = egui_context.ctx_mut();
+    egui::SidePanel::left("left_panel").show(ctx, |ui| {
+        ui.heading("Settings");
+        ui.separator();
+        ui.label("TODO");
+
+        ui.add(egui::Slider::new(&mut ui_state.value, 0.0..=5.0).text("value"));
+    });
+    egui::CentralPanel::default().show(ctx, |ui| {
+        // pb.update_fill_egui(ui.available_size());
+
+        let texture = pb.egui_texture();
+        ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
+    });
 }

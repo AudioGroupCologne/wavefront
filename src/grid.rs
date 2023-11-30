@@ -3,8 +3,9 @@ use std::f32::consts::PI;
 use bevy::prelude::*;
 use smallvec::SmallVec;
 
-use crate::components::{GameTicks, Source, SourceType, Wall};
+use crate::components::{Source, SourceType, Wall};
 use crate::constants::*;
+use crate::render::UiState;
 
 #[derive(Debug, Resource)]
 pub struct Grid {
@@ -12,10 +13,6 @@ pub struct Grid {
     pub cells: Vec<f32>,
     /// A list of boundary nodes
     pub boundaries: Boundary,
-    /// Delta L in meters
-    pub delta_l: f32,
-    /// Delta s in seconds
-    pub delta_t: f32,
 }
 
 #[derive(Debug, Default)]
@@ -35,8 +32,6 @@ impl Default for Grid {
         let mut grid = Self {
             cells: vec![0.; (SIMULATION_WIDTH * SIMULATION_HEIGHT * NUM_INDEX) as usize],
             boundaries: Default::default(),
-            delta_l: 0.001,
-            delta_t: 0.001 / PROPAGATION_SPEED,
         };
         grid.init_boundaries();
         grid
@@ -44,10 +39,6 @@ impl Default for Grid {
 }
 
 impl Grid {
-    fn update_delta_t(&mut self) {
-        self.delta_t = self.delta_l / PROPAGATION_SPEED;
-    }
-
     fn update(&mut self) {
         for i in 0..SIMULATION_WIDTH * SIMULATION_HEIGHT {
             let array_pos: usize = (i * NUM_INDEX) as usize;
@@ -94,13 +85,13 @@ impl Grid {
         self.cells[coord_one_d + 7] = 0.5 * (bottom_top + left_right + top_bottom - right_left);
     }
 
-    fn apply_sources(&mut self, sources: &Query<&Source>, ticks_since_start: u64) {
-        let time = self.delta_t * ticks_since_start as f32; //the cast feels wrong, but it works for now
+    fn apply_sources(&mut self, time: f32, sources: &Query<&Source>, ui_state: Res<UiState>) {
         for source in sources.iter() {
             //? maybe needs to be optimized
             let calc = match source.r#type {
                 SourceType::Sin => {
-                    source.amplitude * (2. * PI * source.frequency * (time - source.phase)).sin()
+                    // source.amplitude * (2. * PI * source.frequency * (time - source.phase)).sin()
+                    source.amplitude * (2. * PI * ui_state.value * (time - source.phase)).sin()
                 }
                 SourceType::Gauss => {
                     Source::periodic_gaussian(time, source.frequency, source.amplitude, 5., 1.)
@@ -189,14 +180,13 @@ pub fn apply_system(
     time: Res<Time>,
     sources: Query<&Source>,
     walls: Query<&Wall>,
-    game_ticks: Res<GameTicks>,
+    ui_state: Res<UiState>,
 ) {
-    grid.apply_sources(&sources, game_ticks.ticks_since_start);
+    grid.apply_sources(time.elapsed_seconds(), &sources, ui_state);
     grid.apply_walls(&walls);
     grid.apply_boundaries();
 }
 
-pub fn update_system(mut grid: ResMut<Grid>, mut game_ticks: ResMut<GameTicks>) {
+pub fn update_system(mut grid: ResMut<Grid>) {
     grid.update();
-    game_ticks.ticks_since_start += 1;
 }

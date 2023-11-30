@@ -1,10 +1,11 @@
 use bevy::prelude::*;
+use bevy_pixel_buffer::bevy_egui::EguiPlugin;
 use bevy_pixel_buffer::prelude::*;
-use tlm_rs::components::{GameTicks, GradientResource, Source};
+use tlm_rs::components::{GradientResource, Source};
 use tlm_rs::constants::*;
 use tlm_rs::grid::{apply_system, calc_system, update_system, Grid};
 use tlm_rs::input::mouse_button_input;
-use tlm_rs::render::draw_pixels;
+use tlm_rs::render::{draw_pixels, UiState};
 
 fn main() {
     let size: PixelBufferSize = PixelBufferSize {
@@ -13,18 +14,23 @@ fn main() {
     };
 
     let grid = Grid::default();
-    let game_ticks = GameTicks::default();
 
     let gradient = GradientResource::with_custom();
 
     App::new()
-        .add_plugins((DefaultPlugins, PixelBufferPlugin))
+        .add_plugins((DefaultPlugins, PixelBufferPlugins, EguiPlugin))
         .insert_resource(grid)
         .insert_resource(gradient)
-        .insert_resource(game_ticks)
+        .init_resource::<UiState>()
         .add_systems(
             Startup,
-            (pixel_buffer_setup(size), Source::spawn_initial_sources),
+            (
+                PixelBufferBuilder::new()
+                    .with_size(size)
+                    .with_render(false)
+                    .setup(),
+                Source::spawn_initial_sources,
+            ),
         )
         .add_systems(Update, (bevy::window::close_on_esc, mouse_button_input))
         .add_systems(
