@@ -5,6 +5,7 @@ use smallvec::SmallVec;
 
 use crate::components::{Source, SourceType, Wall};
 use crate::constants::*;
+use crate::render::UiState;
 
 #[derive(Debug, Resource)]
 pub struct Grid {
@@ -84,12 +85,13 @@ impl Grid {
         self.cells[coord_one_d + 7] = 0.5 * (bottom_top + left_right + top_bottom - right_left);
     }
 
-    fn apply_sources(&mut self, time: f32, sources: &Query<&Source>) {
+    fn apply_sources(&mut self, time: f32, sources: &Query<&Source>, ui_state: Res<UiState>) {
         for source in sources.iter() {
             //? maybe needs to be optimized
             let calc = match source.r#type {
                 SourceType::Sin => {
-                    source.amplitude * (2. * PI * source.frequency * (time - source.phase)).sin()
+                    // source.amplitude * (2. * PI * source.frequency * (time - source.phase)).sin()
+                    source.amplitude * (2. * PI * ui_state.value * (time - source.phase)).sin()
                 }
                 SourceType::Gauss => {
                     Source::periodic_gaussian(time, source.frequency, source.amplitude, 5., 1.)
@@ -156,7 +158,7 @@ impl Grid {
         }
     }
 
-    /// Calculates 1D array index from x,y coordinates (and an offset `index`) 
+    /// Calculates 1D array index from x,y coordinates (and an offset `index`)
     pub fn coords_to_index(x: u32, y: u32, index: u32) -> usize {
         (y * SIMULATION_WIDTH * NUM_INDEX + x * NUM_INDEX + index) as usize
     }
@@ -178,8 +180,9 @@ pub fn apply_system(
     time: Res<Time>,
     sources: Query<&Source>,
     walls: Query<&Wall>,
+    ui_state: Res<UiState>,
 ) {
-    grid.apply_sources(time.elapsed_seconds(), &sources);
+    grid.apply_sources(time.elapsed_seconds(), &sources, ui_state);
     grid.apply_walls(&walls);
     grid.apply_boundaries();
 }
