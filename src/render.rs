@@ -8,11 +8,15 @@ use crate::grid::Grid;
 #[derive(Resource)]
 pub struct UiState {
     pub value: f32,
+    pub delta_l: f32,
 }
 
 impl Default for UiState {
     fn default() -> Self {
-        Self { value: 10000.0 }
+        Self {
+            value: 10000.0,
+            delta_l: 0.001,
+        }
     }
 }
 
@@ -57,6 +61,11 @@ pub fn draw_pixels(
         ui.label("TODO");
 
         ui.add(egui::Slider::new(&mut ui_state.value, 0.0..=20000.0).text("value"));
+        ui.add(
+            egui::Slider::new(&mut ui_state.delta_l, 0.0..=10.0)
+                .text("Delta L")
+                .logarithmic(true),
+        );
     });
     egui::CentralPanel::default().show(ctx, |ui| {
         // pb.update_fill_egui(ui.available_size());

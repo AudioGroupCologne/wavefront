@@ -36,7 +36,7 @@ impl Default for Grid {
         let mut grid = Self {
             cells: vec![0.; (SIMULATION_WIDTH * SIMULATION_HEIGHT * NUM_INDEX) as usize],
             boundaries: Default::default(),
-            delta_l: 0.001,
+            delta_l: 0.001, //basically useless when using val from ui
             delta_t: 0.001 / PROPAGATION_SPEED,
         };
         grid.init_boundaries();
@@ -45,8 +45,8 @@ impl Default for Grid {
 }
 
 impl Grid {
-    fn update_delta_t(&mut self) {
-        self.delta_t = self.delta_l / PROPAGATION_SPEED;
+    fn update_delta_t(&mut self, ui_state: Res<UiState>) {
+        self.delta_t = ui_state.delta_l / PROPAGATION_SPEED;
     }
 
     fn update(&mut self) {
@@ -203,7 +203,12 @@ pub fn apply_system(
     grid.apply_boundaries();
 }
 
-pub fn update_system(mut grid: ResMut<Grid>, mut game_ticks: ResMut<GameTicks>) {
+pub fn update_system(
+    mut grid: ResMut<Grid>,
+    mut game_ticks: ResMut<GameTicks>,
+    ui_state: Res<UiState>,
+) {
     grid.update();
+    grid.update_delta_t(ui_state);
     game_ticks.ticks_since_start += 1;
 }
