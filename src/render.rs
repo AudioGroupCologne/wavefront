@@ -25,42 +25,12 @@ impl Default for UiState {
     }
 }
 
-pub fn draw_pixels(
-    mut pb: QueryPixelBuffer,
+pub fn draw_egui(
+    pb: QueryPixelBuffer,
     mut egui_context: EguiContexts,
-    grid: Res<Grid>,
-    gradient: Res<GradientResource>,
-    walls: Query<&Wall>,
     mut sources: Query<&mut Source>,
     mut ui_state: ResMut<UiState>,
 ) {
-    let mut frame = pb.frame();
-    frame.per_pixel_par(|coords, _| {
-        let p = grid.cells[Grid::coords_to_index(coords.x + E_AL, coords.y + E_AL, 8)];
-        // let p = grid.cells[Grid::coords_to_index(coords.x, coords.y, 8)]; // render abc
-        let color = gradient.0.at((p) as f64);
-        Pixel {
-            r: (color.r * 255.) as u8,
-            g: (color.g * 255.) as u8,
-            b: (color.b * 255.) as u8,
-            a: 255,
-        }
-    });
-    // Walls
-    for wall in walls.iter() {
-        let (x, y) = Grid::index_to_coords(wall.0 as u32);
-        //TODO: handle result
-        let _ = frame.set(
-            UVec2::new(x, y),
-            Pixel {
-                r: 255,
-                g: 255,
-                b: 255,
-                a: 255,
-            },
-        );
-    }
-
     let ctx = egui_context.ctx_mut();
     egui::SidePanel::left("left_panel")
         .default_width(300.)
@@ -126,3 +96,37 @@ pub fn draw_pixels(
         ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
     });
 }
+
+pub fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<Grid>, gradient: Res<GradientResource>) {
+    let mut frame = pb.frame();
+    frame.per_pixel_par(|coords, _| {
+        let p = grid.cells[Grid::coords_to_index(coords.x + E_AL, coords.y + E_AL, 8)];
+        // let p = grid.cells[Grid::coords_to_index(coords.x, coords.y, 8)]; // render abc
+        let color = gradient.0.at((p) as f64);
+        Pixel {
+            r: (color.r * 255.) as u8,
+            g: (color.g * 255.) as u8,
+            b: (color.b * 255.) as u8,
+            a: 255,
+        }
+    });
+}
+
+pub fn draw_walls(mut pb: QueryPixelBuffer, walls: Query<&Wall>) {
+    let mut frame = pb.frame();
+    for wall in walls.iter() {
+        let (x, y) = Grid::index_to_coords(wall.0 as u32);
+        //TODO: handle result
+        let _ = frame.set(
+            UVec2::new(x, y),
+            Pixel {
+                r: 255,
+                g: 255,
+                b: 255,
+                a: 255,
+            },
+        );
+    }
+}
+
+pub fn draw_misc() {}

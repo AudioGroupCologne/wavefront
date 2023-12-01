@@ -5,7 +5,7 @@ use tlm_rs::components::{GameTicks, GradientResource, Source};
 use tlm_rs::constants::*;
 use tlm_rs::grid::{apply_system, calc_system, update_system, Grid};
 use tlm_rs::input::mouse_button_input;
-use tlm_rs::render::{draw_pixels, UiState};
+use tlm_rs::render::{draw_egui, draw_pixels, draw_walls, UiState};
 
 fn main() {
     let size: PixelBufferSize = PixelBufferSize {
@@ -40,7 +40,7 @@ fn main() {
             Update,
             (
                 (calc_system, apply_system, update_system).chain(),
-                draw_pixels,
+                (draw_pixels, draw_walls, draw_egui).chain(),
                 mouse_button_input,
                 bevy::window::close_on_esc,
             ),
