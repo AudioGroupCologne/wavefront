@@ -8,9 +8,11 @@ use crate::grid::Grid;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum AttenuationType {
-    OneWay,
+    Power,
+    OriginalOneWay,
     Linear,
-    PowerFive,
+    Old,
+    DoNothing,
 }
 
 #[derive(Resource)]
@@ -20,6 +22,7 @@ pub struct UiState {
     pub e_al: u32,
     pub render_abc_area: bool,
     pub at_type: AttenuationType,
+    pub power_order: u32,
 }
 
 impl Default for UiState {
@@ -29,7 +32,8 @@ impl Default for UiState {
             epsilon: 0.001,
             e_al: 50,
             render_abc_area: false,
-            at_type: AttenuationType::OneWay,
+            at_type: AttenuationType::Power,
+            power_order: 5,
         }
     }
 }
@@ -86,12 +90,6 @@ pub fn draw_egui(
             );
 
             ui.collapsing("ABC", |ui| {
-                ui.add(
-                    egui::Slider::new(&mut ui_state.epsilon, 0.000001..=1.0)
-                        .text("Epsilon")
-                        .logarithmic(true),
-                );
-
                 if ui
                     .add(egui::Slider::new(&mut ui_state.e_al, 2..=200).text("E_AL"))
                     .changed()
@@ -134,10 +132,11 @@ pub fn draw_egui(
                 egui::ComboBox::from_label("Attenuation Type")
                     .selected_text(format!("{:?}", ui_state.at_type))
                     .show_ui(ui, |ui| {
+                        ui.selectable_value(&mut ui_state.at_type, AttenuationType::Power, "Power");
                         ui.selectable_value(
                             &mut ui_state.at_type,
-                            AttenuationType::OneWay,
-                            "OneWay",
+                            AttenuationType::OriginalOneWay,
+                            "OriginalOneWay",
                         );
                         ui.selectable_value(
                             &mut ui_state.at_type,
@@ -146,10 +145,29 @@ pub fn draw_egui(
                         );
                         ui.selectable_value(
                             &mut ui_state.at_type,
-                            AttenuationType::PowerFive,
-                            "PowerFive",
+                            AttenuationType::Old,
+                            "Old (ThTank)",
+                        );
+                        ui.selectable_value(
+                            &mut ui_state.at_type,
+                            AttenuationType::DoNothing,
+                            "Nothing",
                         );
                     });
+
+                match ui_state.at_type {
+                    AttenuationType::OriginalOneWay => ui.add(
+                        egui::Slider::new(&mut ui_state.epsilon, 0.000001..=1.0)
+                            .text("Epsilon")
+                            .logarithmic(true),
+                    ),
+                    AttenuationType::Power => ui.add(
+                        egui::Slider::new(&mut ui_state.power_order, 1..=10)
+                            .text("Power")
+                            .logarithmic(true),
+                    ),
+                    _other => ui.label("Nothing to change here"),
+                }
             });
         });
 

@@ -136,6 +136,7 @@ impl Grid {
                     ui_state.epsilon,
                     b,
                     ui_state.at_type,
+                    ui_state.power_order,
                 );
 
                 let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
@@ -162,6 +163,7 @@ impl Grid {
                     ui_state.epsilon,
                     b,
                     ui_state.at_type,
+                    ui_state.power_order,
                 );
 
                 let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
@@ -188,6 +190,7 @@ impl Grid {
                     ui_state.epsilon,
                     b,
                     ui_state.at_type,
+                    ui_state.power_order,
                 );
 
                 let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
@@ -216,6 +219,7 @@ impl Grid {
                     ui_state.epsilon,
                     b,
                     ui_state.at_type,
+                    ui_state.power_order,
                 );
 
                 let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
@@ -242,6 +246,7 @@ impl Grid {
                     ui_state.epsilon,
                     b,
                     ui_state.at_type,
+                    ui_state.power_order,
                 );
 
                 let attenuation_factor_top = Grid::attenuation_factor(
@@ -250,6 +255,7 @@ impl Grid {
                     ui_state.epsilon,
                     b,
                     ui_state.at_type,
+                    ui_state.power_order,
                 );
 
                 let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
@@ -283,6 +289,7 @@ impl Grid {
                     ui_state.epsilon,
                     b,
                     ui_state.at_type,
+                    ui_state.power_order,
                 );
 
                 let attenuation_factor_top = Grid::attenuation_factor(
@@ -291,6 +298,7 @@ impl Grid {
                     ui_state.epsilon,
                     b,
                     ui_state.at_type,
+                    ui_state.power_order,
                 );
 
                 let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
@@ -329,6 +337,7 @@ impl Grid {
                     ui_state.epsilon,
                     b,
                     ui_state.at_type,
+                    ui_state.power_order,
                 );
 
                 let attenuation_factor_bottom = Grid::attenuation_factor(
@@ -337,6 +346,7 @@ impl Grid {
                     ui_state.epsilon,
                     b,
                     ui_state.at_type,
+                    ui_state.power_order,
                 );
 
                 let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
@@ -375,6 +385,7 @@ impl Grid {
                     ui_state.epsilon,
                     b,
                     ui_state.at_type,
+                    ui_state.power_order,
                 );
 
                 let attenuation_factor_bottom = Grid::attenuation_factor(
@@ -383,6 +394,7 @@ impl Grid {
                     ui_state.epsilon,
                     b,
                     ui_state.at_type,
+                    ui_state.power_order,
                 );
 
                 let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
@@ -415,13 +427,25 @@ impl Grid {
         epsilon: f32,
         b: f32,
         at_type: AttenuationType,
+        power_order: u32,
     ) -> f32 {
         match at_type {
-            AttenuationType::OneWay => {
+            AttenuationType::OriginalOneWay => {
                 1.0 - ((1. + epsilon) - f32::exp((distance * distance) as f32 / b))
             }
             AttenuationType::Linear => 1.0 - ((distance) as f32 / e_al as f32).powi(1),
-            AttenuationType::PowerFive => 1.0 - ((distance) as f32 / e_al as f32).powi(5),
+            AttenuationType::Power => {
+                1.0 - ((distance) as f32 / e_al as f32).powi(power_order as i32)
+            }
+            // doesn't work
+            AttenuationType::Old => {
+                if distance == 1 {
+                    -0.17157287525
+                } else {
+                    0.
+                }
+            }
+            AttenuationType::DoNothing => 0.0,
         }
     }
 
