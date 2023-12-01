@@ -87,6 +87,7 @@ impl Source {
                 (SIMULATION_WIDTH + 2 * E_AL) / 2,
                 (SIMULATION_HEIGHT + 2 * E_AL) / 2,
                 0,
+                E_AL,
             ),
             10.,
             0.0,
@@ -94,7 +95,7 @@ impl Source {
             SourceType::Sin,
         ));
         commands.spawn(Source::new(
-            Grid::coords_to_index(SIMULATION_WIDTH / 4, SIMULATION_HEIGHT / 4, 0),
+            Grid::coords_to_index(SIMULATION_WIDTH / 4, SIMULATION_HEIGHT / 4, 0, E_AL),
             10.,
             180.0,
             10000.0,

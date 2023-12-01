@@ -1,8 +1,11 @@
+use bevy::ui;
 use bevy::{prelude::*, window::PrimaryWindow};
 
 use crate::components::{Drag, Source, SourceType, Wall};
 use crate::constants::*;
 use crate::grid::Grid;
+
+use crate::render::UiState;
 
 fn screen_to_grid(x: f32, y: f32, screen_width: f32, screen_height: f32) -> Option<(u32, u32)> {
     let x = (x - (screen_width - (SIMULATION_WIDTH / PIXEL_SIZE) as f32) / 2.) as u32;
@@ -21,6 +24,7 @@ pub fn mouse_button_input(
     sources: Query<(Entity, &Source), Without<Drag>>,
     mut drag_sources: Query<(Entity, &mut Source), With<Drag>>,
     mut commands: Commands,
+    ui_state: Res<UiState>,
 ) {
     if buttons.just_pressed(MouseButton::Left) {
         let window = q_windows.single();
@@ -36,7 +40,7 @@ pub fn mouse_button_input(
                 //     SourceType::Sin,
                 // ));
                 for (entity, source) in sources.iter() {
-                    let (s_x, s_y) = Grid::index_to_coords(source.index as u32);
+                    let (s_x, s_y) = Grid::index_to_coords(source.index as u32, ui_state.e_al);
                     if s_x.abs_diff(x) <= 10 && s_y.abs_diff(y) <= 10 {
                         commands.entity(entity).insert(Drag);
                     }
@@ -56,7 +60,7 @@ pub fn mouse_button_input(
                 screen_to_grid(position.x, position.y, window.width(), window.height())
             {
                 drag_sources.iter_mut().for_each(|(_, mut source)| {
-                    source.index = Grid::coords_to_index(x, y, 0);
+                    source.index = Grid::coords_to_index(x, y, 0, ui_state.e_al);
                 });
             }
         }
@@ -69,7 +73,7 @@ pub fn mouse_button_input(
             {
                 // this produces overlaping sources
                 commands.spawn(Source::new(
-                    Grid::coords_to_index(x, y, 0),
+                    Grid::coords_to_index(x, y, 0, ui_state.e_al),
                     10.,
                     0.0,
                     10_000.0,

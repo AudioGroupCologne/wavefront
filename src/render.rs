@@ -30,6 +30,7 @@ pub fn draw_egui(
     mut egui_context: EguiContexts,
     mut sources: Query<&mut Source>,
     mut ui_state: ResMut<UiState>,
+    mut grid: ResMut<Grid>,
 ) {
     let ctx = egui_context.ctx_mut();
     egui::SidePanel::left("left_panel")
@@ -81,7 +82,27 @@ pub fn draw_egui(
                         .text("Epsilon")
                         .logarithmic(true),
                 );
-                ui.add(egui::Slider::new(&mut ui_state.e_al, 0..=200).text("E_AL"));
+
+                if ui
+                    .add(egui::Slider::new(&mut ui_state.e_al, 2..=200).text("E_AL"))
+                    .changed()
+                {
+                    grid.update_cells(ui_state.e_al);
+                    pb.for_each_mut(|mut f| {
+                        f.pixel_buffer.size = PixelBufferSize {
+                            size: if ui_state.render_abc_area {
+                                UVec2::new(
+                                    SIMULATION_WIDTH + 2 * ui_state.e_al,
+                                    SIMULATION_HEIGHT + 2 * ui_state.e_al,
+                                )
+                            } else {
+                                UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
+                            },
+                            pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
+                        };
+                    });
+                }
+
                 if ui
                     .checkbox(&mut ui_state.render_abc_area, "Render Absorbing Boundary")
                     .clicked()
@@ -90,8 +111,8 @@ pub fn draw_egui(
                         f.pixel_buffer.size = PixelBufferSize {
                             size: if ui_state.render_abc_area {
                                 UVec2::new(
-                                    SIMULATION_WIDTH + 2 * E_AL,
-                                    SIMULATION_HEIGHT + 2 * E_AL,
+                                    SIMULATION_WIDTH + 2 * ui_state.e_al,
+                                    SIMULATION_HEIGHT + 2 * ui_state.e_al,
                                 )
                             } else {
                                 UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
@@ -121,9 +142,15 @@ pub fn draw_pixels(
     frame.per_pixel_par(|coords, _| {
         let p: f32;
         if ui_state.render_abc_area {
-            p = grid.cells[Grid::coords_to_index(coords.x, coords.y, 8)]; // render abc
+            p = grid.cells[Grid::coords_to_index(coords.x, coords.y, 8, ui_state.e_al)];
+        // render abc
         } else {
-            p = grid.cells[Grid::coords_to_index(coords.x + E_AL, coords.y + E_AL, 8)];
+            p = grid.cells[Grid::coords_to_index(
+                coords.x + ui_state.e_al,
+                coords.y + ui_state.e_al,
+                8,
+                ui_state.e_al,
+            )];
         }
         let color = gradient.0.at((p) as f64);
         Pixel {
@@ -135,10 +162,10 @@ pub fn draw_pixels(
     });
 }
 
-pub fn draw_walls(mut pb: QueryPixelBuffer, walls: Query<&Wall>) {
+pub fn draw_walls(mut pb: QueryPixelBuffer, walls: Query<&Wall>, ui_state: Res<UiState>) {
     let mut frame = pb.frame();
     for wall in walls.iter() {
-        let (x, y) = Grid::index_to_coords(wall.0 as u32);
+        let (x, y) = Grid::index_to_coords(wall.0 as u32, ui_state.e_al);
         //TODO: handle result
         let _ = frame.set(
             UVec2::new(x, y),
