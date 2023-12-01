@@ -4,7 +4,7 @@ use bevy::prelude::*;
 
 use crate::components::{GameTicks, Source, SourceType, Wall};
 use crate::constants::*;
-use crate::render::UiState;
+use crate::render::{AttenuationType, UiState};
 
 #[derive(Debug, Resource)]
 pub struct Grid {
@@ -90,7 +90,7 @@ impl Grid {
         self.cells[coord_one_d + 7] = 0.5 * (bottom_top + left_right + top_bottom - right_left);
     }
 
-    fn apply_sources(&mut self, ticks_since_start: u64, sources: &Query<&Source>) {
+    fn apply_sources(&mut self, ticks_since_start: u64, sources: &Query<&Source>, e_al: u32) {
         let time = self.delta_t * ticks_since_start as f32; //the cast feels wrong, but it works for now
         for source in sources.iter() {
             //? maybe needs to be optimized
@@ -103,11 +103,11 @@ impl Grid {
                     Source::periodic_gaussian(time, source.frequency, source.amplitude, 5., 1.)
                 }
             };
-
-            self.cells[source.index + 4] = calc;
-            self.cells[source.index + 5] = calc;
-            self.cells[source.index + 6] = calc;
-            self.cells[source.index + 7] = calc;
+            let source_pos = Grid::coords_to_index(source.x + e_al, source.y + e_al, 0, e_al); //source.index;
+            self.cells[source_pos + 4] = calc;
+            self.cells[source_pos + 5] = calc;
+            self.cells[source_pos + 6] = calc;
+            self.cells[source_pos + 7] = calc;
         }
     }
 
@@ -130,10 +130,14 @@ impl Grid {
         //Left
         for x in 1..ui_state.e_al {
             for y in ui_state.e_al..(SIMULATION_HEIGHT + ui_state.e_al) {
-                // let attenuation_factor = 1.0
-                //     - ((1. + ui_state.epsilon) - f32::exp(((ui_state.e_al - x) * (ui_state.e_al - x)) as f32 / b));
-                let attenuation_factor =
-                    1.0 - ((ui_state.e_al - x) as f32 / ui_state.e_al as f32).powi(5); //different attenuation_factor, impl switch or sth for testing?
+                let attenuation_factor = Grid::attenuation_factor(
+                    ui_state.e_al,
+                    ui_state.e_al - x,
+                    ui_state.epsilon,
+                    b,
+                    ui_state.at_type,
+                );
+
                 let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
                 let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2, ui_state.e_al)];
                 let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3, ui_state.e_al)];
@@ -152,9 +156,14 @@ impl Grid {
         //Top
         for x in ui_state.e_al..(SIMULATION_WIDTH + ui_state.e_al) {
             for y in 1..ui_state.e_al {
-                let attenuation_factor = 1.0
-                    - ((1. + ui_state.epsilon)
-                        - f32::exp(((ui_state.e_al - y) * (ui_state.e_al - y)) as f32 / b));
+                let attenuation_factor = Grid::attenuation_factor(
+                    ui_state.e_al,
+                    ui_state.e_al - y,
+                    ui_state.epsilon,
+                    b,
+                    ui_state.at_type,
+                );
+
                 let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
                 let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2, ui_state.e_al)];
                 let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3, ui_state.e_al)];
@@ -173,14 +182,14 @@ impl Grid {
         //Right
         for x in (SIMULATION_WIDTH + ui_state.e_al)..(SIMULATION_WIDTH + 2 * ui_state.e_al - 1) {
             for y in ui_state.e_al..(SIMULATION_HEIGHT + ui_state.e_al) {
-                let attenuation_factor = 1.0
-                    - ((1. + ui_state.epsilon)
-                        - f32::exp(
-                            ((x - (SIMULATION_WIDTH + ui_state.e_al))
-                                * (x - (SIMULATION_WIDTH + ui_state.e_al)))
-                                as f32
-                                / b,
-                        ));
+                let attenuation_factor = Grid::attenuation_factor(
+                    ui_state.e_al,
+                    x - (SIMULATION_WIDTH + ui_state.e_al),
+                    ui_state.epsilon,
+                    b,
+                    ui_state.at_type,
+                );
+
                 let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
                 let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2, ui_state.e_al)];
                 let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3, ui_state.e_al)];
@@ -201,14 +210,14 @@ impl Grid {
             for y in
                 (SIMULATION_HEIGHT + ui_state.e_al)..(SIMULATION_HEIGHT + 2 * ui_state.e_al - 1)
             {
-                let attenuation_factor = 1.0
-                    - ((1. + ui_state.epsilon)
-                        - f32::exp(
-                            ((y - (SIMULATION_HEIGHT + ui_state.e_al))
-                                * (y - (SIMULATION_HEIGHT + ui_state.e_al)))
-                                as f32
-                                / b,
-                        ));
+                let attenuation_factor = Grid::attenuation_factor(
+                    ui_state.e_al,
+                    y - (SIMULATION_HEIGHT + ui_state.e_al),
+                    ui_state.epsilon,
+                    b,
+                    ui_state.at_type,
+                );
+
                 let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
                 let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2, ui_state.e_al)];
                 let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3, ui_state.e_al)];
@@ -227,12 +236,22 @@ impl Grid {
         //LeftTop
         for x in 1..ui_state.e_al {
             for y in 1..ui_state.e_al {
-                let attenuation_factor_left = 1.0
-                    - ((1. + ui_state.epsilon)
-                        - f32::exp(((ui_state.e_al - x) * (ui_state.e_al - x)) as f32 / b));
-                let attenuation_factor_top = 1.0
-                    - ((1. + ui_state.epsilon)
-                        - f32::exp(((ui_state.e_al - y) * (ui_state.e_al - y)) as f32 / b));
+                let attenuation_factor_left = Grid::attenuation_factor(
+                    ui_state.e_al,
+                    ui_state.e_al - x,
+                    ui_state.epsilon,
+                    b,
+                    ui_state.at_type,
+                );
+
+                let attenuation_factor_top = Grid::attenuation_factor(
+                    ui_state.e_al,
+                    ui_state.e_al - y,
+                    ui_state.epsilon,
+                    b,
+                    ui_state.at_type,
+                );
+
                 let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
                 let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2, ui_state.e_al)];
                 let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3, ui_state.e_al)];
@@ -258,17 +277,22 @@ impl Grid {
         //RightTop
         for x in (SIMULATION_WIDTH + ui_state.e_al)..(SIMULATION_WIDTH + 2 * ui_state.e_al - 1) {
             for y in 1..ui_state.e_al {
-                let attenuation_factor_right = 1.0
-                    - ((1. + ui_state.epsilon)
-                        - f32::exp(
-                            ((x - (SIMULATION_WIDTH + ui_state.e_al))
-                                * (x - (SIMULATION_WIDTH + ui_state.e_al)))
-                                as f32
-                                / b,
-                        ));
-                let attenuation_factor_top = 1.0
-                    - ((1. + ui_state.epsilon)
-                        - f32::exp(((ui_state.e_al - y) * (ui_state.e_al - y)) as f32 / b));
+                let attenuation_factor_right = Grid::attenuation_factor(
+                    ui_state.e_al,
+                    x - (SIMULATION_WIDTH + ui_state.e_al),
+                    ui_state.epsilon,
+                    b,
+                    ui_state.at_type,
+                );
+
+                let attenuation_factor_top = Grid::attenuation_factor(
+                    ui_state.e_al,
+                    ui_state.e_al - y,
+                    ui_state.epsilon,
+                    b,
+                    ui_state.at_type,
+                );
+
                 let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
                 let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2, ui_state.e_al)];
                 let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3, ui_state.e_al)];
@@ -299,22 +323,22 @@ impl Grid {
             for y in
                 (SIMULATION_HEIGHT + ui_state.e_al)..(SIMULATION_HEIGHT + 2 * ui_state.e_al - 1)
             {
-                let attenuation_factor_right = 1.0
-                    - ((1. + ui_state.epsilon)
-                        - f32::exp(
-                            ((x - (SIMULATION_WIDTH + ui_state.e_al))
-                                * (x - (SIMULATION_WIDTH + ui_state.e_al)))
-                                as f32
-                                / b,
-                        ));
-                let attenuation_factor_bottom = 1.0
-                    - ((1. + ui_state.epsilon)
-                        - f32::exp(
-                            ((y - (SIMULATION_HEIGHT + ui_state.e_al))
-                                * (y - (SIMULATION_HEIGHT + ui_state.e_al)))
-                                as f32
-                                / b,
-                        ));
+                let attenuation_factor_right = Grid::attenuation_factor(
+                    ui_state.e_al,
+                    x - (SIMULATION_WIDTH + ui_state.e_al),
+                    ui_state.epsilon,
+                    b,
+                    ui_state.at_type,
+                );
+
+                let attenuation_factor_bottom = Grid::attenuation_factor(
+                    ui_state.e_al,
+                    y - (SIMULATION_HEIGHT + ui_state.e_al),
+                    ui_state.epsilon,
+                    b,
+                    ui_state.at_type,
+                );
+
                 let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
                 let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2, ui_state.e_al)];
                 let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3, ui_state.e_al)];
@@ -345,17 +369,22 @@ impl Grid {
             for y in
                 (SIMULATION_HEIGHT + ui_state.e_al)..(SIMULATION_HEIGHT + 2 * ui_state.e_al - 1)
             {
-                let attenuation_factor_left = 1.0
-                    - ((1. + ui_state.epsilon)
-                        - f32::exp(((ui_state.e_al - x) * (ui_state.e_al - x)) as f32 / b));
-                let attenuation_factor_bottom = 1.0
-                    - ((1. + ui_state.epsilon)
-                        - f32::exp(
-                            ((y - (SIMULATION_HEIGHT + ui_state.e_al))
-                                * (y - (SIMULATION_HEIGHT + ui_state.e_al)))
-                                as f32
-                                / b,
-                        ));
+                let attenuation_factor_left = Grid::attenuation_factor(
+                    ui_state.e_al,
+                    ui_state.e_al - x,
+                    ui_state.epsilon,
+                    b,
+                    ui_state.at_type,
+                );
+
+                let attenuation_factor_bottom = Grid::attenuation_factor(
+                    ui_state.e_al,
+                    y - (SIMULATION_HEIGHT + ui_state.e_al),
+                    ui_state.epsilon,
+                    b,
+                    ui_state.at_type,
+                );
+
                 let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
                 let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2, ui_state.e_al)];
                 let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3, ui_state.e_al)];
@@ -377,6 +406,22 @@ impl Grid {
                     * (bottom_top + left_right + attenuation_factor_bottom * top_bottom
                         - attenuation_factor_left * right_left);
             }
+        }
+    }
+
+    fn attenuation_factor(
+        e_al: u32,
+        distance: u32,
+        epsilon: f32,
+        b: f32,
+        at_type: AttenuationType,
+    ) -> f32 {
+        match at_type {
+            AttenuationType::OneWay => {
+                1.0 - ((1. + epsilon) - f32::exp((distance * distance) as f32 / b))
+            }
+            AttenuationType::Linear => 1.0 - ((distance) as f32 / e_al as f32).powi(1),
+            AttenuationType::PowerFive => 1.0 - ((distance) as f32 / e_al as f32).powi(5),
         }
     }
 
@@ -404,7 +449,7 @@ pub fn apply_system(
     game_ticks: Res<GameTicks>,
     ui_state: Res<UiState>,
 ) {
-    grid.apply_sources(game_ticks.ticks_since_start, &sources);
+    grid.apply_sources(game_ticks.ticks_since_start, &sources, ui_state.e_al);
     grid.apply_walls(&walls, ui_state.e_al);
     grid.apply_boundaries(ui_state);
 }

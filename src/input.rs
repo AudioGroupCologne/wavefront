@@ -74,6 +74,8 @@ pub fn mouse_button_input(
                 // this produces overlaping sources
                 commands.spawn(Source::new(
                     Grid::coords_to_index(x, y, 0, ui_state.e_al),
+                    x,
+                    y,
                     10.,
                     0.0,
                     10_000.0,

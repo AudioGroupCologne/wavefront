@@ -35,6 +35,8 @@ pub struct Drag;
 pub struct Source {
     /// index of the cell in the grid
     pub index: usize,
+    pub x: u32,
+    pub y: u32,
     /// phase shift of the function in degrees
     pub phase: f32,
     /// frequency of the function (in Hz)
@@ -55,6 +57,8 @@ pub enum SourceType {
 impl Source {
     pub fn new(
         index: usize,
+        x: u32,
+        y: u32,
         amplitude: f32,
         phase: f32,
         frequency: f32,
@@ -62,6 +66,8 @@ impl Source {
     ) -> Self {
         Self {
             index,
+            x,
+            y,
             phase,
             frequency,
             amplitude,
@@ -89,18 +95,20 @@ impl Source {
                 0,
                 E_AL,
             ),
+            250,
+            250,
             10.,
             0.0,
             10000.0,
             SourceType::Sin,
         ));
-        commands.spawn(Source::new(
-            Grid::coords_to_index(SIMULATION_WIDTH / 4, SIMULATION_HEIGHT / 4, 0, E_AL),
-            10.,
-            180.0,
-            10000.0,
-            SourceType::Sin,
-        ));
+        // commands.spawn(Source::new(
+        //     Grid::coords_to_index(SIMULATION_WIDTH / 4, SIMULATION_HEIGHT / 4, 0, E_AL),
+        //     10.,
+        //     180.0,
+        //     10000.0,
+        //     SourceType::Sin,
+        // ));
         // Doesn't work anymore ._.
         // commands.spawn(Source::new(
         //     Grid::coords_to_index(SIMULATION_WIDTH / 4, SIMULATION_HEIGHT / 4, 0),

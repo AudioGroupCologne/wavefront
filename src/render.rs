@@ -6,12 +6,20 @@ use crate::components::{GradientResource, Source, SourceType, Wall};
 use crate::constants::*;
 use crate::grid::Grid;
 
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum AttenuationType {
+    OneWay,
+    Linear,
+    PowerFive,
+}
+
 #[derive(Resource)]
 pub struct UiState {
     pub delta_l: f32,
     pub epsilon: f32,
     pub e_al: u32,
     pub render_abc_area: bool,
+    pub at_type: AttenuationType,
 }
 
 impl Default for UiState {
@@ -21,6 +29,7 @@ impl Default for UiState {
             epsilon: 0.001,
             e_al: 50,
             render_abc_area: false,
+            at_type: AttenuationType::OneWay,
         }
     }
 }
@@ -121,6 +130,26 @@ pub fn draw_egui(
                         };
                     });
                 }
+
+                egui::ComboBox::from_label("Attenuation Type")
+                    .selected_text(format!("{:?}", ui_state.at_type))
+                    .show_ui(ui, |ui| {
+                        ui.selectable_value(
+                            &mut ui_state.at_type,
+                            AttenuationType::OneWay,
+                            "OneWay",
+                        );
+                        ui.selectable_value(
+                            &mut ui_state.at_type,
+                            AttenuationType::Linear,
+                            "Linear",
+                        );
+                        ui.selectable_value(
+                            &mut ui_state.at_type,
+                            AttenuationType::PowerFive,
+                            "PowerFive",
+                        );
+                    });
             });
         });
 
