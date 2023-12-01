@@ -2,18 +2,26 @@ use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::{bevy_egui::egui, prelude::*};
 
-use crate::components::{GradientResource, Wall, Source, SourceType};
+use crate::components::{GradientResource, Source, SourceType, Wall};
 use crate::constants::*;
 use crate::grid::Grid;
 
 #[derive(Resource)]
 pub struct UiState {
     pub delta_l: f32,
+    pub epsilon: f32,
+    pub e_al: u32,
+    pub render_abc_area: bool,
 }
 
 impl Default for UiState {
     fn default() -> Self {
-        Self { delta_l: 0.001 }
+        Self {
+            delta_l: 0.001,
+            epsilon: 0.001,
+            e_al: 50,
+            render_abc_area: false,
+        }
     }
 }
 
@@ -29,6 +37,7 @@ pub fn draw_pixels(
     let mut frame = pb.frame();
     frame.per_pixel_par(|coords, _| {
         let p = grid.cells[Grid::coords_to_index(coords.x + E_AL, coords.y + E_AL, 8)];
+        // let p = grid.cells[Grid::coords_to_index(coords.x, coords.y, 8)]; // render abc
         let color = gradient.0.at((p) as f64);
         Pixel {
             r: (color.r * 255.) as u8,
@@ -90,13 +99,26 @@ pub fn draw_pixels(
                     }
                 });
 
-            // ui.add(egui::Slider::new(&mut ui_state.freq, 0.0..=20000.0).texts("Frequency (Hz)"));
             ui.add(
                 egui::Slider::new(&mut ui_state.delta_l, 0.0..=10.0)
                     .text("Delta L")
                     .logarithmic(true),
             );
+
+            ui.collapsing("ABC", |ui| {
+                ui.add(
+                    egui::Slider::new(&mut ui_state.epsilon, 0.000001..=1.0)
+                        .text("Epsilon")
+                        .logarithmic(true),
+                );
+                ui.add(egui::Slider::new(&mut ui_state.e_al, 0..=200).text("E_AL"));
+                ui.add(egui::widgets::Checkbox::new(
+                    &mut ui_state.render_abc_area,
+                    "Render Absorbing Boundary",
+                ));
+            });
         });
+
     egui::CentralPanel::default().show(ctx, |ui| {
         // pb.update_fill_egui(ui.available_size());
 

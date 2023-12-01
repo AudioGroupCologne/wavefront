@@ -10,6 +10,7 @@ use tlm_rs::render::{draw_pixels, UiState};
 fn main() {
     let size: PixelBufferSize = PixelBufferSize {
         size: UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT),
+        // size: UVec2::new(SIMULATION_WIDTH + 2 * E_AL, SIMULATION_HEIGHT + 2 * E_AL), // render abc
         pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
     };
 
