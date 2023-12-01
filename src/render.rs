@@ -26,7 +26,7 @@ impl Default for UiState {
 }
 
 pub fn draw_egui(
-    pb: QueryPixelBuffer,
+    mut pb: QueryPixelBuffer,
     mut egui_context: EguiContexts,
     mut sources: Query<&mut Source>,
     mut ui_state: ResMut<UiState>,
@@ -82,10 +82,24 @@ pub fn draw_egui(
                         .logarithmic(true),
                 );
                 ui.add(egui::Slider::new(&mut ui_state.e_al, 0..=200).text("E_AL"));
-                ui.add(egui::widgets::Checkbox::new(
-                    &mut ui_state.render_abc_area,
-                    "Render Absorbing Boundary",
-                ));
+                if ui
+                    .checkbox(&mut ui_state.render_abc_area, "Render Absorbing Boundary")
+                    .clicked()
+                {
+                    pb.for_each_mut(|mut f| {
+                        f.pixel_buffer.size = PixelBufferSize {
+                            size: if ui_state.render_abc_area {
+                                UVec2::new(
+                                    SIMULATION_WIDTH + 2 * E_AL,
+                                    SIMULATION_HEIGHT + 2 * E_AL,
+                                )
+                            } else {
+                                UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
+                            },
+                            pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
+                        };
+                    });
+                }
             });
         });
 
@@ -97,11 +111,20 @@ pub fn draw_egui(
     });
 }
 
-pub fn draw_pixels(mut pb: QueryPixelBuffer, grid: Res<Grid>, gradient: Res<GradientResource>) {
+pub fn draw_pixels(
+    mut pb: QueryPixelBuffer,
+    grid: Res<Grid>,
+    gradient: Res<GradientResource>,
+    ui_state: Res<UiState>,
+) {
     let mut frame = pb.frame();
     frame.per_pixel_par(|coords, _| {
-        let p = grid.cells[Grid::coords_to_index(coords.x + E_AL, coords.y + E_AL, 8)];
-        // let p = grid.cells[Grid::coords_to_index(coords.x, coords.y, 8)]; // render abc
+        let p: f32;
+        if ui_state.render_abc_area {
+            p = grid.cells[Grid::coords_to_index(coords.x, coords.y, 8)]; // render abc
+        } else {
+            p = grid.cells[Grid::coords_to_index(coords.x + E_AL, coords.y + E_AL, 8)];
+        }
         let color = gradient.0.at((p) as f64);
         Pixel {
             r: (color.r * 255.) as u8,
