@@ -61,15 +61,7 @@ pub fn mouse_button_input(
         if let Some(position) = window.cursor_position() {
             if let Some((x, y)) = screen_to_grid(position.x, position.y, ui_state.image_rect_top) {
                 // this produces overlaping sources
-                commands.spawn(Source::new(
-                    Grid::coords_to_index(x, y, 0, ui_state.e_al),
-                    x,
-                    y,
-                    10.,
-                    0.0,
-                    10_000.0,
-                    SourceType::Sin,
-                ));
+                commands.spawn(Source::new(x, y, 10., 0.0, 10_000.0, SourceType::Sin));
 
                 // //TODO: because of the brush size, the indices may be out of bounds
                 // //TODO: make bush size variable

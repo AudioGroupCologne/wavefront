@@ -3,9 +3,10 @@ use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::bevy_egui::egui::Pos2;
 use bevy_pixel_buffer::{bevy_egui::egui, prelude::*};
 
-use crate::components::{GradientResource, Source, SourceType, Wall};
+use crate::components::{GameTicks, GradientResource, Microphone, Source, SourceType, Wall};
 use crate::constants::*;
 use crate::grid::Grid;
+use egui_plot::{Line, Plot, PlotPoints};
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum AttenuationType {
@@ -25,6 +26,7 @@ pub struct UiState {
     pub at_type: AttenuationType,
     pub power_order: u32,
     pub image_rect_top: Pos2,
+    pub test_mic: Vec<[f64; 2]>,
 }
 
 impl Default for UiState {
@@ -37,6 +39,7 @@ impl Default for UiState {
             at_type: AttenuationType::Power,
             power_order: 5,
             image_rect_top: Pos2::default(),
+            test_mic: vec![],
         }
     }
 }
@@ -45,6 +48,7 @@ pub fn draw_egui(
     mut pb: QueryPixelBuffer,
     mut egui_context: EguiContexts,
     mut sources: Query<&mut Source>,
+    microphones: Query<&Microphone>,
     mut ui_state: ResMut<UiState>,
     mut grid: ResMut<Grid>,
 ) {
@@ -180,6 +184,23 @@ pub fn draw_egui(
         let image = ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
         ui_state.image_rect_top = image.rect.min;
     });
+
+    // Very crude test, pls make better
+    egui::TopBottomPanel::bottom("bottom_panel")
+        .resizable(true)
+        .default_height(200.0)
+        .show(ctx, |ui| {
+            ui.heading("Microphone Plot");
+            ui.separator();
+            //still need to enable a legend
+            Plot::new("mic_plot").show(ui, |plot_ui| {
+                for mic in microphones.iter() {
+                    let points: PlotPoints = PlotPoints::new(mic.record.clone());
+                    let line = Line::new(points);
+                    plot_ui.line(line.name(format!("POS {}, {}", mic.x, mic.y)));
+                }
+            });
+        });
 }
 
 pub fn draw_pixels(

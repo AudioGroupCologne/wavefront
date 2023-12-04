@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use bevy::prelude::*;
 
-use crate::components::{GameTicks, Source, SourceType, Wall};
+use crate::components::{GameTicks, Microphone, Source, SourceType, Wall};
 use crate::constants::*;
 use crate::render::{AttenuationType, UiState};
 
@@ -107,6 +107,22 @@ impl Grid {
             self.cells[source_pos + 5] = calc;
             self.cells[source_pos + 6] = calc;
             self.cells[source_pos + 7] = calc;
+        }
+    }
+
+    fn apply_microphones(
+        &mut self, //doesn't actually need to mutable but it throws errors further down if not
+        ticks_since_start: u64,
+        mut microphones: Query<&mut Microphone>,
+        e_al: u32,
+    ) {
+        for mut mic in microphones.iter_mut() {
+            let x = mic.x;
+            let y = mic.y;
+            mic.record.push([
+                (ticks_since_start as f32 * self.delta_t) as f64,
+                self.cells[Grid::coords_to_index(x, y, 8, e_al)] as f64,
+            ]);
         }
     }
 
@@ -468,12 +484,14 @@ pub fn calc_system(mut grid: ResMut<Grid>, ui_state: Res<UiState>) {
 pub fn apply_system(
     mut grid: ResMut<Grid>,
     sources: Query<&Source>,
+    microphones: Query<&mut Microphone>,
     walls: Query<&Wall>,
     game_ticks: Res<GameTicks>,
     ui_state: Res<UiState>,
 ) {
     grid.apply_sources(game_ticks.ticks_since_start, &sources, ui_state.e_al);
     grid.apply_walls(&walls, ui_state.e_al);
+    grid.apply_microphones(game_ticks.ticks_since_start, microphones, ui_state.e_al);
     grid.apply_boundaries(ui_state);
 }
 

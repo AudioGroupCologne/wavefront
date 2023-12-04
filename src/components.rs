@@ -1,7 +1,7 @@
 use std::f32::consts::PI;
 
 use crate::constants::*;
-use bevy::prelude::*;
+use bevy::{prelude::*, transform::commands};
 
 use crate::{
     constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH},
@@ -33,8 +33,6 @@ pub struct Drag;
 #[derive(Debug, Default, Component)]
 /// A sound source on the grid
 pub struct Source {
-    /// index of the cell in the grid
-    pub index: usize,
     pub x: u32,
     pub y: u32,
     /// phase shift of the function in degrees
@@ -56,7 +54,6 @@ pub enum SourceType {
 
 impl Source {
     pub fn new(
-        index: usize,
         x: u32,
         y: u32,
         amplitude: f32,
@@ -65,7 +62,6 @@ impl Source {
         r#type: SourceType,
     ) -> Self {
         Self {
-            index,
             x,
             y,
             phase,
@@ -89,34 +85,21 @@ impl Source {
 
     pub fn spawn_initial_sources(mut commands: Commands) {
         commands.spawn(Source::new(
-            Grid::coords_to_index(
-                (SIMULATION_WIDTH + 2 * E_AL) / 2,
-                (SIMULATION_HEIGHT + 2 * E_AL) / 2,
-                0,
-                E_AL,
-            ),
-            250,
-            250,
+            (SIMULATION_WIDTH + 2 * E_AL) / 2,
+            (SIMULATION_HEIGHT + 2 * E_AL) / 2,
             10.,
             0.0,
             10000.0,
             SourceType::Sin,
         ));
-        // commands.spawn(Source::new(
-        //     Grid::coords_to_index(SIMULATION_WIDTH / 4, SIMULATION_HEIGHT / 4, 0, E_AL),
-        //     10.,
-        //     180.0,
-        //     10000.0,
-        //     SourceType::Sin,
-        // ));
-        // Doesn't work anymore ._.
-        // commands.spawn(Source::new(
-        //     Grid::coords_to_index(SIMULATION_WIDTH / 4, SIMULATION_HEIGHT / 4, 0),
-        //     10.,
-        //     10000.0,
-        //     10000.0,
-        //     SourceType::Gauss,
-        // ));
+        commands.spawn(Source::new(
+            (SIMULATION_WIDTH + 2 * E_AL) / 3,
+            (SIMULATION_HEIGHT + 2 * E_AL) / 3,
+            10.,
+            0.0,
+            10000.0,
+            SourceType::Sin,
+        ));
     }
 }
 
@@ -127,4 +110,28 @@ pub struct Wall(pub usize);
 #[derive(Default, Resource)]
 pub struct GameTicks {
     pub ticks_since_start: u64,
+}
+
+#[derive(Debug, Default, Component)]
+/// A sound source on the grid
+pub struct Microphone {
+    pub x: u32,
+    pub y: u32,
+    pub record: Vec<[f64; 2]>,
+}
+
+impl Microphone {
+    pub fn new(x: u32, y: u32) -> Self {
+        Self {
+            x,
+            y,
+            record: vec![],
+        }
+    }
+
+    pub fn spawn_initial_microphones(mut commands: Commands) {
+        commands.spawn(Microphone::new(250, 250));
+        commands.spawn(Microphone::new(100, 100));
+        commands.spawn(Microphone::new(650, 650));
+    }
 }

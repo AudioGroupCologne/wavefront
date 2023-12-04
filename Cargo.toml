@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 bevy_pixel_buffer = { version = "0.6.0", features = ["egui"] }
 colorgrad = "0.6.2"
+egui_plot = "0.23.0"
 rayon = "1.8.0"
 smallvec = "1.11.1"
 
