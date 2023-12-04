@@ -1,4 +1,5 @@
 use bevy::{prelude::*, window::PrimaryWindow};
+use bevy_pixel_buffer::bevy_egui::egui::Pos2;
 
 use crate::components::{Drag, Source, SourceType, Wall};
 use crate::constants::*;
@@ -6,15 +7,15 @@ use crate::grid::Grid;
 
 use crate::render::UiState;
 
-fn screen_to_grid(x: f32, y: f32, screen_width: f32, screen_height: f32) -> Option<(u32, u32)> {
-    let x = (x - (screen_width - (SIMULATION_WIDTH / PIXEL_SIZE) as f32) / 2.) as u32;
-    let y = (y - (screen_height - (SIMULATION_HEIGHT / PIXEL_SIZE) as f32) / 2.) as u32;
+fn screen_to_grid(x: f32, y: f32, image_rect_top: Pos2) -> Option<(u32, u32)> {
+    let x = (x - image_rect_top.x) as i32;
+    let y = (y - image_rect_top.y) as i32;
 
-    if x >= SIMULATION_WIDTH || y >= SIMULATION_HEIGHT {
+    if x >= SIMULATION_WIDTH as i32 || y >= SIMULATION_HEIGHT as i32 || x < 0 || y < 0 {
         return None;
     }
 
-    Some((x, y))
+    Some((x as u32, y as u32))
 }
 
 pub fn mouse_button_input(
@@ -28,20 +29,12 @@ pub fn mouse_button_input(
     if buttons.just_pressed(MouseButton::Left) {
         let window = q_windows.single();
         if let Some(position) = window.cursor_position() {
-            if let Some((x, y)) =
-                screen_to_grid(position.x, position.y, window.width(), window.height())
-            {
-                // grid.sources.push(Source::new(
-                //     array_pos(x, y, 0),
-                //     10.,
-                //     0.0,
-                //     1.0,
-                //     SourceType::Sin,
-                // ));
+            if let Some((x, y)) = screen_to_grid(position.x, position.y, ui_state.image_rect_top) {
                 for (entity, source) in sources.iter() {
-                    let (s_x, s_y) = Grid::index_to_coords(source.index as u32, ui_state.e_al);
+                    let (s_x, s_y) = (source.x, source.y);
                     if s_x.abs_diff(x) <= 10 && s_y.abs_diff(y) <= 10 {
                         commands.entity(entity).insert(Drag);
+                        break; // only drag one at a time
                     }
                 }
             }
@@ -55,21 +48,18 @@ pub fn mouse_button_input(
     if buttons.pressed(MouseButton::Left) && drag_sources.iter_mut().count() >= 1 {
         let window = q_windows.single();
         if let Some(position) = window.cursor_position() {
-            if let Some((x, y)) =
-                screen_to_grid(position.x, position.y, window.width(), window.height())
-            {
+            if let Some((x, y)) = screen_to_grid(position.x, position.y, ui_state.image_rect_top) {
                 drag_sources.iter_mut().for_each(|(_, mut source)| {
-                    source.index = Grid::coords_to_index(x, y, 0, ui_state.e_al);
+                    source.x = x;
+                    source.y = y;
                 });
             }
         }
     }
-    if buttons.pressed(MouseButton::Right) {
+    if buttons.just_pressed(MouseButton::Right) {
         let window = q_windows.single();
         if let Some(position) = window.cursor_position() {
-            if let Some((x, y)) =
-                screen_to_grid(position.x, position.y, window.width(), window.height())
-            {
+            if let Some((x, y)) = screen_to_grid(position.x, position.y, ui_state.image_rect_top) {
                 // this produces overlaping sources
                 commands.spawn(Source::new(
                     Grid::coords_to_index(x, y, 0, ui_state.e_al),

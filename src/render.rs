@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
+use bevy_pixel_buffer::bevy_egui::egui::Pos2;
 use bevy_pixel_buffer::{bevy_egui::egui, prelude::*};
 
 use crate::components::{GradientResource, Source, SourceType, Wall};
@@ -23,6 +24,7 @@ pub struct UiState {
     pub render_abc_area: bool,
     pub at_type: AttenuationType,
     pub power_order: u32,
+    pub image_rect_top: Pos2,
 }
 
 impl Default for UiState {
@@ -34,6 +36,7 @@ impl Default for UiState {
             render_abc_area: false,
             at_type: AttenuationType::Power,
             power_order: 5,
+            image_rect_top: Pos2::default(),
         }
     }
 }
@@ -95,38 +98,36 @@ pub fn draw_egui(
                     .changed()
                 {
                     grid.update_cells(ui_state.e_al);
-                    pb.for_each_mut(|mut f| {
-                        f.pixel_buffer.size = PixelBufferSize {
-                            size: if ui_state.render_abc_area {
-                                UVec2::new(
-                                    SIMULATION_WIDTH + 2 * ui_state.e_al,
-                                    SIMULATION_HEIGHT + 2 * ui_state.e_al,
-                                )
-                            } else {
-                                UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
-                            },
-                            pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
-                        };
-                    });
+                    let mut item = pb.iter_mut().next().expect("At least one pixel buffer");
+                    item.pixel_buffer.size = PixelBufferSize {
+                        size: if ui_state.render_abc_area {
+                            UVec2::new(
+                                SIMULATION_WIDTH + 2 * ui_state.e_al,
+                                SIMULATION_HEIGHT + 2 * ui_state.e_al,
+                            )
+                        } else {
+                            UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
+                        },
+                        pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
+                    };
                 }
 
                 if ui
                     .checkbox(&mut ui_state.render_abc_area, "Render Absorbing Boundary")
                     .clicked()
                 {
-                    pb.for_each_mut(|mut f| {
-                        f.pixel_buffer.size = PixelBufferSize {
-                            size: if ui_state.render_abc_area {
-                                UVec2::new(
-                                    SIMULATION_WIDTH + 2 * ui_state.e_al,
-                                    SIMULATION_HEIGHT + 2 * ui_state.e_al,
-                                )
-                            } else {
-                                UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
-                            },
-                            pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
-                        };
-                    });
+                    let mut item = pb.iter_mut().next().expect("At least one pixel buffer");
+                    item.pixel_buffer.size = PixelBufferSize {
+                        size: if ui_state.render_abc_area {
+                            UVec2::new(
+                                SIMULATION_WIDTH + 2 * ui_state.e_al,
+                                SIMULATION_HEIGHT + 2 * ui_state.e_al,
+                            )
+                        } else {
+                            UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
+                        },
+                        pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
+                    };
                 }
 
                 egui::ComboBox::from_label("Attenuation Type")
@@ -175,7 +176,8 @@ pub fn draw_egui(
         // pb.update_fill_egui(ui.available_size());
 
         let texture = pb.egui_texture();
-        ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
+        let image = ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
+        ui_state.image_rect_top = image.rect.min;
     });
 }
 
@@ -187,18 +189,16 @@ pub fn draw_pixels(
 ) {
     let mut frame = pb.frame();
     frame.per_pixel_par(|coords, _| {
-        let p: f32;
-        if ui_state.render_abc_area {
-            p = grid.cells[Grid::coords_to_index(coords.x, coords.y, 8, ui_state.e_al)];
-        // render abc
+        let p = if ui_state.render_abc_area {
+            grid.cells[Grid::coords_to_index(coords.x, coords.y, 8, ui_state.e_al)]
         } else {
-            p = grid.cells[Grid::coords_to_index(
+            grid.cells[Grid::coords_to_index(
                 coords.x + ui_state.e_al,
                 coords.y + ui_state.e_al,
                 8,
                 ui_state.e_al,
-            )];
-        }
+            )]
+        };
         let color = gradient.0.at((p) as f64);
         Pixel {
             r: (color.r * 255.) as u8,
