@@ -59,6 +59,7 @@ pub fn draw_egui(
             egui::ScrollArea::vertical()
                 .max_height(400.)
                 .show(ui, |ui| {
+                    ui.set_min_width(ui.available_width());
                     for (index, mut s) in sources.iter_mut().enumerate() {
                         ui.collapsing(format!("Source {}", index), |ui| {
                             // debug ui
