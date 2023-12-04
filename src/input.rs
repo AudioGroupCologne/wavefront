@@ -1,4 +1,3 @@
-use bevy::ui;
 use bevy::{prelude::*, window::PrimaryWindow};
 
 use crate::components::{Drag, Source, SourceType, Wall};
@@ -11,7 +10,7 @@ fn screen_to_grid(x: f32, y: f32, screen_width: f32, screen_height: f32) -> Opti
     let x = (x - (screen_width - (SIMULATION_WIDTH / PIXEL_SIZE) as f32) / 2.) as u32;
     let y = (y - (screen_height - (SIMULATION_HEIGHT / PIXEL_SIZE) as f32) / 2.) as u32;
 
-    if x >= SIMULATION_WIDTH || x <= 0 || y <= 0 || y >= SIMULATION_HEIGHT {
+    if x >= SIMULATION_WIDTH || y >= SIMULATION_HEIGHT {
         return None;
     }
 

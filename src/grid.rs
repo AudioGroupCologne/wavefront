@@ -18,7 +18,7 @@ pub struct Grid {
 
 impl Default for Grid {
     fn default() -> Self {
-        let grid = Self {
+        Self {
             cells: vec![
                 0.;
                 ((SIMULATION_WIDTH + 2 * E_AL) * (SIMULATION_HEIGHT + 2 * E_AL) * NUM_INDEX)
@@ -26,8 +26,7 @@ impl Default for Grid {
             ],
             delta_l: 0.001, //basically useless when using val from ui
             delta_t: 0.001 / PROPAGATION_SPEED,
-        };
-        grid
+        }
     }
 }
 
