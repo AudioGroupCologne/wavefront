@@ -17,7 +17,7 @@ fn screen_to_grid(x: f32, y: f32, image_rect_top: Pos2) -> Option<(u32, u32)> {
     Some((x as u32, y as u32))
 }
 
-pub fn mouse_button_input(
+pub fn button_input(
     mouse_buttons: Res<Input<MouseButton>>,
     keys: Res<Input<KeyCode>>,
     q_windows: Query<&Window, With<PrimaryWindow>>,

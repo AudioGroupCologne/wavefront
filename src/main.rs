@@ -4,7 +4,7 @@ use bevy_pixel_buffer::prelude::*;
 use tlm_rs::components::{GameTicks, GradientResource, Microphone, Source};
 use tlm_rs::constants::*;
 use tlm_rs::grid::{apply_system, calc_system, update_system, Grid};
-use tlm_rs::input::mouse_button_input;
+use tlm_rs::input::button_input;
 use tlm_rs::render::{draw_egui, draw_pixels, draw_walls, UiState};
 
 fn main() {
@@ -53,7 +53,7 @@ fn main() {
             (
                 (calc_system, apply_system, update_system).chain(),
                 (draw_pixels, draw_walls, draw_egui).chain(),
-                mouse_button_input,
+                button_input,
                 bevy::window::close_on_esc,
             ),
         )

@@ -122,7 +122,7 @@ impl Microphone {
         Self {
             x,
             y,
-            record: vec![],
+            record: vec![[0., 0.]],
         }
     }
 
