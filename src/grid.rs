@@ -478,7 +478,9 @@ impl Grid {
 }
 
 pub fn calc_system(mut grid: ResMut<Grid>, ui_state: Res<UiState>) {
-    grid.calc(ui_state.e_al);
+    if ui_state.is_running {
+        grid.calc(ui_state.e_al);
+    }
 }
 
 pub fn apply_system(
@@ -489,10 +491,12 @@ pub fn apply_system(
     game_ticks: Res<GameTicks>,
     ui_state: Res<UiState>,
 ) {
-    grid.apply_sources(game_ticks.ticks_since_start, &sources, ui_state.e_al);
-    grid.apply_walls(&walls, ui_state.e_al);
-    grid.apply_microphones(game_ticks.ticks_since_start, microphones, ui_state.e_al);
-    grid.apply_boundaries(ui_state);
+    if ui_state.is_running {
+        grid.apply_sources(game_ticks.ticks_since_start, &sources, ui_state.e_al);
+        grid.apply_walls(&walls, ui_state.e_al);
+        grid.apply_microphones(game_ticks.ticks_since_start, microphones, ui_state.e_al);
+        grid.apply_boundaries(ui_state);
+    }
 }
 
 pub fn update_system(
@@ -500,7 +504,9 @@ pub fn update_system(
     mut game_ticks: ResMut<GameTicks>,
     ui_state: Res<UiState>,
 ) {
-    grid.update(ui_state.e_al);
-    grid.update_delta_t(ui_state);
-    game_ticks.ticks_since_start += 1;
+    if ui_state.is_running {
+        grid.update(ui_state.e_al);
+        grid.update_delta_t(ui_state);
+        game_ticks.ticks_since_start += 1;
+    }
 }

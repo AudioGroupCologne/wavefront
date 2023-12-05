@@ -1,6 +1,6 @@
 use bevy::prelude::*;
-use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::bevy_egui::egui::Pos2;
+use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::{bevy_egui::egui, prelude::*};
 
 use crate::components::{GameTicks, GradientResource, Microphone, Source, SourceType, Wall};
@@ -19,6 +19,7 @@ pub enum AttenuationType {
 
 #[derive(Resource)]
 pub struct UiState {
+    pub is_running: bool,
     pub delta_l: f32,
     pub epsilon: f32,
     pub e_al: u32,
@@ -32,6 +33,7 @@ pub struct UiState {
 impl Default for UiState {
     fn default() -> Self {
         Self {
+            is_running: false,
             delta_l: 0.001,
             epsilon: 0.001,
             e_al: 50,
@@ -83,6 +85,13 @@ pub fn draw_egui(
                         });
                     }
                 });
+
+            if ui
+                .button(if ui_state.is_running { "Stop" } else { "Start" })
+                .clicked()
+            {
+                ui_state.is_running = !ui_state.is_running;
+            }
 
             ui.add(
                 egui::Slider::new(&mut ui_state.delta_l, 0.0..=10.0)

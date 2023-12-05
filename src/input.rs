@@ -19,14 +19,15 @@ fn screen_to_grid(x: f32, y: f32, image_rect_top: Pos2) -> Option<(u32, u32)> {
 }
 
 pub fn mouse_button_input(
-    buttons: Res<Input<MouseButton>>,
+    mouse_buttons: Res<Input<MouseButton>>,
+    keys: Res<Input<KeyCode>>,
     q_windows: Query<&Window, With<PrimaryWindow>>,
     sources: Query<(Entity, &Source), Without<Drag>>,
     mut drag_sources: Query<(Entity, &mut Source), With<Drag>>,
     mut commands: Commands,
-    ui_state: Res<UiState>,
+    mut ui_state: ResMut<UiState>,
 ) {
-    if buttons.just_pressed(MouseButton::Left) {
+    if mouse_buttons.just_pressed(MouseButton::Left) {
         let window = q_windows.single();
         if let Some(position) = window.cursor_position() {
             if let Some((x, y)) = screen_to_grid(position.x, position.y, ui_state.image_rect_top) {
@@ -40,12 +41,12 @@ pub fn mouse_button_input(
             }
         }
     }
-    if buttons.just_released(MouseButton::Left) {
+    if mouse_buttons.just_released(MouseButton::Left) {
         drag_sources.iter_mut().for_each(|(entity, _)| {
             commands.entity(entity).remove::<Drag>();
         });
     }
-    if buttons.pressed(MouseButton::Left) && drag_sources.iter_mut().count() >= 1 {
+    if mouse_buttons.pressed(MouseButton::Left) && drag_sources.iter_mut().count() >= 1 {
         let window = q_windows.single();
         if let Some(position) = window.cursor_position() {
             if let Some((x, y)) = screen_to_grid(position.x, position.y, ui_state.image_rect_top) {
@@ -56,7 +57,7 @@ pub fn mouse_button_input(
             }
         }
     }
-    if buttons.just_pressed(MouseButton::Right) {
+    if mouse_buttons.just_pressed(MouseButton::Right) {
         let window = q_windows.single();
         if let Some(position) = window.cursor_position() {
             if let Some((x, y)) = screen_to_grid(position.x, position.y, ui_state.image_rect_top) {
@@ -78,7 +79,11 @@ pub fn mouse_button_input(
         }
     }
     // we can check multiple at once with `.any_*`
-    if buttons.any_just_pressed([MouseButton::Left, MouseButton::Right]) {
+    if mouse_buttons.any_just_pressed([MouseButton::Left, MouseButton::Right]) {
         // Either the left or the right button was just pressed
+    }
+
+    if keys.just_pressed(KeyCode::Space) {
+        ui_state.is_running = !ui_state.is_running;
     }
 }
