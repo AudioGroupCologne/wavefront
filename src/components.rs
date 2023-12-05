@@ -1,12 +1,9 @@
 use std::f32::consts::PI;
 
 use crate::constants::*;
-use bevy::{prelude::*, transform::commands};
+use bevy::prelude::*;
 
-use crate::{
-    constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH},
-    grid::Grid,
-};
+use crate::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 
 #[derive(Resource)]
 pub struct GradientResource(pub colorgrad::Gradient);

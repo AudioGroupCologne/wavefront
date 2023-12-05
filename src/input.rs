@@ -1,9 +1,8 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_pixel_buffer::bevy_egui::egui::Pos2;
 
-use crate::components::{Drag, Source, SourceType, Wall};
+use crate::components::{Drag, Source, SourceType};
 use crate::constants::*;
-use crate::grid::Grid;
 
 use crate::render::UiState;
 

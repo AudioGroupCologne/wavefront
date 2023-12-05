@@ -3,7 +3,7 @@ use bevy_pixel_buffer::bevy_egui::egui::Pos2;
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::{bevy_egui::egui, prelude::*};
 
-use crate::components::{GameTicks, GradientResource, Microphone, Source, SourceType, Wall};
+use crate::components::{GradientResource, Microphone, Source, SourceType, Wall};
 use crate::constants::*;
 use crate::grid::Grid;
 use egui_plot::{Line, Plot, PlotPoints};
