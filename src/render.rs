@@ -66,13 +66,6 @@ pub fn draw_egui(
                     ui.set_min_width(ui.available_width());
                     for (index, mut s) in sources.iter_mut().enumerate() {
                         ui.collapsing(format!("Source {}", index), |ui| {
-                            // debug ui
-                            // ui.label(format!("Source {}", s.index));
-                            // ui.label(format!("Type: {:?}", s.r#type));
-                            // ui.label(format!("Amplitude: {}", s.amplitude));
-                            // ui.label(format!("Frequency: {}", s.frequency));
-                            // ui.label(format!("Phase: {}", s.phase));
-
                             ui.add(
                                 egui::Slider::new(&mut s.frequency, 0.0..=20000.0)
                                     .text("Frequency (Hz)"),
@@ -178,8 +171,6 @@ pub fn draw_egui(
         });
 
     egui::CentralPanel::default().show(ctx, |ui| {
-        // pb.update_fill_egui(ui.available_size());
-
         let texture = pb.egui_texture();
         let image = ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
         ui_state.image_rect_top = image.rect.min;
