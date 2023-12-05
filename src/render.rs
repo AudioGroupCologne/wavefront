@@ -6,7 +6,7 @@ use bevy_pixel_buffer::{bevy_egui::egui, prelude::*};
 use crate::components::{GradientResource, Microphone, Source, SourceType, Wall};
 use crate::constants::*;
 use crate::grid::Grid;
-use egui_plot::{Line, Plot, PlotPoints};
+use egui_plot::{Legend, Line, Plot, PlotPoints};
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum AttenuationType {
@@ -188,18 +188,24 @@ pub fn draw_egui(
     // Very crude test, pls make better
     egui::TopBottomPanel::bottom("bottom_panel")
         .resizable(true)
-        .default_height(200.0)
+        .default_height(400.0)
         .show(ctx, |ui| {
             ui.heading("Microphone Plot");
             ui.separator();
             //still need to enable a legend
-            Plot::new("mic_plot").show(ui, |plot_ui| {
-                for mic in microphones.iter() {
-                    let points: PlotPoints = PlotPoints::new(mic.record.clone());
-                    let line = Line::new(points);
-                    plot_ui.line(line.name(format!("POS {}, {}", mic.x, mic.y)));
-                }
-            });
+            Plot::new("mic_plot")
+                .allow_zoom([true, false])
+                // .allow_scroll(false)
+                .x_axis_label("Time")
+                .y_axis_label("Amplitude")
+                .legend(Legend::default())
+                .show(ui, |plot_ui| {
+                    for mic in microphones.iter() {
+                        let points: PlotPoints = PlotPoints::new(mic.record.clone());
+                        let line = Line::new(points);
+                        plot_ui.line(line.name(format!("Microphone(x: {}, y: {})", mic.x, mic.y)));
+                    }
+                });
         });
 }
 
