@@ -33,7 +33,7 @@ pub struct UiState {
 impl Default for UiState {
     fn default() -> Self {
         Self {
-            is_running: false,
+            is_running: true,
             delta_l: 0.001,
             epsilon: 0.001,
             e_al: 50,
