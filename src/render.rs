@@ -241,8 +241,7 @@ pub fn draw_walls(mut pb: QueryPixelBuffer, walls: Query<&Wall>, ui_state: Res<U
     let mut frame = pb.frame();
     for wall in walls.iter() {
         let (x, y) = Grid::index_to_coords(wall.0 as u32, ui_state.e_al);
-        //TODO: handle result
-        let _ = frame.set(
+        frame.set(
             UVec2::new(x, y),
             Pixel {
                 r: 255,
@@ -250,7 +249,7 @@ pub fn draw_walls(mut pb: QueryPixelBuffer, walls: Query<&Wall>, ui_state: Res<U
                 b: 255,
                 a: 255,
             },
-        );
+        ).expect("Wall pixel out of bounds");
     }
 }
 
