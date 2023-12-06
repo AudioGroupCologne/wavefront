@@ -110,7 +110,7 @@ pub struct GameTicks {
 }
 
 #[derive(Debug, Default, Component)]
-/// A sound source on the grid
+/// A microphone on the grid that records the pressure at its position
 pub struct Microphone {
     pub x: u32,
     pub y: u32,
