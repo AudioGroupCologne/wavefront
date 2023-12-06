@@ -150,21 +150,21 @@ impl Grid {
 
         self.cells[current_cell + 4] = 0.5
             * (-bottom_top * attenuation_factors[0]
-                + left_right * attenuation_factors[0]
-                + top_bottom * attenuation_factors[0]
-                + right_left * attenuation_factors[0]);
+                + left_right * attenuation_factors[1]
+                + top_bottom * attenuation_factors[2]
+                + right_left * attenuation_factors[3]);
         self.cells[current_cell + 5] = 0.5
-            * (bottom_top * attenuation_factors[1] - left_right * attenuation_factors[1]
-                + top_bottom * attenuation_factors[1]
-                + right_left * attenuation_factors[1]);
+            * (bottom_top * attenuation_factors[0] - left_right * attenuation_factors[1]
+                + top_bottom * attenuation_factors[2]
+                + right_left * attenuation_factors[3]);
         self.cells[current_cell + 6] = 0.5
-            * (bottom_top * attenuation_factors[2] + left_right * attenuation_factors[2]
+            * (bottom_top * attenuation_factors[0] + left_right * attenuation_factors[1]
                 - top_bottom * attenuation_factors[2]
-                + right_left * attenuation_factors[2]);
+                + right_left * attenuation_factors[3]);
         self.cells[current_cell + 7] = 0.5
-            * (bottom_top * attenuation_factors[3]
-                + left_right * attenuation_factors[3]
-                + top_bottom * attenuation_factors[3]
+            * (bottom_top * attenuation_factors[0]
+                + left_right * attenuation_factors[1]
+                + top_bottom * attenuation_factors[2]
                 - right_left * attenuation_factors[3]);
     }
 
@@ -254,7 +254,12 @@ impl Grid {
                     ui_state.power_order,
                 );
 
-                self.calc_cell_boundary(x, y, ui_state.e_al, &[attenuation_factor_top, 1., 1., attenuation_factor_left]);
+                self.calc_cell_boundary(
+                    x,
+                    y,
+                    ui_state.e_al,
+                    &[attenuation_factor_top, 1., 1., attenuation_factor_left],
+                );
             }
         }
         //RightTop
@@ -278,7 +283,12 @@ impl Grid {
                     ui_state.power_order,
                 );
 
-                self.calc_cell_boundary(x, y, ui_state.e_al, &[attenuation_factor_top, attenuation_factor_right, 1., 1.]);
+                self.calc_cell_boundary(
+                    x,
+                    y,
+                    ui_state.e_al,
+                    &[attenuation_factor_top, attenuation_factor_right, 1., 1.],
+                );
             }
         }
         //RightBottom
@@ -304,7 +314,12 @@ impl Grid {
                     ui_state.power_order,
                 );
 
-                self.calc_cell_boundary(x, y, ui_state.e_al, &[1., attenuation_factor_right, attenuation_factor_bottom, 1.]);
+                self.calc_cell_boundary(
+                    x,
+                    y,
+                    ui_state.e_al,
+                    &[1., attenuation_factor_right, attenuation_factor_bottom, 1.],
+                );
             }
         }
         //LeftBottom
@@ -330,7 +345,12 @@ impl Grid {
                     ui_state.power_order,
                 );
 
-                self.calc_cell_boundary(x, y, ui_state.e_al, &[1., 1., attenuation_factor_bottom, attenuation_factor_left]);
+                self.calc_cell_boundary(
+                    x,
+                    y,
+                    ui_state.e_al,
+                    &[1., 1., attenuation_factor_bottom, attenuation_factor_left],
+                );
             }
         }
     }

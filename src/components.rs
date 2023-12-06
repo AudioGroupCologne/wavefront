@@ -114,6 +114,7 @@ pub struct Microphone {
     pub x: u32,
     pub y: u32,
     pub record: Vec<[f64; 2]>,
+    pub spektrum: Vec<Vec<[f64; 2]>>,
 }
 
 impl Microphone {
@@ -122,6 +123,7 @@ impl Microphone {
             x,
             y,
             record: vec![[0., 0.]],
+            spektrum: vec![vec![]],
         }
     }
 
@@ -130,4 +132,8 @@ impl Microphone {
         commands.spawn(Microphone::new(100, 100));
         commands.spawn(Microphone::new(650, 650));
     }
+}
+
+pub fn u32_map_range(a1: u32, a2: u32, b1: u32, b2: u32, s: u32) -> u32 {
+    b1 + ((s - a1) * (b2 - b1) / (a2 - a1))
 }

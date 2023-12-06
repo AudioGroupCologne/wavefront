@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::EguiPlugin;
 use bevy_pixel_buffer::prelude::*;
-use tlm_rs::components::{GameTicks, GradientResource, Microphone, Source};
+use tlm_rs::components::{u32_map_range, GameTicks, GradientResource, Microphone, Source};
 use tlm_rs::constants::*;
 use tlm_rs::grid::{apply_system, calc_system, update_system, Grid};
 use tlm_rs::input::button_input;
