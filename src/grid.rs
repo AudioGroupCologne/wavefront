@@ -141,8 +141,36 @@ impl Grid {
         }
     }
 
+    fn calc_cell_boundary(&mut self, x: u32, y: u32, e_al: u32, attenuation_factors: &[f32; 4]) {
+        let current_cell = Grid::coords_to_index(x, y, 0, e_al);
+        let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2, e_al)];
+        let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3, e_al)];
+        let top_bottom = self.cells[Grid::coords_to_index(x, y - 1, 0, e_al)];
+        let right_left = self.cells[Grid::coords_to_index(x + 1, y, 1, e_al)];
+
+        self.cells[current_cell + 4] = 0.5
+            * (-bottom_top * attenuation_factors[0]
+                + left_right * attenuation_factors[0]
+                + top_bottom * attenuation_factors[0]
+                + right_left * attenuation_factors[0]);
+        self.cells[current_cell + 5] = 0.5
+            * (bottom_top * attenuation_factors[1] - left_right * attenuation_factors[1]
+                + top_bottom * attenuation_factors[1]
+                + right_left * attenuation_factors[1]);
+        self.cells[current_cell + 6] = 0.5
+            * (bottom_top * attenuation_factors[2] + left_right * attenuation_factors[2]
+                - top_bottom * attenuation_factors[2]
+                + right_left * attenuation_factors[2]);
+        self.cells[current_cell + 7] = 0.5
+            * (bottom_top * attenuation_factors[3]
+                + left_right * attenuation_factors[3]
+                + top_bottom * attenuation_factors[3]
+                - right_left * attenuation_factors[3]);
+    }
+
     fn apply_boundaries(&mut self, ui_state: Res<UiState>) {
-        let b = (ui_state.e_al * ui_state.e_al) as f32 / (f32::ln(ui_state.epsilon));
+        let b = (ui_state.e_al * ui_state.e_al) as f32 / ui_state.epsilon.ln();
+
         //Left
         for x in 1..ui_state.e_al {
             for y in ui_state.e_al..(SIMULATION_HEIGHT + ui_state.e_al) {
@@ -155,19 +183,7 @@ impl Grid {
                     ui_state.power_order,
                 );
 
-                let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
-                let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2, ui_state.e_al)];
-                let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3, ui_state.e_al)];
-                let top_bottom = self.cells[Grid::coords_to_index(x, y - 1, 0, ui_state.e_al)];
-                let right_left = self.cells[Grid::coords_to_index(x + 1, y, 1, ui_state.e_al)];
-                self.cells[current_cell + 4] =
-                    0.5 * (-bottom_top + left_right + top_bottom + attenuation_factor * right_left);
-                self.cells[current_cell + 5] =
-                    0.5 * (bottom_top - left_right + top_bottom + attenuation_factor * right_left);
-                self.cells[current_cell + 6] =
-                    0.5 * (bottom_top + left_right - top_bottom + attenuation_factor * right_left);
-                self.cells[current_cell + 7] =
-                    0.5 * (bottom_top + left_right + top_bottom - attenuation_factor * right_left);
+                self.calc_cell_boundary(x, y, ui_state.e_al, &[1., 1., 1., attenuation_factor]);
             }
         }
         //Top
@@ -182,19 +198,7 @@ impl Grid {
                     ui_state.power_order,
                 );
 
-                let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
-                let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2, ui_state.e_al)];
-                let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3, ui_state.e_al)];
-                let top_bottom = self.cells[Grid::coords_to_index(x, y - 1, 0, ui_state.e_al)];
-                let right_left = self.cells[Grid::coords_to_index(x + 1, y, 1, ui_state.e_al)];
-                self.cells[current_cell + 4] =
-                    0.5 * (-attenuation_factor * bottom_top + left_right + top_bottom + right_left);
-                self.cells[current_cell + 5] =
-                    0.5 * (attenuation_factor * bottom_top - left_right + top_bottom + right_left);
-                self.cells[current_cell + 6] =
-                    0.5 * (attenuation_factor * bottom_top + left_right - top_bottom + right_left);
-                self.cells[current_cell + 7] =
-                    0.5 * (attenuation_factor * bottom_top + left_right + top_bottom - right_left);
+                self.calc_cell_boundary(x, y, ui_state.e_al, &[attenuation_factor, 1., 1., 1.]);
             }
         }
         //Right
@@ -209,19 +213,7 @@ impl Grid {
                     ui_state.power_order,
                 );
 
-                let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
-                let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2, ui_state.e_al)];
-                let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3, ui_state.e_al)];
-                let top_bottom = self.cells[Grid::coords_to_index(x, y - 1, 0, ui_state.e_al)];
-                let right_left = self.cells[Grid::coords_to_index(x + 1, y, 1, ui_state.e_al)];
-                self.cells[current_cell + 4] =
-                    0.5 * (-bottom_top + attenuation_factor * left_right + top_bottom + right_left);
-                self.cells[current_cell + 5] =
-                    0.5 * (bottom_top - attenuation_factor * left_right + top_bottom + right_left);
-                self.cells[current_cell + 6] =
-                    0.5 * (bottom_top + attenuation_factor * left_right - top_bottom + right_left);
-                self.cells[current_cell + 7] =
-                    0.5 * (bottom_top + attenuation_factor * left_right + top_bottom - right_left);
+                self.calc_cell_boundary(x, y, ui_state.e_al, &[1., attenuation_factor, 1., 1.]);
             }
         }
         //Bottom
@@ -238,19 +230,7 @@ impl Grid {
                     ui_state.power_order,
                 );
 
-                let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
-                let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2, ui_state.e_al)];
-                let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3, ui_state.e_al)];
-                let top_bottom = self.cells[Grid::coords_to_index(x, y - 1, 0, ui_state.e_al)];
-                let right_left = self.cells[Grid::coords_to_index(x + 1, y, 1, ui_state.e_al)];
-                self.cells[current_cell + 4] =
-                    0.5 * (-bottom_top + left_right + attenuation_factor * top_bottom + right_left);
-                self.cells[current_cell + 5] =
-                    0.5 * (bottom_top - left_right + attenuation_factor * top_bottom + right_left);
-                self.cells[current_cell + 6] =
-                    0.5 * (bottom_top + left_right - attenuation_factor * top_bottom + right_left);
-                self.cells[current_cell + 7] =
-                    0.5 * (bottom_top + left_right + attenuation_factor * top_bottom - right_left);
+                self.calc_cell_boundary(x, y, ui_state.e_al, &[1., 1., attenuation_factor, 1.]);
             }
         }
         //LeftTop
@@ -274,26 +254,7 @@ impl Grid {
                     ui_state.power_order,
                 );
 
-                let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
-                let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2, ui_state.e_al)];
-                let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3, ui_state.e_al)];
-                let top_bottom = self.cells[Grid::coords_to_index(x, y - 1, 0, ui_state.e_al)];
-                let right_left = self.cells[Grid::coords_to_index(x + 1, y, 1, ui_state.e_al)];
-                self.cells[current_cell + 4] = 0.5
-                    * (-attenuation_factor_top * bottom_top
-                        + left_right
-                        + top_bottom
-                        + attenuation_factor_left * right_left);
-                self.cells[current_cell + 5] = 0.5
-                    * (attenuation_factor_top * bottom_top - left_right
-                        + top_bottom
-                        + attenuation_factor_left * right_left);
-                self.cells[current_cell + 6] = 0.5
-                    * (attenuation_factor_top * bottom_top + left_right - top_bottom
-                        + attenuation_factor_left * right_left);
-                self.cells[current_cell + 7] = 0.5
-                    * (attenuation_factor_top * bottom_top + left_right + top_bottom
-                        - attenuation_factor_left * right_left);
+                self.calc_cell_boundary(x, y, ui_state.e_al, &[attenuation_factor_top, 1., 1., attenuation_factor_left]);
             }
         }
         //RightTop
@@ -317,29 +278,7 @@ impl Grid {
                     ui_state.power_order,
                 );
 
-                let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
-                let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2, ui_state.e_al)];
-                let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3, ui_state.e_al)];
-                let top_bottom = self.cells[Grid::coords_to_index(x, y - 1, 0, ui_state.e_al)];
-                let right_left = self.cells[Grid::coords_to_index(x + 1, y, 1, ui_state.e_al)];
-                self.cells[current_cell + 4] = 0.5
-                    * (-attenuation_factor_top * bottom_top
-                        + attenuation_factor_right * left_right
-                        + top_bottom
-                        + right_left);
-                self.cells[current_cell + 5] = 0.5
-                    * (attenuation_factor_top * bottom_top - attenuation_factor_right * left_right
-                        + top_bottom
-                        + right_left);
-                self.cells[current_cell + 6] = 0.5
-                    * (attenuation_factor_top * bottom_top + attenuation_factor_right * left_right
-                        - top_bottom
-                        + right_left);
-                self.cells[current_cell + 7] = 0.5
-                    * (attenuation_factor_top * bottom_top
-                        + attenuation_factor_right * left_right
-                        + top_bottom
-                        - right_left);
+                self.calc_cell_boundary(x, y, ui_state.e_al, &[attenuation_factor_top, attenuation_factor_right, 1., 1.]);
             }
         }
         //RightBottom
@@ -365,29 +304,7 @@ impl Grid {
                     ui_state.power_order,
                 );
 
-                let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
-                let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2, ui_state.e_al)];
-                let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3, ui_state.e_al)];
-                let top_bottom = self.cells[Grid::coords_to_index(x, y - 1, 0, ui_state.e_al)];
-                let right_left = self.cells[Grid::coords_to_index(x + 1, y, 1, ui_state.e_al)];
-                self.cells[current_cell + 4] = 0.5
-                    * (-bottom_top
-                        + attenuation_factor_right * left_right
-                        + attenuation_factor_bottom * top_bottom
-                        + right_left);
-                self.cells[current_cell + 5] = 0.5
-                    * (bottom_top - attenuation_factor_right * left_right
-                        + attenuation_factor_bottom * top_bottom
-                        + right_left);
-                self.cells[current_cell + 6] = 0.5
-                    * (bottom_top + attenuation_factor_right * left_right
-                        - attenuation_factor_bottom * top_bottom
-                        + right_left);
-                self.cells[current_cell + 7] = 0.5
-                    * (bottom_top
-                        + attenuation_factor_right * left_right
-                        + attenuation_factor_bottom * top_bottom
-                        - right_left);
+                self.calc_cell_boundary(x, y, ui_state.e_al, &[1., attenuation_factor_right, attenuation_factor_bottom, 1.]);
             }
         }
         //LeftBottom
@@ -413,26 +330,7 @@ impl Grid {
                     ui_state.power_order,
                 );
 
-                let current_cell = Grid::coords_to_index(x, y, 0, ui_state.e_al);
-                let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2, ui_state.e_al)];
-                let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3, ui_state.e_al)];
-                let top_bottom = self.cells[Grid::coords_to_index(x, y - 1, 0, ui_state.e_al)];
-                let right_left = self.cells[Grid::coords_to_index(x + 1, y, 1, ui_state.e_al)];
-                self.cells[current_cell + 4] = 0.5
-                    * (-bottom_top
-                        + left_right
-                        + attenuation_factor_bottom * top_bottom
-                        + attenuation_factor_left * right_left);
-                self.cells[current_cell + 5] = 0.5
-                    * (bottom_top - left_right
-                        + attenuation_factor_bottom * top_bottom
-                        + attenuation_factor_left * right_left);
-                self.cells[current_cell + 6] = 0.5
-                    * (bottom_top + left_right - attenuation_factor_bottom * top_bottom
-                        + attenuation_factor_left * right_left);
-                self.cells[current_cell + 7] = 0.5
-                    * (bottom_top + left_right + attenuation_factor_bottom * top_bottom
-                        - attenuation_factor_left * right_left);
+                self.calc_cell_boundary(x, y, ui_state.e_al, &[1., 1., attenuation_factor_bottom, attenuation_factor_left]);
             }
         }
     }
@@ -447,11 +345,11 @@ impl Grid {
     ) -> f32 {
         match at_type {
             AttenuationType::OriginalOneWay => {
-                1.0 - ((1. + epsilon) - f32::exp((distance * distance) as f32 / b))
+                1.0 - ((1. + epsilon) - ((distance * distance) as f32 / b).exp())
             }
             AttenuationType::Linear => 1.0 - ((distance) as f32 / e_al as f32).powi(1),
             AttenuationType::Power => {
-                1.0 - ((distance) as f32 / e_al as f32).powi(power_order as i32)
+                1.0 - (distance as f32 / e_al as f32).powi(power_order as i32)
             }
             // doesn't work
             AttenuationType::Old => {
