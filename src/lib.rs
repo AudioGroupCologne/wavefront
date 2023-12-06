@@ -1,3 +1,5 @@
+#![feature(array_chunks)]
+
 pub mod components;
 pub mod constants;
 pub mod grid;

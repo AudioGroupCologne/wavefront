@@ -11,6 +11,7 @@ colorgrad = "0.6.2"
 egui_plot = "0.23.0"
 rayon = "1.8.0"
 smallvec = "1.11.1"
+spectrum-analyzer = "1.5.0"
 
 [dependencies.bevy]
 version = "0.12"

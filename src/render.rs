@@ -3,6 +3,9 @@ use bevy_pixel_buffer::bevy_egui::egui::Pos2;
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::{bevy_egui::egui, prelude::*};
 use egui_plot::{Legend, Line, Plot, PlotPoints};
+use spectrum_analyzer::scaling::divide_by_N_sqrt;
+use spectrum_analyzer::windows::hann_window;
+use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
 
 use crate::components::{GradientResource, Microphone, Source, SourceType, Wall};
 use crate::constants::*;
@@ -46,6 +49,8 @@ impl Default for UiState {
     }
 }
 
+const CHUNK_SIZE: usize = 2usize.pow(11); // 2048
+
 pub fn draw_egui(
     mut pb: QueryPixelBuffer,
     mut egui_context: EguiContexts,
@@ -53,6 +58,7 @@ pub fn draw_egui(
     microphones: Query<&Microphone>,
     mut ui_state: ResMut<UiState>,
     mut grid: ResMut<Grid>,
+    time: Res<Time>,
 ) {
     let ctx = egui_context.ctx_mut();
     egui::SidePanel::left("left_panel")
@@ -205,6 +211,41 @@ pub fn draw_egui(
                         let line = Line::new(points);
                         plot_ui.line(line.name(format!("Microphone(x: {}, y: {})", mic.x, mic.y)));
                     }
+
+                    let mic = microphones.iter().next().unwrap();
+                    let mut samples = if mic.record.len() < CHUNK_SIZE {
+                        let mut s = mic.record.clone();
+                        s.resize(CHUNK_SIZE, [0.0, 0.0]);
+                        s
+                    } else {
+                        mic.record[mic.record.len() - CHUNK_SIZE..].to_vec()
+                    };
+
+                    let hann_window =
+                        hann_window(&samples.iter().map(|x| x[1] as f32).collect::<Vec<_>>());
+                    let spectrum_hann_window = samples_fft_to_spectrum(
+                        // (windowed) samples
+                        &hann_window,
+                        // sampling rate
+                        (1. / grid.delta_t) as u32,
+                        // optional frequency limit: e.g. only interested in frequencies 50 <= f <= 150?
+                        FrequencyLimit::Max(20000f32),
+                        // optional scale
+                        // Some(&divide_by_N_sqrt),
+                        None,
+                    )
+                    .unwrap();
+
+                    let points = PlotPoints::new(
+                        spectrum_hann_window
+                            .data()
+                            .iter()
+                            .map(|x| [x.0.val().log10() as f64, x.1.val() as f64])
+                            .collect::<Vec<_>>(),
+                    );
+                    // dbg!(points.points());
+                    let line = Line::new(points);
+                    plot_ui.line(line.name("Spectrum".to_string()));
                 });
         });
 }
