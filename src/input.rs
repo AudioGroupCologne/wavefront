@@ -3,7 +3,6 @@ use bevy_pixel_buffer::bevy_egui::egui::Pos2;
 
 use crate::components::{Drag, Source, SourceType};
 use crate::constants::*;
-
 use crate::render::UiState;
 
 fn screen_to_grid(x: f32, y: f32, image_rect_top: Pos2) -> Option<(u32, u32)> {

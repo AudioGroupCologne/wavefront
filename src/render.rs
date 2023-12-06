@@ -2,11 +2,11 @@ use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::Pos2;
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::{bevy_egui::egui, prelude::*};
+use egui_plot::{Legend, Line, Plot, PlotPoints};
 
 use crate::components::{GradientResource, Microphone, Source, SourceType, Wall};
 use crate::constants::*;
 use crate::grid::Grid;
-use egui_plot::{Legend, Line, Plot, PlotPoints};
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum AttenuationType {
@@ -241,15 +241,17 @@ pub fn draw_walls(mut pb: QueryPixelBuffer, walls: Query<&Wall>, ui_state: Res<U
     let mut frame = pb.frame();
     for wall in walls.iter() {
         let (x, y) = Grid::index_to_coords(wall.0 as u32, ui_state.e_al);
-        frame.set(
-            UVec2::new(x, y),
-            Pixel {
-                r: 255,
-                g: 255,
-                b: 255,
-                a: 255,
-            },
-        ).expect("Wall pixel out of bounds");
+        frame
+            .set(
+                UVec2::new(x, y),
+                Pixel {
+                    r: 255,
+                    g: 255,
+                    b: 255,
+                    a: 255,
+                },
+            )
+            .expect("Wall pixel out of bounds");
     }
 }
 
