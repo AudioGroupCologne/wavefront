@@ -223,6 +223,7 @@ pub fn draw_egui(
                     .allow_zoom([true, false])
                     .allow_scroll(false)
                     .allow_drag(false)
+                    .allow_boxed_zoom(false)
                     .x_axis_label("Frequency (Hz)")
                     .y_axis_label("Intensity")
                     // .x_grid_spacer(log_grid_spacer(10)) // doesn't do anything
@@ -250,14 +251,9 @@ pub fn draw_egui(
                             hann_window(&samples.iter().map(|x| x[1] as f32).collect::<Vec<_>>());
 
                         let spectrum_hann_window = samples_fft_to_spectrum(
-                            // (windowed) samples
                             &hann_window,
-                            // sampling rate
                             (1. / grid.delta_t) as u32,
-                            // optional frequency limit: e.g. only interested in frequencies 50 <= f <= 150?
                             FrequencyLimit::Max(20000f32),
-                            // optional scale
-                            // Some(&divide_by_N_sqrt),
                             None,
                         )
                         .unwrap();
@@ -276,7 +272,6 @@ pub fn draw_egui(
                         }
 
                         let points = PlotPoints::new(mapped_spectrum);
-                        // dbg!(points.points());
                         let line = Line::new(points);
                         plot_ui.line(line);
                     });
@@ -303,13 +298,9 @@ pub fn draw_egui(
                 ui.with_layout(
                     egui::Layout::centered_and_justified(egui::Direction::RightToLeft),
                     |ui| {
-                        for (index, pb) in pixel_buffers.iter().enumerate() {
-                            if index == 1 {
-                                //get by entity, pls
-                                let texture = pb.egui_texture();
-                                ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
-                            }
-                        }
+                        let pb = pixel_buffers.iter().nth(1).expect("second pixel buffer");
+                        let texture = pb.egui_texture();
+                        ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
                     },
                 );
             });
@@ -348,65 +339,65 @@ pub fn draw_pixels(
     microphones: Query<&Microphone>,
 ) {
     let (query, mut images) = pixel_buffers.split();
-    for (index, item) in query.iter().enumerate() {
-        let mut frame = images.frame(item);
-        if index == 0 {
-            frame.per_pixel_par(|coords, _| {
-                let p = if ui_state.render_abc_area {
-                    grid.cells[Grid::coords_to_index(coords.x, coords.y, 8, ui_state.e_al)]
-                } else {
-                    grid.cells[Grid::coords_to_index(
-                        coords.x + ui_state.e_al,
-                        coords.y + ui_state.e_al,
-                        8,
-                        ui_state.e_al,
-                    )]
-                };
-                let color = gradient.0.at((p) as f64);
-                Pixel {
-                    r: (color.r * 255.) as u8,
-                    g: (color.g * 255.) as u8,
-                    b: (color.b * 255.) as u8,
-                    a: 255,
-                }
-            });
-        }
-        if index == 1 && ui_state.fft && ui_state.current_fft_microphone.is_some() { //? for now we don't draw the spectrum if no mic is selected, is this ok?
-            // paint spectrum
-            let mic = microphones
-                .iter()
-                .find(|m| m.id == ui_state.current_fft_microphone.expect("no mic selected"))
-                .unwrap();
-            let mut spectrum = mic.spektrum.clone();
-            spectrum.remove(0);
-            let len_y = spectrum.len();
+    let mut items = query.iter();
+    let mut frame = images.frame(items.next().expect("one pixel buffer"));
 
-            // if len_y > 0 {
-            //     println!("{:?}", spectrum);
-            // }
-
-            frame.per_pixel_par(|coords, _| Pixel {
-                r: (if len_y > 1 && coords.y < len_y as u32 {
-                    spectrum[coords.y as usize][u32_map_range(0, 250, 0, 120, coords.x) as usize][1]
-                //TODO: is 120 hardcoded + 250 is hardcoded
-                } else {
-                    0.
-                }) as u8,
-                g: (if len_y > 1 && coords.y < len_y as u32 {
-                    spectrum[coords.y as usize][u32_map_range(0, 250, 0, 120, coords.x) as usize][1]
-                //TODO: is 120 hardcoded + 250 is hardcoded
-                } else {
-                    0.
-                }) as u8,
-                b: (if len_y > 1 && coords.y < len_y as u32 {
-                    spectrum[coords.y as usize][u32_map_range(0, 250, 0, 120, coords.x) as usize][1]
-                //TODO: is 120 hardcoded + 250 is hardcoded
-                } else {
-                    0.
-                }) as u8,
-                a: 255,
-            });
+    frame.per_pixel_par(|coords, _| {
+        let p = if ui_state.render_abc_area {
+            grid.cells[Grid::coords_to_index(coords.x, coords.y, 8, ui_state.e_al)]
+        } else {
+            grid.cells[Grid::coords_to_index(
+                coords.x + ui_state.e_al,
+                coords.y + ui_state.e_al,
+                8,
+                ui_state.e_al,
+            )]
+        };
+        let color = gradient.0.at((p) as f64);
+        Pixel {
+            r: (color.r * 255.) as u8,
+            g: (color.g * 255.) as u8,
+            b: (color.b * 255.) as u8,
+            a: 255,
         }
+    });
+
+    let mut frame = images.frame(items.next().expect("two pixel buffers"));
+    if ui_state.fft && ui_state.current_fft_microphone.is_some() {
+        //? for now we don't draw the spectrum if no mic is selected, is this ok?
+        // paint spectrum
+        let mic = microphones
+            .iter()
+            .find(|m| m.id == ui_state.current_fft_microphone.expect("no mic selected"))
+            .unwrap();
+        let spectrum = &mic.spektrum;
+        let len_y = spectrum.len();
+
+        // if len_y > 0 {
+        //     println!("{:?}", spectrum);
+        // }
+
+        frame.per_pixel_par(|coords, _| Pixel {
+            r: (if len_y > 1 && coords.y < len_y as u32 {
+                spectrum[coords.y as usize][u32_map_range(0, 250, 0, 120, coords.x) as usize][1]
+            //TODO: is 120 hardcoded + 250 is hardcoded
+            } else {
+                0.
+            }) as u8,
+            g: (if len_y > 1 && coords.y < len_y as u32 {
+                spectrum[coords.y as usize][u32_map_range(0, 250, 0, 120, coords.x) as usize][1]
+            //TODO: is 120 hardcoded + 250 is hardcoded
+            } else {
+                0.
+            }) as u8,
+            b: (if len_y > 1 && coords.y < len_y as u32 {
+                spectrum[coords.y as usize][u32_map_range(0, 250, 0, 120, coords.x) as usize][1]
+            //TODO: is 120 hardcoded + 250 is hardcoded
+            } else {
+                0.
+            }) as u8,
+            a: 255,
+        });
     }
 }
 
