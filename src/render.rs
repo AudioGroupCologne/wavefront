@@ -320,6 +320,7 @@ pub fn draw_egui(
                 .legend(Legend::default())
                 .show(ui, |plot_ui| {
                     for mic in microphones.iter() {
+                        //TODO: because of this clone, the app is getting slower as time goes on (because the vec is getting bigger)
                         let points: PlotPoints = PlotPoints::new(mic.record.clone());
                         let line = Line::new(points);
                         plot_ui.line(line.name(format!(
