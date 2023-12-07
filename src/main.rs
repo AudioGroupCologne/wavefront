@@ -5,15 +5,9 @@ use tlm_rs::components::{u32_map_range, GameTicks, GradientResource, Microphone,
 use tlm_rs::constants::*;
 use tlm_rs::grid::{apply_system, calc_system, update_system, Grid};
 use tlm_rs::input::button_input;
-use tlm_rs::render::{draw_egui, draw_pixels, draw_walls, UiState};
-
+// use tlm_rs::render::{draw_egui, draw_pixels, draw_walls, UiState};
+use tlm_rs::render::{draw_egui, draw_pixels, setup_buffers, UiState};
 fn main() {
-    let size: PixelBufferSize = PixelBufferSize {
-        size: UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT),
-        // size: UVec2::new(SIMULATION_WIDTH + 2 * E_AL, SIMULATION_HEIGHT + 2 * E_AL), // render abc
-        pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
-    };
-
     let grid = Grid::default();
 
     let game_ticks = GameTicks::default();
@@ -40,10 +34,7 @@ fn main() {
         .add_systems(
             Startup,
             (
-                PixelBufferBuilder::new()
-                    .with_size(size)
-                    .with_render(false)
-                    .setup(),
+                setup_buffers,
                 Source::spawn_initial_sources,
                 Microphone::spawn_initial_microphones,
             ),
@@ -52,7 +43,8 @@ fn main() {
             Update,
             (
                 (calc_system, apply_system, update_system).chain(),
-                (draw_pixels, draw_walls, draw_egui).chain(),
+                // (draw_pixels, draw_walls, draw_egui).chain(),
+                (draw_pixels, draw_egui).chain(),
                 button_input,
                 bevy::window::close_on_esc,
             ),

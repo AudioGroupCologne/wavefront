@@ -1,3 +1,5 @@
+use std::arch::x86_64::CpuidResult;
+
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::Pos2;
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
@@ -7,7 +9,7 @@ use spectrum_analyzer::scaling::divide_by_N_sqrt;
 use spectrum_analyzer::windows::hann_window;
 use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
 
-use crate::components::{GradientResource, Microphone, Source, SourceType, Wall};
+use crate::components::{u32_map_range, GradientResource, Microphone, Source, SourceType, Wall};
 use crate::constants::*;
 use crate::grid::Grid;
 
@@ -30,7 +32,6 @@ pub struct UiState {
     pub at_type: AttenuationType,
     pub power_order: u32,
     pub image_rect_top: Pos2,
-    pub test_mic: Vec<[f64; 2]>,
 }
 
 impl Default for UiState {
@@ -44,7 +45,6 @@ impl Default for UiState {
             at_type: AttenuationType::Power,
             power_order: 5,
             image_rect_top: Pos2::default(),
-            test_mic: vec![],
         }
     }
 }
@@ -52,13 +52,12 @@ impl Default for UiState {
 const CHUNK_SIZE: usize = 2usize.pow(11); // 2048
 
 pub fn draw_egui(
-    mut pb: QueryPixelBuffer,
+    mut pixel_buffers: QueryPixelBuffer,
     mut egui_context: EguiContexts,
     mut sources: Query<&mut Source>,
     mut microphones: Query<&mut Microphone>,
     mut ui_state: ResMut<UiState>,
     mut grid: ResMut<Grid>,
-    time: Res<Time>,
 ) {
     let ctx = egui_context.ctx_mut();
     egui::SidePanel::left("left_panel")
@@ -114,37 +113,42 @@ pub fn draw_egui(
                         .add(egui::Slider::new(&mut ui_state.e_al, 2..=200).text("E_AL"))
                         .changed()
                     {
-                        grid.update_cells(ui_state.e_al);
-                        let mut item = pb.iter_mut().next().expect("At least one pixel buffer");
-                        item.pixel_buffer.size = PixelBufferSize {
-                            size: if ui_state.render_abc_area {
-                                UVec2::new(
-                                    SIMULATION_WIDTH + 2 * ui_state.e_al,
-                                    SIMULATION_HEIGHT + 2 * ui_state.e_al,
-                                )
-                            } else {
-                                UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
-                            },
-                            pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
-                        };
+                        for (index, mut pb) in pixel_buffers.iter_mut().enumerate() {
+                            if index == 0 {
+                                pb.pixel_buffer.size = PixelBufferSize {
+                                    size: if ui_state.render_abc_area {
+                                        UVec2::new(
+                                            SIMULATION_WIDTH + 2 * ui_state.e_al,
+                                            SIMULATION_HEIGHT + 2 * ui_state.e_al,
+                                        )
+                                    } else {
+                                        UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
+                                    },
+                                    pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
+                                };
+                            }
+                        }
                     }
 
                     if ui
                         .checkbox(&mut ui_state.render_abc_area, "Render Absorbing Boundary")
                         .clicked()
                     {
-                        let mut item = pb.iter_mut().next().expect("At least one pixel buffer");
-                        item.pixel_buffer.size = PixelBufferSize {
-                            size: if ui_state.render_abc_area {
-                                UVec2::new(
-                                    SIMULATION_WIDTH + 2 * ui_state.e_al,
-                                    SIMULATION_HEIGHT + 2 * ui_state.e_al,
-                                )
-                            } else {
-                                UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
-                            },
-                            pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
-                        };
+                        for (index, mut pb) in pixel_buffers.iter_mut().enumerate() {
+                            if index == 0 {
+                                pb.pixel_buffer.size = PixelBufferSize {
+                                    size: if ui_state.render_abc_area {
+                                        UVec2::new(
+                                            SIMULATION_WIDTH + 2 * ui_state.e_al,
+                                            SIMULATION_HEIGHT + 2 * ui_state.e_al,
+                                        )
+                                    } else {
+                                        UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
+                                    },
+                                    pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
+                                };
+                            }
+                        }
                     }
 
                     egui::ComboBox::from_label("Attenuation Type")
@@ -197,9 +201,14 @@ pub fn draw_egui(
         });
 
     egui::CentralPanel::default().show(ctx, |ui| {
-        let texture = pb.egui_texture();
-        let image = ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
-        ui_state.image_rect_top = image.rect.min;
+        for (index, pb) in pixel_buffers.iter().enumerate() {
+            if index == 0 {
+                //get by entity, pls
+                let texture = pb.egui_texture();
+                let image = ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
+                ui_state.image_rect_top = image.rect.min;
+            }
+        }
     });
 
     egui::SidePanel::right("spectrum_panel")
@@ -212,8 +221,7 @@ pub fn draw_egui(
                 .allow_drag(false)
                 .x_axis_label("Frequency")
                 .y_axis_label("Intensity")
-                .legend(Legend::default())
-                .x_grid_spacer(log_grid_spacer(10))
+                // .x_grid_spacer(log_grid_spacer(10)) // doesn't do anything
                 .view_aspect(1.5)
                 .show(ui, |plot_ui| {
                     let mut mic = microphones.iter_mut().next().unwrap();
@@ -250,15 +258,24 @@ pub fn draw_egui(
                         .collect::<Vec<_>>();
 
                     mic.spektrum.push(mapped_spectrum.clone());
+                    if mic.spektrum.len() > 500 {
+                        //TODO: hardcode
+                        mic.spektrum.remove(0);
+                    }
 
                     let points = PlotPoints::new(mapped_spectrum);
                     // dbg!(points.points());
                     let line = Line::new(points);
-                    plot_ui.line(line.name("Spectrum".to_string()));
+                    plot_ui.line(line);
                 });
 
-            let texture = pb.egui_texture();
-            ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
+            for (index, pb) in pixel_buffers.iter().enumerate() {
+                if index == 1 {
+                    //get by entity, pls
+                    let texture = pb.egui_texture();
+                    let image = ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
+                }
+            }
         });
 
     egui::TopBottomPanel::bottom("bottom_panel")
@@ -285,80 +302,106 @@ pub fn draw_egui(
 }
 
 pub fn draw_pixels(
-    mut pb: QueryPixelBuffer,
+    pixel_buffers: QueryPixelBuffer,
     grid: Res<Grid>,
     gradient: Res<GradientResource>,
     ui_state: Res<UiState>,
+    microphones: Query<&Microphone>,
 ) {
-    let mut frame = pb.frame();
-    frame.per_pixel_par(|coords, _| {
-        let p = if ui_state.render_abc_area {
-            grid.cells[Grid::coords_to_index(coords.x, coords.y, 8, ui_state.e_al)]
-        } else {
-            grid.cells[Grid::coords_to_index(
-                coords.x + ui_state.e_al,
-                coords.y + ui_state.e_al,
-                8,
-                ui_state.e_al,
-            )]
-        };
-        let color = gradient.0.at((p) as f64);
-        Pixel {
-            r: (color.r * 255.) as u8,
-            g: (color.g * 255.) as u8,
-            b: (color.b * 255.) as u8,
-            a: 255,
-        }
-    });
-}
-
-pub fn draw_walls(mut pb: QueryPixelBuffer, walls: Query<&Wall>, ui_state: Res<UiState>) {
-    let mut frame = pb.frame();
-    for wall in walls.iter() {
-        let (x, y) = Grid::index_to_coords(wall.0 as u32, ui_state.e_al);
-        frame
-            .set(
-                UVec2::new(x, y),
+    let (query, mut images) = pixel_buffers.split();
+    for (index, item) in query.iter().enumerate() {
+        let mut frame = images.frame(item);
+        if index == 0 {
+            frame.per_pixel_par(|coords, _| {
+                let p = if ui_state.render_abc_area {
+                    grid.cells[Grid::coords_to_index(coords.x, coords.y, 8, ui_state.e_al)]
+                } else {
+                    grid.cells[Grid::coords_to_index(
+                        coords.x + ui_state.e_al,
+                        coords.y + ui_state.e_al,
+                        8,
+                        ui_state.e_al,
+                    )]
+                };
+                let color = gradient.0.at((p) as f64);
                 Pixel {
-                    r: 255,
-                    g: 255,
-                    b: 255,
+                    r: (color.r * 255.) as u8,
+                    g: (color.g * 255.) as u8,
+                    b: (color.b * 255.) as u8,
                     a: 255,
-                },
-            )
-            .expect("Wall pixel out of bounds");
+                }
+            });
+        }
+        if index == 1 {
+            // paint spectrum
+            let mic = microphones.iter().next().unwrap();
+            let mut spectrum = mic.spektrum.clone();
+            spectrum.remove(0);
+            let len_y = spectrum.len();
+
+            // if len_y > 0 {
+            //     println!("{:?}", spectrum);
+            // }
+
+            frame.per_pixel_par(|coords, _| Pixel {
+                r: (if len_y > 1 && coords.y < len_y as u32 {
+                    spectrum[coords.y as usize][u32_map_range(0, 250, 0, 120, coords.x) as usize][1]
+                //TODO: is 120 hardcoded + 250 is hardcoded
+                } else {
+                    0.
+                }) as u8,
+                g: (if len_y > 1 && coords.y < len_y as u32 {
+                    spectrum[coords.y as usize][u32_map_range(0, 250, 0, 120, coords.x) as usize][1]
+                //TODO: is 120 hardcoded + 250 is hardcoded
+                } else {
+                    0.
+                }) as u8,
+                b: (if len_y > 1 && coords.y < len_y as u32 {
+                    spectrum[coords.y as usize][u32_map_range(0, 250, 0, 120, coords.x) as usize][1]
+                //TODO: is 120 hardcoded + 250 is hardcoded
+                } else {
+                    0.
+                }) as u8,
+                a: 255,
+            });
+        }
     }
 }
 
-// spawn multiple image buffers from examples
-#[derive(Component)]
-struct MyBuffer {
-    shown: bool,
-    id: usize,
-}
+// pub fn draw_walls(mut pb: QueryPixelBuffer, walls: Query<&Wall>, ui_state: Res<UiState>) {
+//     let mut frame = pb.frame();
+//     for wall in walls.iter() {
+//         let (x, y) = Grid::index_to_coords(wall.0 as u32, ui_state.e_al);
+//         frame
+//             .set(
+//                 UVec2::new(x, y),
+//                 Pixel {
+//                     r: 255,
+//                     g: 255,
+//                     b: 255,
+//                     a: 255,
+//                 },
+//             )
+//             .expect("Wall pixel out of bounds");
+//     }
+// }
 
 pub fn setup_buffers(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     let main_size: PixelBufferSize = PixelBufferSize {
         size: UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT),
-        // size: UVec2::new(SIMULATION_WIDTH + 2 * E_AL, SIMULATION_HEIGHT + 2 * E_AL), // render abc
         pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
     };
-    insert_pixel_buffer(&mut commands, &mut images, 0, main_size);
+    let spectrum_size: PixelBufferSize = PixelBufferSize {
+        size: UVec2::new(250, 500), //TODO: hardcode
+        pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
+    };
+    insert_pixel_buffer(&mut commands, &mut images, main_size); //main
+    insert_pixel_buffer(&mut commands, &mut images, spectrum_size); //spectrum
 }
 
-fn insert_pixel_buffer(
-    commands: &mut Commands,
-    images: &mut Assets<Image>,
-    id: usize,
-    size: PixelBufferSize,
-) {
+fn insert_pixel_buffer(commands: &mut Commands, images: &mut Assets<Image>, size: PixelBufferSize) {
     PixelBufferBuilder::new()
         .with_render(false)
         .with_size(size)
-        .spawn(commands, images)
-        .entity()
-        .insert(MyBuffer {
-            shown: true,
-            id: id,
-        });
+        .spawn(commands, images);
 }
