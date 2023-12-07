@@ -6,7 +6,7 @@ use egui_plot::{Legend, Line, Plot, PlotPoints};
 use spectrum_analyzer::windows::hann_window;
 use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
 
-use crate::components::{u32_map_range, GradientResource, Microphone, Source, SourceType, Wall};
+use crate::components::{u32_map_range, GradientResource, Microphone, Source, SourceType};
 use crate::constants::*;
 use crate::grid::Grid;
 
@@ -29,6 +29,8 @@ pub struct UiState {
     pub at_type: AttenuationType,
     pub power_order: u32,
     pub image_rect_top: Pos2,
+    pub fft: bool,
+    pub current_fft_microphone: Option<usize>,
 }
 
 impl Default for UiState {
@@ -42,6 +44,8 @@ impl Default for UiState {
             at_type: AttenuationType::Power,
             power_order: 5,
             image_rect_top: Pos2::default(),
+            fft: true,
+            current_fft_microphone: None,
         }
     }
 }
@@ -54,7 +58,7 @@ pub fn draw_egui(
     mut sources: Query<&mut Source>,
     mut microphones: Query<&mut Microphone>,
     mut ui_state: ResMut<UiState>,
-    mut grid: ResMut<Grid>,
+    grid: Res<Grid>,
 ) {
     let ctx = egui_context.ctx_mut();
     egui::SidePanel::left("left_panel")
@@ -193,6 +197,8 @@ pub fn draw_egui(
                     }
                 });
 
+                ui.checkbox(&mut ui_state.fft, "Show FFT");
+
                 ui.add_space(10.);
             })
         });
@@ -208,78 +214,106 @@ pub fn draw_egui(
         }
     });
 
-    egui::SidePanel::right("spectrum_panel")
-        .default_width(400.)
-        // .resizable(false)
-        .show(ctx, |ui| {
-            Plot::new("mic_plot")
-                .allow_zoom([true, false])
-                .allow_scroll(false)
-                .allow_drag(false)
-                .x_axis_label("Frequency")
-                .y_axis_label("Intensity")
-                // .x_grid_spacer(log_grid_spacer(10)) // doesn't do anything
-                .view_aspect(1.5)
-                .show(ui, |plot_ui| {
-                    let mut mic = microphones.iter_mut().next().unwrap();
-
-                    let mut samples = if mic.record.len() < CHUNK_SIZE {
-                        let mut s = mic.record.clone();
-                        s.resize(CHUNK_SIZE, [0.0, 0.0]);
-                        s
-                    } else {
-                        mic.record[mic.record.len() - CHUNK_SIZE..].to_vec()
-                    };
-
-                    let hann_window =
-                        hann_window(&samples.iter().map(|x| x[1] as f32).collect::<Vec<_>>());
-
-                    let spectrum_hann_window = samples_fft_to_spectrum(
-                        // (windowed) samples
-                        &hann_window,
-                        // sampling rate
-                        (1. / grid.delta_t) as u32,
-                        // optional frequency limit: e.g. only interested in frequencies 50 <= f <= 150?
-                        FrequencyLimit::Max(20000f32),
-                        // optional scale
-                        // Some(&divide_by_N_sqrt),
-                        None,
-                    )
-                    .unwrap();
-
-                    let mapped_spectrum = spectrum_hann_window
-                        .data()
-                        .iter()
-                        // .map(|x| [x.0.val().log10() as f64, x.1.val() as f64])
-                        .map(|x| [x.0.val() as f64, x.1.val() as f64])
-                        .collect::<Vec<_>>();
-
-                    mic.spektrum.push(mapped_spectrum.clone());
-                    if mic.spektrum.len() > 500 {
-                        //TODO: hardcode
-                        mic.spektrum.remove(0);
-                    }
-
-                    let points = PlotPoints::new(mapped_spectrum);
-                    // dbg!(points.points());
-                    let line = Line::new(points);
-                    plot_ui.line(line);
-                });
-
-            ui.with_layout(
-                egui::Layout::centered_and_justified(egui::Direction::RightToLeft),
-                |ui| {
-                    for (index, pb) in pixel_buffers.iter().enumerate() {
-                        if index == 1 {
-                            //get by entity, pls
-                            let texture = pb.egui_texture();
-                            ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
+    if ui_state.fft {
+        egui::SidePanel::right("spectrum_panel")
+            .default_width(400.)
+            // .resizable(false)
+            .show(ctx, |ui| {
+                Plot::new("mic_plot")
+                    .allow_zoom([true, false])
+                    .allow_scroll(false)
+                    .allow_drag(false)
+                    .x_axis_label("Frequency")
+                    .y_axis_label("Intensity")
+                    // .x_grid_spacer(log_grid_spacer(10)) // doesn't do anything
+                    .view_aspect(1.5)
+                    .show(ui, |plot_ui| {
+                        if ui_state.current_fft_microphone.is_none() {
+                            return;
                         }
-                    }
-                },
-            );
-        });
+                        let mut mic = microphones
+                            .iter_mut()
+                            .find(|m| {
+                                m.id == ui_state.current_fft_microphone.expect("no mic selected")
+                            })
+                            .unwrap();
 
+                        let samples = if mic.record.len() < CHUNK_SIZE {
+                            let mut s = mic.record.clone();
+                            s.resize(CHUNK_SIZE, [0.0, 0.0]);
+                            s
+                        } else {
+                            mic.record[mic.record.len() - CHUNK_SIZE..].to_vec()
+                        };
+
+                        let hann_window =
+                            hann_window(&samples.iter().map(|x| x[1] as f32).collect::<Vec<_>>());
+
+                        let spectrum_hann_window = samples_fft_to_spectrum(
+                            // (windowed) samples
+                            &hann_window,
+                            // sampling rate
+                            (1. / grid.delta_t) as u32,
+                            // optional frequency limit: e.g. only interested in frequencies 50 <= f <= 150?
+                            FrequencyLimit::Max(20000f32),
+                            // optional scale
+                            // Some(&divide_by_N_sqrt),
+                            None,
+                        )
+                        .unwrap();
+
+                        let mapped_spectrum = spectrum_hann_window
+                            .data()
+                            .iter()
+                            // .map(|x| [x.0.val().log10() as f64, x.1.val() as f64])
+                            .map(|(x, y)| [x.val() as f64, y.val() as f64])
+                            .collect::<Vec<_>>();
+
+                        mic.spektrum.push(mapped_spectrum.clone());
+                        if mic.spektrum.len() > 500 {
+                            //TODO: hardcode
+                            mic.spektrum.remove(0);
+                        }
+
+                        let points = PlotPoints::new(mapped_spectrum);
+                        // dbg!(points.points());
+                        let line = Line::new(points);
+                        plot_ui.line(line);
+                    });
+
+                egui::ComboBox::from_label("Microphone")
+                    .selected_text(format!(
+                        "{:?}",
+                        if let Some(index) = ui_state.current_fft_microphone {
+                            format!("Microphone {index}")
+                        } else {
+                            "No Microphone Selected".to_string()
+                        }
+                    ))
+                    .show_ui(ui, |ui| {
+                        for mic in microphones.iter() {
+                            ui.selectable_value(
+                                &mut ui_state.current_fft_microphone,
+                                Some(mic.id),
+                                format!("Microphone {}", mic.id),
+                            );
+                        }
+                    });
+
+                ui.with_layout(
+                    egui::Layout::centered_and_justified(egui::Direction::RightToLeft),
+                    |ui| {
+                        for (index, pb) in pixel_buffers.iter().enumerate() {
+                            if index == 1 {
+                                //get by entity, pls
+                                let texture = pb.egui_texture();
+                                ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
+                            }
+                        }
+                    },
+                );
+            });
+    }
     egui::TopBottomPanel::bottom("bottom_panel")
         .resizable(true)
         .default_height(400.0)
@@ -297,7 +331,10 @@ pub fn draw_egui(
                     for mic in microphones.iter() {
                         let points: PlotPoints = PlotPoints::new(mic.record.clone());
                         let line = Line::new(points);
-                        plot_ui.line(line.name(format!("Microphone(x: {}, y: {})", mic.x, mic.y)));
+                        plot_ui.line(line.name(format!(
+                            "Microphone {} (x: {}, y: {})",
+                            mic.id, mic.x, mic.y
+                        )));
                     }
                 });
         });
@@ -334,9 +371,12 @@ pub fn draw_pixels(
                 }
             });
         }
-        if index == 1 {
+        if index == 1 && ui_state.fft && ui_state.current_fft_microphone.is_some() { //? for now we don't draw the spectrum if no mic is selected, is this ok?
             // paint spectrum
-            let mic = microphones.iter().next().unwrap();
+            let mic = microphones
+                .iter()
+                .find(|m| m.id == ui_state.current_fft_microphone.expect("no mic selected"))
+                .unwrap();
             let mut spectrum = mic.spektrum.clone();
             spectrum.remove(0);
             let len_y = spectrum.len();
