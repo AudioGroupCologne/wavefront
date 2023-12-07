@@ -113,6 +113,7 @@ pub struct GameTicks {
 pub struct Microphone {
     pub x: u32,
     pub y: u32,
+    ///TODO: think of a better id system, right now we are just counting up
     pub id: usize,
     pub record: Vec<[f64; 2]>,
     pub spektrum: Vec<Vec<[f64; 2]>>,
