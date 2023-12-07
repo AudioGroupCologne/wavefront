@@ -1,8 +1,7 @@
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::EguiPlugin;
 use bevy_pixel_buffer::prelude::*;
-use tlm_rs::components::{u32_map_range, GameTicks, GradientResource, Microphone, Source};
-use tlm_rs::constants::*;
+use tlm_rs::components::{GameTicks, GradientResource, Microphone, Source};
 use tlm_rs::grid::{apply_system, calc_system, update_system, Grid};
 use tlm_rs::input::button_input;
 // use tlm_rs::render::{draw_egui, draw_pixels, draw_walls, UiState};
@@ -19,7 +18,6 @@ fn main() {
             DefaultPlugins.set(WindowPlugin {
                 primary_window: Some(Window {
                     title: "TLM Demo in Rust".into(),
-                    resolution: (1920., 1080.).into(),
                     ..default()
                 }),
                 ..default()
@@ -35,6 +33,7 @@ fn main() {
             Startup,
             (
                 setup_buffers,
+                setup_window,
                 Source::spawn_initial_sources,
                 Microphone::spawn_initial_microphones,
             ),
@@ -50,4 +49,9 @@ fn main() {
             ),
         )
         .run();
+}
+
+fn setup_window(mut windows: Query<&mut Window>) {
+    let mut window = windows.single_mut();
+    window.set_maximized(true);
 }

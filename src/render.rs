@@ -1,11 +1,8 @@
-use std::arch::x86_64::CpuidResult;
-
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::Pos2;
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::{bevy_egui::egui, prelude::*};
-use egui_plot::{log_grid_spacer, GridInput, Legend, Line, Plot, PlotPoints};
-use spectrum_analyzer::scaling::divide_by_N_sqrt;
+use egui_plot::{Legend, Line, Plot, PlotPoints};
 use spectrum_analyzer::windows::hann_window;
 use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
 
@@ -269,13 +266,18 @@ pub fn draw_egui(
                     plot_ui.line(line);
                 });
 
-            for (index, pb) in pixel_buffers.iter().enumerate() {
-                if index == 1 {
-                    //get by entity, pls
-                    let texture = pb.egui_texture();
-                    let image = ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
-                }
-            }
+            ui.with_layout(
+                egui::Layout::centered_and_justified(egui::Direction::RightToLeft),
+                |ui| {
+                    for (index, pb) in pixel_buffers.iter().enumerate() {
+                        if index == 1 {
+                            //get by entity, pls
+                            let texture = pb.egui_texture();
+                            ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
+                        }
+                    }
+                },
+            );
         });
 
     egui::TopBottomPanel::bottom("bottom_panel")
