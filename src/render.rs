@@ -223,7 +223,7 @@ pub fn draw_egui(
                     .allow_zoom([true, false])
                     .allow_scroll(false)
                     .allow_drag(false)
-                    .x_axis_label("Frequency")
+                    .x_axis_label("Frequency (Hz)")
                     .y_axis_label("Intensity")
                     // .x_grid_spacer(log_grid_spacer(10)) // doesn't do anything
                     .view_aspect(1.5)
@@ -324,7 +324,7 @@ pub fn draw_egui(
             Plot::new("mic_plot")
                 .allow_zoom([true, false])
                 // .allow_scroll(false)
-                .x_axis_label("Time")
+                .x_axis_label("Time (s)")
                 .y_axis_label("Amplitude")
                 .legend(Legend::default())
                 .show(ui, |plot_ui| {
