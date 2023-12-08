@@ -1,3 +1,4 @@
+use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::Pos2;
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
@@ -58,6 +59,7 @@ pub fn draw_egui(
     mut sources: Query<&mut Source>,
     mut microphones: Query<&mut Microphone>,
     mut ui_state: ResMut<UiState>,
+    diagnostics: Res<DiagnosticsStore>,
     grid: Res<Grid>,
 ) {
     let ctx = egui_context.ctx_mut();
@@ -65,7 +67,15 @@ pub fn draw_egui(
         .default_width(300.)
         .show(ctx, |ui| {
             ui.spacing_mut().slider_width = 200.0;
+
             ui.heading("Settings");
+            if let Some(value) = diagnostics
+                .get(FrameTimeDiagnosticsPlugin::FPS)
+                .and_then(|fps| fps.smoothed())
+            {
+                ui.label(format!("FPS: {:.1}", value));
+            }
+
             ui.separator();
 
             egui::ScrollArea::vertical()

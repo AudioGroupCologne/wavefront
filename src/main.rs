@@ -1,3 +1,4 @@
+use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::EguiPlugin;
 use bevy_pixel_buffer::prelude::*;
@@ -22,6 +23,7 @@ fn main() {
                 }),
                 ..default()
             }),
+            FrameTimeDiagnosticsPlugin,
             PixelBufferPlugins,
             EguiPlugin,
         ))
