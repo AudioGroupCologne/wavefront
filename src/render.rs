@@ -92,6 +92,33 @@ pub fn draw_egui(
                     }
                 });
 
+            ui.separator();
+
+            egui::ScrollArea::vertical()
+                .max_height(400.)
+                .show(ui, |ui| {
+                    ui.set_min_width(ui.available_width());
+                    for mut s in microphones.iter_mut() {
+                        ui.collapsing(format!("Microphone {}", s.id), |ui| {
+                            ui.horizontal(|ui| {
+                                ui.label("x:");
+                                ui.add(
+                                    egui::DragValue::new(&mut s.x)
+                                        .speed(1)
+                                        .clamp_range(0.0..=SIMULATION_WIDTH as f32),
+                                );
+                                ui.add_space(10.);
+                                ui.label("y:");
+                                ui.add(
+                                    egui::DragValue::new(&mut s.y)
+                                        .speed(1)
+                                        .clamp_range(0.0..=SIMULATION_HEIGHT as f32),
+                                );
+                            });
+                        });
+                    }
+                });
+
             egui::TopBottomPanel::bottom("general_settings_bottom_panel").show_inside(ui, |ui| {
                 ui.heading("General Settings");
                 ui.separator();
