@@ -2,11 +2,12 @@ use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::epaint::CircleShape;
 use bevy_pixel_buffer::bevy_egui::egui::{pos2, Color32, Pos2, Stroke};
-use bevy_pixel_buffer::bevy_egui::EguiContexts;
-use bevy_pixel_buffer::{bevy_egui::egui, prelude::*};
+use bevy_pixel_buffer::bevy_egui::{egui, EguiContexts};
+use bevy_pixel_buffer::prelude::*;
 use egui_plot::{Legend, Line, Plot, PlotPoints};
+use spectrum_analyzer::scaling::scale_to_zero_to_one;
 use spectrum_analyzer::windows::hann_window;
-use spectrum_analyzer::{samples_fft_to_spectrum, scaling::scale_to_zero_to_one, FrequencyLimit};
+use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
 
 use crate::components::{u32_map_range, GradientResource, Microphone, Source, SourceType};
 use crate::constants::*;
