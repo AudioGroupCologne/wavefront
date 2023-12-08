@@ -32,7 +32,8 @@ pub struct UiState {
     pub at_type: AttenuationType,
     pub power_order: u32,
     pub image_rect_top: Pos2,
-    pub fft: bool,
+    pub show_fft: bool,
+    pub show_mic_plot: bool,
     pub current_fft_microphone: Option<usize>,
 }
 
@@ -47,7 +48,8 @@ impl Default for UiState {
             at_type: AttenuationType::Power,
             power_order: 5,
             image_rect_top: Pos2::default(),
-            fft: true,
+            show_fft: false,
+            show_mic_plot: false,
             current_fft_microphone: None,
         }
     }
@@ -79,7 +81,7 @@ pub fn draw_egui(
     images: Local<Images>,
 ) {
     let cursor_icon = egui_context.add_image(images.cursor_icon.clone_weak());
-    
+
     let ctx = egui_context.ctx_mut();
     egui::SidePanel::left("left_panel")
         .default_width(300.)
@@ -254,7 +256,16 @@ pub fn draw_egui(
                     }
                 });
 
-                ui.checkbox(&mut ui_state.fft, "Show FFT");
+                ui.checkbox(&mut ui_state.show_fft, "Show FFT");
+
+                if ui
+                    .checkbox(&mut ui_state.show_mic_plot, "Show Microphone Plot")
+                    .clicked()
+                {
+                    for mut mic in microphones.iter_mut() {
+                        mic.clear();
+                    }
+                }
 
                 ui.add_space(10.);
             })
@@ -268,7 +279,7 @@ pub fn draw_egui(
                 if ui
                     .add(egui::ImageButton::new(egui::load::SizedTexture::new(
                         cursor_icon,
-                        [25., 25.]
+                        [25., 25.],
                     )))
                     .clicked()
                 {
@@ -297,7 +308,7 @@ pub fn draw_egui(
         }
     });
 
-    if ui_state.fft {
+    if ui_state.show_fft {
         egui::SidePanel::right("spectrum_panel")
             .default_width(400.)
             // .resizable(false)
@@ -388,31 +399,34 @@ pub fn draw_egui(
                 );
             });
     }
-    egui::TopBottomPanel::bottom("bottom_panel")
-        .resizable(true)
-        .default_height(400.0)
-        .show(ctx, |ui| {
-            ui.heading("Microphone Plot");
-            ui.separator();
-            //still need to enable a legend
-            Plot::new("mic_plot")
-                .allow_zoom([true, false])
-                // .allow_scroll(false)
-                .x_axis_label("Time (s)")
-                .y_axis_label("Amplitude")
-                .legend(Legend::default())
-                .show(ui, |plot_ui| {
-                    for mic in microphones.iter() {
-                        //TODO: because of this clone, the app is getting slower as time goes on (because the vec is getting bigger)
-                        let points: PlotPoints = PlotPoints::new(mic.record.clone());
-                        let line = Line::new(points);
-                        plot_ui.line(line.name(format!(
-                            "Microphone {} (x: {}, y: {})",
-                            mic.id, mic.x, mic.y
-                        )));
-                    }
-                });
-        });
+
+    if ui_state.show_mic_plot {
+        egui::TopBottomPanel::bottom("bottom_panel")
+            .resizable(true)
+            .default_height(400.0)
+            .show(ctx, |ui| {
+                ui.heading("Microphone Plot");
+                ui.separator();
+                //still need to enable a legend
+                Plot::new("mic_plot")
+                    .allow_zoom([true, false])
+                    // .allow_scroll(false)
+                    .x_axis_label("Time (s)")
+                    .y_axis_label("Amplitude")
+                    .legend(Legend::default())
+                    .show(ui, |plot_ui| {
+                        for mic in microphones.iter() {
+                            //TODO: because of this clone, the app is getting slower as time goes on (because the vec is getting bigger)
+                            let points: PlotPoints = PlotPoints::new(mic.record.clone());
+                            let line = Line::new(points);
+                            plot_ui.line(line.name(format!(
+                                "Microphone {} (x: {}, y: {})",
+                                mic.id, mic.x, mic.y
+                            )));
+                        }
+                    });
+            });
+    }
 }
 
 pub fn draw_pixels(
@@ -447,7 +461,7 @@ pub fn draw_pixels(
     });
 
     let mut frame = images.frame(items.next().expect("two pixel buffers"));
-    if ui_state.fft && ui_state.current_fft_microphone.is_some() {
+    if ui_state.show_fft && ui_state.current_fft_microphone.is_some() {
         //? for now we don't draw the spectrum if no mic is selected, is this ok?
         // paint spectrum
         let mic = microphones

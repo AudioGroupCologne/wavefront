@@ -135,6 +135,10 @@ impl Microphone {
         commands.spawn(Microphone::new(100, 100, 2));
         commands.spawn(Microphone::new(650, 650, 3));
     }
+
+    pub fn clear(&mut self) {
+        self.record = vec![[0., 0.]];
+    }
 }
 
 pub fn u32_map_range(a1: u32, a2: u32, b1: u32, b2: u32, s: u32) -> u32 {

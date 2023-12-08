@@ -1,6 +1,7 @@
 use std::f32::consts::PI;
 
 use bevy::prelude::*;
+use bevy::ui;
 
 use crate::components::{GameTicks, Microphone, Source, SourceType, Wall};
 use crate::constants::*;
@@ -114,16 +115,19 @@ impl Grid {
         &mut self, //doesn't actually need to mutable but it throws errors further down if not
         mut microphones: Query<&mut Microphone>,
         e_al: u32,
+        enabled: bool,
     ) {
-        for mut mic in microphones.iter_mut() {
-            let x = mic.x;
-            let y = mic.y;
-            let cur_time = mic.record.last().unwrap()[0] + self.delta_t as f64;
+        if enabled {
+            for mut mic in microphones.iter_mut() {
+                let x = mic.x;
+                let y = mic.y;
+                let cur_time = mic.record.last().unwrap()[0] + self.delta_t as f64;
 
-            mic.record.push([
-                cur_time,
-                self.cells[Grid::coords_to_index(x, y, 8, e_al)] as f64,
-            ]);
+                mic.record.push([
+                    cur_time,
+                    self.cells[Grid::coords_to_index(x, y, 8, e_al)] as f64,
+                ]);
+            }
         }
     }
 
@@ -413,7 +417,7 @@ pub fn apply_system(
     if ui_state.is_running {
         grid.apply_sources(game_ticks.ticks_since_start, &sources, ui_state.e_al);
         grid.apply_walls(&walls, ui_state.e_al);
-        grid.apply_microphones(microphones, ui_state.e_al);
+        grid.apply_microphones(microphones, ui_state.e_al, ui_state.show_mic_plot);
         grid.apply_boundaries(ui_state);
     }
 }
