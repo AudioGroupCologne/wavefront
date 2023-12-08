@@ -53,6 +53,19 @@ impl Default for UiState {
     }
 }
 
+pub struct Images {
+    cursor_icon: Handle<Image>,
+}
+
+impl FromWorld for Images {
+    fn from_world(world: &mut World) -> Self {
+        let asset_server = world.get_resource_mut::<AssetServer>().unwrap();
+        Self {
+            cursor_icon: asset_server.load("test_icon.png"),
+        }
+    }
+}
+
 const CHUNK_SIZE: usize = 2usize.pow(11); // 2048
 
 pub fn draw_egui(
@@ -63,7 +76,10 @@ pub fn draw_egui(
     mut ui_state: ResMut<UiState>,
     diagnostics: Res<DiagnosticsStore>,
     grid: Res<Grid>,
+    images: Local<Images>,
 ) {
+    let cursor_icon = egui_context.add_image(images.cursor_icon.clone_weak());
+
     let ctx = egui_context.ctx_mut();
     egui::SidePanel::left("left_panel")
         .default_width(300.)
@@ -249,14 +265,15 @@ pub fn draw_egui(
             .default_width(50.)
             .resizable(false)
             .show_inside(ui, |ui| {
-                if ui
-                    .add(egui::ImageButton::new(egui::include_image!(
-                        "../assets/test_icon.png"
-                    )))
-                    .clicked()
-                {
-                    println!("Clicked");
-                };
+                // if ui
+                //     .add(egui::ImageButton::new(egui::load::SizedTexture::new(
+                //         cursor_icon,
+                //         [50., 50.]
+                //     )))
+                //     .clicked()
+                // {
+                //     println!("Clicked");
+                // };
             });
 
         let pb = pixel_buffers.iter().next().expect("first pixel buffer");
