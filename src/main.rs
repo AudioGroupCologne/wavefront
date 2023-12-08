@@ -1,5 +1,6 @@
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
+use bevy::window::PresentMode;
 use bevy_pixel_buffer::bevy_egui::EguiPlugin;
 use bevy_pixel_buffer::prelude::*;
 use tlm_rs::components::{GameTicks, GradientResource, Microphone, Source};
@@ -19,6 +20,7 @@ fn main() {
             DefaultPlugins.set(WindowPlugin {
                 primary_window: Some(Window {
                     title: "TLM Demo in Rust".into(),
+                    present_mode: PresentMode::Mailbox,
                     ..default()
                 }),
                 ..default()

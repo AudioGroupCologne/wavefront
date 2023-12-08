@@ -1,11 +1,12 @@
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
-use bevy_pixel_buffer::bevy_egui::egui::Pos2;
+use bevy_pixel_buffer::bevy_egui::egui::epaint::CircleShape;
+use bevy_pixel_buffer::bevy_egui::egui::{pos2, Color32, Pos2, Stroke};
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::{bevy_egui::egui, prelude::*};
 use egui_plot::{Legend, Line, Plot, PlotPoints};
 use spectrum_analyzer::windows::hann_window;
-use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
+use spectrum_analyzer::{samples_fft_to_spectrum, scaling::scale_to_zero_to_one, FrequencyLimit};
 
 use crate::components::{u32_map_range, GradientResource, Microphone, Source, SourceType};
 use crate::constants::*;
@@ -79,6 +80,7 @@ pub fn draw_egui(
             ui.separator();
 
             egui::ScrollArea::vertical()
+                .id_source("source_scroll_area")
                 .max_height(400.)
                 .show(ui, |ui| {
                     ui.set_min_width(ui.available_width());
@@ -105,6 +107,7 @@ pub fn draw_egui(
             ui.separator();
 
             egui::ScrollArea::vertical()
+                .id_source("mic_scroll_area")
                 .max_height(400.)
                 .show(ui, |ui| {
                     ui.set_min_width(ui.available_width());
@@ -241,13 +244,30 @@ pub fn draw_egui(
         });
 
     egui::CentralPanel::default().show(ctx, |ui| {
-        for (index, pb) in pixel_buffers.iter().enumerate() {
-            if index == 0 {
-                //get by entity, pls
-                let texture = pb.egui_texture();
-                let image = ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
-                ui_state.image_rect_top = image.rect.min;
-            }
+        egui::SidePanel::left("tool_panel")
+            .default_width(50.)
+            .show_inside(ui, |ui| {
+                // ui.add(egui::ImageButton::new(image));
+            });
+
+        let pb = pixel_buffers.iter().next().expect("first pixel buffer");
+        let texture = pb.egui_texture();
+        let image = ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
+        ui_state.image_rect_top = image.rect.min;
+
+        let painter = ui.painter();
+
+        for source in sources.iter() {
+            let gizmo_pos = pos2(
+                source.x as f32 + image.rect.min[0],
+                source.y as f32 + image.rect.min[1],
+            );
+
+            painter.add(egui::Shape::Circle(CircleShape::stroke(
+                gizmo_pos,
+                10.,
+                Stroke::new(10.0, Color32::from_rgb(255, 100, 0)),
+            )));
         }
     });
 
@@ -290,8 +310,8 @@ pub fn draw_egui(
                         let spectrum_hann_window = samples_fft_to_spectrum(
                             &hann_window,
                             (1. / grid.delta_t) as u32,
-                            FrequencyLimit::Max(20000f32),
-                            None,
+                            FrequencyLimit::All,
+                            Some(&scale_to_zero_to_one),
                         )
                         .unwrap();
 
@@ -418,18 +438,21 @@ pub fn draw_pixels(
         frame.per_pixel_par(|coords, _| Pixel {
             r: (if len_y > 1 && coords.y < len_y as u32 {
                 spectrum[coords.y as usize][u32_map_range(0, 250, 0, 120, coords.x) as usize][1]
+                    * 255.
             //TODO: is 120 hardcoded + 250 is hardcoded
             } else {
                 0.
             }) as u8,
             g: (if len_y > 1 && coords.y < len_y as u32 {
                 spectrum[coords.y as usize][u32_map_range(0, 250, 0, 120, coords.x) as usize][1]
+                    * 255.
             //TODO: is 120 hardcoded + 250 is hardcoded
             } else {
                 0.
             }) as u8,
             b: (if len_y > 1 && coords.y < len_y as u32 {
                 spectrum[coords.y as usize][u32_map_range(0, 250, 0, 120, coords.x) as usize][1]
+                    * 255.
             //TODO: is 120 hardcoded + 250 is hardcoded
             } else {
                 0.

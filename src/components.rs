@@ -125,7 +125,6 @@ impl Microphone {
             x,
             y,
             id,
-            //? why are we initializing with 0? (why isn't it just vec![])
             record: vec![[0., 0.]],
             spektrum: vec![],
         }
