@@ -246,8 +246,16 @@ pub fn draw_egui(
     egui::CentralPanel::default().show(ctx, |ui| {
         egui::SidePanel::left("tool_panel")
             .default_width(50.)
+            .resizable(false)
             .show_inside(ui, |ui| {
-                // ui.add(egui::ImageButton::new(image));
+                if ui
+                    .add(egui::ImageButton::new(egui::include_image!(
+                        "../assets/test_icon.png"
+                    )))
+                    .clicked()
+                {
+                    println!("Clicked");
+                };
             });
 
         let pb = pixel_buffers.iter().next().expect("first pixel buffer");
