@@ -79,7 +79,7 @@ pub fn draw_egui(
     images: Local<Images>,
 ) {
     let cursor_icon = egui_context.add_image(images.cursor_icon.clone_weak());
-
+    
     let ctx = egui_context.ctx_mut();
     egui::SidePanel::left("left_panel")
         .default_width(300.)
@@ -265,15 +265,15 @@ pub fn draw_egui(
             .default_width(50.)
             .resizable(false)
             .show_inside(ui, |ui| {
-                // if ui
-                //     .add(egui::ImageButton::new(egui::load::SizedTexture::new(
-                //         cursor_icon,
-                //         [50., 50.]
-                //     )))
-                //     .clicked()
-                // {
-                //     println!("Clicked");
-                // };
+                if ui
+                    .add(egui::ImageButton::new(egui::load::SizedTexture::new(
+                        cursor_icon,
+                        [25., 25.]
+                    )))
+                    .clicked()
+                {
+                    println!("Clicked");
+                };
             });
 
         let pb = pixel_buffers.iter().next().expect("first pixel buffer");
