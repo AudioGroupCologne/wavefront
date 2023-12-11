@@ -1,7 +1,7 @@
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::epaint::CircleShape;
-use bevy_pixel_buffer::bevy_egui::egui::{pos2, Color32, Pos2, Stroke};
+use bevy_pixel_buffer::bevy_egui::egui::{pos2, Color32, Pos2, Rect, Rounding, Stroke};
 use bevy_pixel_buffer::bevy_egui::{egui, EguiContexts};
 use bevy_pixel_buffer::prelude::*;
 use egui_plot::{Legend, Line, Plot, PlotPoints};
@@ -22,6 +22,18 @@ pub enum AttenuationType {
     DoNothing,
 }
 
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum PlotType {
+    TimeDomain,
+    FrequencyDomain,
+}
+
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum ToolType {
+    PlaceSource,
+    MoveSource,
+}
+
 #[derive(Resource)]
 pub struct UiState {
     pub is_running: bool,
@@ -31,10 +43,12 @@ pub struct UiState {
     pub render_abc_area: bool,
     pub at_type: AttenuationType,
     pub power_order: u32,
-    pub image_rect_top: Pos2,
+    pub image_rect: egui::emath::Rect,
     pub show_fft: bool,
     pub show_mic_plot: bool,
     pub current_fft_microphone: Option<usize>,
+    pub plot_type: PlotType,
+    pub tool_type: ToolType,
 }
 
 impl Default for UiState {
@@ -47,10 +61,12 @@ impl Default for UiState {
             render_abc_area: false,
             at_type: AttenuationType::Power,
             power_order: 5,
-            image_rect_top: Pos2::default(),
+            image_rect: egui::emath::Rect::NOTHING,
             show_fft: false,
             show_mic_plot: false,
             current_fft_microphone: None,
+            plot_type: PlotType::TimeDomain,
+            tool_type: ToolType::PlaceSource,
         }
     }
 }
@@ -262,8 +278,10 @@ pub fn draw_egui(
                     .checkbox(&mut ui_state.show_mic_plot, "Show Microphone Plot")
                     .clicked()
                 {
-                    for mut mic in microphones.iter_mut() {
-                        mic.clear();
+                    if !ui_state.show_fft {
+                        for mut mic in microphones.iter_mut() {
+                            mic.clear();
+                        }
                     }
                 }
 
@@ -272,39 +290,72 @@ pub fn draw_egui(
         });
 
     egui::CentralPanel::default().show(ctx, |ui| {
+        // Tool Panel
+
         egui::SidePanel::left("tool_panel")
             .default_width(50.)
             .resizable(false)
             .show_inside(ui, |ui| {
-                if ui
-                    .add(egui::ImageButton::new(egui::load::SizedTexture::new(
-                        cursor_icon,
-                        [25., 25.],
-                    )))
-                    .clicked()
-                {
-                    println!("Clicked");
-                };
+                //Tests for tool buttons
+                ui.add(
+                    egui::ImageButton::new(egui::load::SizedTexture::new(cursor_icon, [25., 25.]))
+                        .selected(true),
+                );
+
+                ui.add(
+                    egui::Image::new(egui::load::SizedTexture::new(cursor_icon, [25., 25.]))
+                        .bg_fill(Color32::DARK_GRAY)
+                        .shrink_to_fit(),
+                );
+
+                ui.vertical(|ui| {
+                    ui.selectable_value(&mut ui_state.tool_type, ToolType::PlaceSource, "Place");
+                    ui.selectable_value(&mut ui_state.tool_type, ToolType::MoveSource, "Move");
+                });
             });
+
+        // Main Simulation Area
 
         let pb = pixel_buffers.iter().next().expect("first pixel buffer");
         let texture = pb.egui_texture();
-        let image = ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
-        ui_state.image_rect_top = image.rect.min;
+        // let image = ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
 
-        let painter = ui.painter();
+        let image = ui.add(
+            egui::Image::new(egui::load::SizedTexture::new(texture.id, texture.size))
+                .shrink_to_fit(),
+        );
 
-        for source in sources.iter() {
-            let gizmo_pos = pos2(
-                source.x as f32 + image.rect.min[0],
-                source.y as f32 + image.rect.min[1],
-            );
+        ui_state.image_rect = image.rect;
 
-            painter.add(egui::Shape::Circle(CircleShape::stroke(
-                gizmo_pos,
-                10.,
-                Stroke::new(10.0, Color32::from_rgb(255, 100, 0)),
-            )));
+        // Gizmos
+
+        if image.hovered() && ui_state.tool_type == ToolType::MoveSource {
+            let painter = ui.painter();
+
+            for source in sources.iter() {
+                let gizmo_pos = pos2(
+                    u32_map_range(
+                        0,
+                        SIMULATION_WIDTH,
+                        image.rect.min.x as u32,
+                        image.rect.max.x as u32,
+                        source.x,
+                    ) as f32,
+                    u32_map_range(
+                        0,
+                        SIMULATION_HEIGHT,
+                        image.rect.min.y as u32,
+                        image.rect.max.y as u32,
+                        source.y,
+                    ) as f32,
+                );
+
+                painter.add(egui::Shape::Circle(CircleShape::stroke(
+                    gizmo_pos,
+                    10.,
+                    Stroke::new(10.0, Color32::from_rgb(255, 100, 0)),
+                )));
+            }
         }
     });
 
@@ -389,13 +440,12 @@ pub fn draw_egui(
                         }
                     });
 
-                ui.with_layout(
-                    egui::Layout::centered_and_justified(egui::Direction::RightToLeft),
-                    |ui| {
-                        let pb = pixel_buffers.iter().nth(1).expect("second pixel buffer");
-                        let texture = pb.egui_texture();
-                        ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
-                    },
+                let pb = pixel_buffers.iter().nth(1).expect("second pixel buffer");
+                let texture = pb.egui_texture();
+
+                ui.add(
+                    egui::Image::new(egui::load::SizedTexture::new(texture.id, texture.size))
+                        .shrink_to_fit(),
                 );
             });
     }
@@ -406,25 +456,48 @@ pub fn draw_egui(
             .default_height(400.0)
             .show(ctx, |ui| {
                 ui.heading("Microphone Plot");
-                ui.separator();
-                //still need to enable a legend
-                Plot::new("mic_plot")
-                    .allow_zoom([true, false])
-                    // .allow_scroll(false)
-                    .x_axis_label("Time (s)")
-                    .y_axis_label("Amplitude")
-                    .legend(Legend::default())
-                    .show(ui, |plot_ui| {
-                        for mic in microphones.iter() {
-                            //TODO: because of this clone, the app is getting slower as time goes on (because the vec is getting bigger)
-                            let points: PlotPoints = PlotPoints::new(mic.record.clone());
-                            let line = Line::new(points);
-                            plot_ui.line(line.name(format!(
-                                "Microphone {} (x: {}, y: {})",
-                                mic.id, mic.x, mic.y
-                            )));
-                        }
+
+                egui::ComboBox::from_label("Select Plot Type")
+                    .selected_text(format!("{:?}", ui_state.plot_type))
+                    .show_ui(ui, |ui| {
+                        ui.style_mut().wrap = Some(false);
+                        ui.selectable_value(
+                            &mut ui_state.plot_type,
+                            PlotType::TimeDomain,
+                            "Time Domain",
+                        );
+                        ui.selectable_value(
+                            &mut ui_state.plot_type,
+                            PlotType::FrequencyDomain,
+                            "Frequency Domain",
+                        );
                     });
+
+                ui.separator();
+
+                match ui_state.plot_type {
+                    PlotType::TimeDomain => {
+                        Plot::new("mic_plot")
+                            .allow_zoom([true, false])
+                            // .allow_scroll(false)
+                            .x_axis_label("Time (s)")
+                            .y_axis_label("Amplitude")
+                            .legend(Legend::default())
+                            .show(ui, |plot_ui| {
+                                for mic in microphones.iter() {
+                                    //TODO: because of this clone, the app is getting slower as time goes on (because the vec is getting bigger)
+                                    let points: PlotPoints = PlotPoints::new(mic.record.clone());
+                                    let line = Line::new(points);
+                                    plot_ui.line(line.name(format!(
+                                        "Microphone {} (x: {}, y: {})",
+                                        mic.id, mic.x, mic.y
+                                    )));
+                                }
+                            });
+                    }
+
+                    PlotType::FrequencyDomain => {}
+                }
             });
     }
 }
