@@ -10,31 +10,30 @@ jobs:
         platform:
           # - release_for: FreeBSD-x86_64
           #   os: ubuntu-20.04
-          #   target: x86_64-unknown-freebsd
+          #   target: x86_64-unknown-linux-gnu
           #   bin: tlm
-          #   name: tlm-FreeBSD-x86_64.tar.gz
+          #   name: tlm-linux-gnu-x86_64.tar.gz
           #   command: build
 
           - release_for: Windows-x86_64
             os: windows-latest
             target: x86_64-pc-windows-msvc
             bin: tlm.exe
-            name: tlm-Windows-x86_64.zip
-            command: both
+            name: tlm-windows-x86_64.zip
+            command: build
 
           - release_for: macOS-x86_64
             os: macOS-latest
             target: x86_64-apple-darwin
             bin: tlm
-            name: tlm-Darwin-x86_64.tar.gz
-            command: both
-
-            # more release targets here ...
+            name: tlm-apple-darwin-x86_64.tar.gz
+            command: build
 
     runs-on: ${{ matrix.platform.os }}
     env: 
       RUSTFLAGS: "-D warnings"
     steps:
+      - uses: Swatinem/rust-cache@v2
       - name: Checkout
         uses: actions/checkout@v3
       - name: Build binary
