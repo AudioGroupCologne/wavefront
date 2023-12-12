@@ -11,9 +11,9 @@ jobs:
       - uses: rui314/setup-mold@v1
         with:
           make-default: false
-      - uses: actions-rs/toolchain@v1
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
             toolchain: nightly
-            override: true
             components: rustfmt, clippy
-      - run: cargo build --release -- -c link-arg=-fuse-ld=/usr/local/bin/mold
+            rustflags: "-c link-arg=-fuse-ld=/usr/local/bin/mold"
+      - run: cargo build --release
