@@ -32,6 +32,8 @@ jobs:
             # more release targets here ...
 
     runs-on: ${{ matrix.platform.os }}
+    env: 
+      RUSTFLAGS: "-D warnings"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
