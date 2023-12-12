@@ -1,90 +1,18 @@
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::epaint::CircleShape;
-use bevy_pixel_buffer::bevy_egui::egui::{pos2, Color32, Pos2, Rect, Rounding, Stroke};
+use bevy_pixel_buffer::bevy_egui::egui::{pos2, Color32, Stroke};
 use bevy_pixel_buffer::bevy_egui::{egui, EguiContexts};
 use bevy_pixel_buffer::prelude::*;
 use egui_plot::{Legend, Line, Plot, PlotPoints};
-use spectrum_analyzer::scaling::scale_to_zero_to_one;
-use spectrum_analyzer::windows::hann_window;
-use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
 
-use crate::components::{u32_map_range, GradientResource, Microphone, Source, SourceType};
-use crate::constants::*;
-use crate::grid::Grid;
-
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum AttenuationType {
-    Power,
-    OriginalOneWay,
-    Linear,
-    Old,
-    DoNothing,
-}
-
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum PlotType {
-    TimeDomain,
-    FrequencyDomain,
-}
-
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum ToolType {
-    PlaceSource,
-    MoveSource,
-}
-
-#[derive(Resource)]
-pub struct UiState {
-    pub is_running: bool,
-    pub delta_l: f32,
-    pub epsilon: f32,
-    pub e_al: u32,
-    pub render_abc_area: bool,
-    pub at_type: AttenuationType,
-    pub power_order: u32,
-    pub image_rect: egui::emath::Rect,
-    pub show_fft: bool,
-    pub show_mic_plot: bool,
-    pub current_fft_microphone: Option<usize>,
-    pub plot_type: PlotType,
-    pub tool_type: ToolType,
-}
-
-impl Default for UiState {
-    fn default() -> Self {
-        Self {
-            is_running: true,
-            delta_l: 0.001,
-            epsilon: 0.001,
-            e_al: 50,
-            render_abc_area: false,
-            at_type: AttenuationType::Power,
-            power_order: 5,
-            image_rect: egui::emath::Rect::NOTHING,
-            show_fft: false,
-            show_mic_plot: false,
-            current_fft_microphone: None,
-            plot_type: PlotType::TimeDomain,
-            tool_type: ToolType::PlaceSource,
-        }
-    }
-}
-
-pub struct Images {
-    cursor_icon: Handle<Image>,
-}
-
-impl FromWorld for Images {
-    fn from_world(world: &mut World) -> Self {
-        let asset_server = world.get_resource_mut::<AssetServer>().unwrap();
-        Self {
-            cursor_icon: asset_server.load("test_icon.png"),
-        }
-    }
-}
-
-const CHUNK_SIZE: usize = 2usize.pow(11); // 2048
+use crate::components::microphone::*;
+use crate::components::source::*;
+use crate::grid::grid::Grid;
+use crate::math::constants::*;
+use crate::math::fft::calc_mic_spectrum;
+use crate::math::transformations::u32_map_range;
+use crate::render::state::*;
 
 pub fn draw_egui(
     mut pixel_buffers: QueryPixelBuffer,
@@ -277,11 +205,10 @@ pub fn draw_egui(
                 if ui
                     .checkbox(&mut ui_state.show_mic_plot, "Show Microphone Plot")
                     .clicked()
+                    && !ui_state.show_fft
                 {
-                    if !ui_state.show_fft {
-                        for mut mic in microphones.iter_mut() {
-                            mic.clear();
-                        }
+                    for mut mic in microphones.iter_mut() {
+                        mic.clear();
                     }
                 }
 
@@ -377,6 +304,7 @@ pub fn draw_egui(
                         if ui_state.current_fft_microphone.is_none() {
                             return;
                         }
+
                         let mut mic = microphones
                             .iter_mut()
                             .find(|m| {
@@ -384,37 +312,7 @@ pub fn draw_egui(
                             })
                             .unwrap();
 
-                        let samples = if mic.record.len() < CHUNK_SIZE {
-                            let mut s = mic.record.clone();
-                            s.resize(CHUNK_SIZE, [0.0, 0.0]);
-                            s
-                        } else {
-                            mic.record[mic.record.len() - CHUNK_SIZE..].to_vec()
-                        };
-
-                        let hann_window =
-                            hann_window(&samples.iter().map(|x| x[1] as f32).collect::<Vec<_>>());
-
-                        let spectrum_hann_window = samples_fft_to_spectrum(
-                            &hann_window,
-                            (1. / grid.delta_t) as u32,
-                            FrequencyLimit::All,
-                            Some(&scale_to_zero_to_one),
-                        )
-                        .unwrap();
-
-                        let mapped_spectrum = spectrum_hann_window
-                            .data()
-                            .iter()
-                            // .map(|x| [x.0.val().log10() as f64, x.1.val() as f64])
-                            .map(|(x, y)| [x.val() as f64, y.val() as f64])
-                            .collect::<Vec<_>>();
-
-                        mic.spektrum.push(mapped_spectrum.clone());
-                        if mic.spektrum.len() > 500 {
-                            //TODO: hardcode
-                            mic.spektrum.remove(0);
-                        }
+                        let mapped_spectrum = calc_mic_spectrum(&mut mic, grid.delta_t);
 
                         let points = PlotPoints::new(mapped_spectrum);
                         let line = Line::new(points);
@@ -500,115 +398,4 @@ pub fn draw_egui(
                 }
             });
     }
-}
-
-pub fn draw_pixels(
-    pixel_buffers: QueryPixelBuffer,
-    grid: Res<Grid>,
-    gradient: Res<GradientResource>,
-    ui_state: Res<UiState>,
-    microphones: Query<&Microphone>,
-) {
-    let (query, mut images) = pixel_buffers.split();
-    let mut items = query.iter();
-    let mut frame = images.frame(items.next().expect("one pixel buffer"));
-
-    frame.per_pixel_par(|coords, _| {
-        let p = if ui_state.render_abc_area {
-            grid.cells[Grid::coords_to_index(coords.x, coords.y, 8, ui_state.e_al)]
-        } else {
-            grid.cells[Grid::coords_to_index(
-                coords.x + ui_state.e_al,
-                coords.y + ui_state.e_al,
-                8,
-                ui_state.e_al,
-            )]
-        };
-        let color = gradient.0.at((p) as f64);
-        Pixel {
-            r: (color.r * 255.) as u8,
-            g: (color.g * 255.) as u8,
-            b: (color.b * 255.) as u8,
-            a: 255,
-        }
-    });
-
-    let mut frame = images.frame(items.next().expect("two pixel buffers"));
-    if ui_state.show_fft && ui_state.current_fft_microphone.is_some() {
-        //? for now we don't draw the spectrum if no mic is selected, is this ok?
-        // paint spectrum
-        let mic = microphones
-            .iter()
-            .find(|m| m.id == ui_state.current_fft_microphone.expect("no mic selected"))
-            .unwrap();
-        let spectrum = &mic.spektrum;
-        let len_y = spectrum.len();
-
-        // if len_y > 0 {
-        //     println!("{:?}", spectrum);
-        // }
-
-        frame.per_pixel_par(|coords, _| Pixel {
-            r: (if len_y > 1 && coords.y < len_y as u32 {
-                spectrum[coords.y as usize][u32_map_range(0, 250, 0, 120, coords.x) as usize][1]
-                    * 255.
-            //TODO: is 120 hardcoded + 250 is hardcoded
-            } else {
-                0.
-            }) as u8,
-            g: (if len_y > 1 && coords.y < len_y as u32 {
-                spectrum[coords.y as usize][u32_map_range(0, 250, 0, 120, coords.x) as usize][1]
-                    * 255.
-            //TODO: is 120 hardcoded + 250 is hardcoded
-            } else {
-                0.
-            }) as u8,
-            b: (if len_y > 1 && coords.y < len_y as u32 {
-                spectrum[coords.y as usize][u32_map_range(0, 250, 0, 120, coords.x) as usize][1]
-                    * 255.
-            //TODO: is 120 hardcoded + 250 is hardcoded
-            } else {
-                0.
-            }) as u8,
-            a: 255,
-        });
-    }
-}
-
-// pub fn draw_walls(mut pb: QueryPixelBuffer, walls: Query<&Wall>, ui_state: Res<UiState>) {
-//     let mut frame = pb.frame();
-//     for wall in walls.iter() {
-//         let (x, y) = Grid::index_to_coords(wall.0 as u32, ui_state.e_al);
-//         frame
-//             .set(
-//                 UVec2::new(x, y),
-//                 Pixel {
-//                     r: 255,
-//                     g: 255,
-//                     b: 255,
-//                     a: 255,
-//                 },
-//             )
-//             .expect("Wall pixel out of bounds");
-//     }
-// }
-
-pub fn setup_buffers(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
-    let main_size: PixelBufferSize = PixelBufferSize {
-        size: UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT),
-        pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
-    };
-    let spectrum_size: PixelBufferSize = PixelBufferSize {
-        size: UVec2::new(250, 500), //TODO: hardcode
-        pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
-    };
-    insert_pixel_buffer(&mut commands, &mut images, main_size); //main
-    insert_pixel_buffer(&mut commands, &mut images, spectrum_size); //spectrum
-}
-
-fn insert_pixel_buffer(commands: &mut Commands, images: &mut Assets<Image>, size: PixelBufferSize) {
-    PixelBufferBuilder::new()
-        .with_render(false)
-        .with_size(size)
-        .spawn(commands, images);
 }

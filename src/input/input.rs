@@ -2,9 +2,10 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_pixel_buffer::bevy_egui::egui::emath::Rect;
 
-use crate::components::{u32_map_range, Drag, Source, SourceType};
-use crate::constants::*;
-use crate::render::{ToolType, UiState};
+use crate::components::source::{Drag, Source, SourceType};
+use crate::math::constants::*;
+use crate::math::transformations::u32_map_range;
+use crate::render::state::{ToolType, UiState};
 
 fn screen_to_grid(x: f32, y: f32, image_rect: Rect) -> Option<(u32, u32)> {
     let width = image_rect.width();

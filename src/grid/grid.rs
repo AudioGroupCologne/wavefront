@@ -1,11 +1,13 @@
 use std::f32::consts::PI;
 
 use bevy::prelude::*;
-use bevy::ui;
 
-use crate::components::{GameTicks, Microphone, Source, SourceType, Wall};
-use crate::constants::*;
-use crate::render::{AttenuationType, UiState};
+use crate::components::microphone::Microphone;
+use crate::components::source::{Source, SourceType};
+use crate::components::wall::Wall;
+use crate::math::constants::*;
+use crate::math::transformations::{coords_to_index, index_to_coords};
+use crate::render::state::{AttenuationType, GameTicks, UiState};
 
 #[derive(Debug, Resource)]
 pub struct Grid {
@@ -66,11 +68,11 @@ impl Grid {
         for x in e_al..(SIMULATION_WIDTH + e_al) {
             for y in e_al..(SIMULATION_HEIGHT + e_al) {
                 self.calc_cell(
-                    Grid::coords_to_index(x, y, 0, e_al),
-                    self.cells[Grid::coords_to_index(x, y + 1, 2, e_al)],
-                    self.cells[Grid::coords_to_index(x - 1, y, 3, e_al)],
-                    self.cells[Grid::coords_to_index(x, y - 1, 0, e_al)],
-                    self.cells[Grid::coords_to_index(x + 1, y, 1, e_al)],
+                    coords_to_index(x, y, 0, e_al),
+                    self.cells[coords_to_index(x, y + 1, 2, e_al)],
+                    self.cells[coords_to_index(x - 1, y, 3, e_al)],
+                    self.cells[coords_to_index(x, y - 1, 0, e_al)],
+                    self.cells[coords_to_index(x + 1, y, 1, e_al)],
                 );
             }
         }
@@ -103,7 +105,7 @@ impl Grid {
                     Source::periodic_gaussian(time, source.frequency, source.amplitude, 5., 1.)
                 }
             };
-            let source_pos = Grid::coords_to_index(source.x + e_al, source.y + e_al, 0, e_al); //source.index;
+            let source_pos = coords_to_index(source.x + e_al, source.y + e_al, 0, e_al); //source.index;
             self.cells[source_pos + 4] = calc;
             self.cells[source_pos + 5] = calc;
             self.cells[source_pos + 6] = calc;
@@ -124,34 +126,28 @@ impl Grid {
                 let y = mic.y;
                 let cur_time = mic.record.last().unwrap()[0] + self.delta_t as f64;
 
-                mic.record.push([
-                    cur_time,
-                    self.cells[Grid::coords_to_index(x, y, 8, e_al)] as f64,
-                ]);
+                mic.record
+                    .push([cur_time, self.cells[coords_to_index(x, y, 8, e_al)] as f64]);
             }
         }
     }
 
     fn apply_walls(&mut self, walls: &Query<&Wall>, e_al: u32) {
         for wall in walls.iter() {
-            let (x, y) = Grid::index_to_coords(wall.0 as u32, e_al);
-            self.cells[wall.0 + 4] =
-                WALL_FAC * self.cells[Grid::coords_to_index(x, y + 1, 2, e_al)];
-            self.cells[wall.0 + 5] =
-                WALL_FAC * self.cells[Grid::coords_to_index(x - 1, y, 3, e_al)];
-            self.cells[wall.0 + 6] =
-                WALL_FAC * self.cells[Grid::coords_to_index(x, y - 1, 0, e_al)];
-            self.cells[wall.0 + 7] =
-                WALL_FAC * self.cells[Grid::coords_to_index(x + 1, y, 1, e_al)];
+            let (x, y) = index_to_coords(wall.0 as u32, e_al);
+            self.cells[wall.0 + 4] = WALL_FAC * self.cells[coords_to_index(x, y + 1, 2, e_al)];
+            self.cells[wall.0 + 5] = WALL_FAC * self.cells[coords_to_index(x - 1, y, 3, e_al)];
+            self.cells[wall.0 + 6] = WALL_FAC * self.cells[coords_to_index(x, y - 1, 0, e_al)];
+            self.cells[wall.0 + 7] = WALL_FAC * self.cells[coords_to_index(x + 1, y, 1, e_al)];
         }
     }
 
     fn calc_cell_boundary(&mut self, x: u32, y: u32, e_al: u32, attenuation_factors: &[f32; 4]) {
-        let current_cell = Grid::coords_to_index(x, y, 0, e_al);
-        let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2, e_al)];
-        let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3, e_al)];
-        let top_bottom = self.cells[Grid::coords_to_index(x, y - 1, 0, e_al)];
-        let right_left = self.cells[Grid::coords_to_index(x + 1, y, 1, e_al)];
+        let current_cell = coords_to_index(x, y, 0, e_al);
+        let bottom_top = self.cells[coords_to_index(x, y + 1, 2, e_al)];
+        let left_right = self.cells[coords_to_index(x - 1, y, 3, e_al)];
+        let top_bottom = self.cells[coords_to_index(x, y - 1, 0, e_al)];
+        let right_left = self.cells[coords_to_index(x + 1, y, 1, e_al)];
 
         self.cells[current_cell + 4] = 0.5
             * (-bottom_top * attenuation_factors[0]
@@ -386,18 +382,6 @@ impl Grid {
             }
             AttenuationType::DoNothing => 0.0,
         }
-    }
-
-    /// Calculates 1D array index from x,y coordinates (and an offset `index`)
-    pub fn coords_to_index(x: u32, y: u32, index: u32, e_al: u32) -> usize {
-        (y * (SIMULATION_WIDTH + 2 * e_al) * NUM_INDEX + x * NUM_INDEX + index) as usize
-    }
-
-    /// Calculates x,y coordinates from 1D array index
-    pub fn index_to_coords(i: u32, e_al: u32) -> (u32, u32) {
-        let x = (i / 9) % (SIMULATION_WIDTH + 2 * e_al);
-        let y = i / 9 / (SIMULATION_WIDTH + 2 * e_al);
-        (x, y)
     }
 }
 
