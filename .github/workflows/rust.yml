@@ -15,6 +15,6 @@ jobs:
         with:
             toolchain: nightly
             components: rustfmt, clippy
-            rustflags: "-c link-arg=-fuse-ld=/usr/local/bin/mold"
+            rustflags: "link-arg=-fuse-ld=/usr/local/bin/mold"
       - run: cargo build --release
       
