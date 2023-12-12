@@ -8,12 +8,12 @@ jobs:
     strategy:
       matrix:
         platform:
-          - release_for: FreeBSD-x86_64
-            os: ubuntu-20.04
-            target: x86_64-unknown-freebsd
-            bin: tlm
-            name: tlm-FreeBSD-x86_64.tar.gz
-            command: build
+          # - release_for: FreeBSD-x86_64
+          #   os: ubuntu-20.04
+          #   target: x86_64-unknown-freebsd
+          #   bin: tlm
+          #   name: tlm-FreeBSD-x86_64.tar.gz
+          #   command: build
 
           - release_for: Windows-x86_64
             os: windows-latest
