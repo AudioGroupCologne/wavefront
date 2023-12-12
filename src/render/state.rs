@@ -25,6 +25,7 @@ pub enum PlotType {
 pub enum ToolType {
     PlaceSource,
     MoveSource,
+    DrawWall,
 }
 
 #[derive(Resource)]

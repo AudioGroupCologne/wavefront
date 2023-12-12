@@ -5,8 +5,9 @@ use bevy_pixel_buffer::query::QueryPixelBuffer;
 
 use super::state::UiState;
 use crate::components::microphone::Microphone;
+use crate::components::wall::Wall;
 use crate::grid::grid::Grid;
-use crate::math::transformations::{coords_to_index, u32_map_range};
+use crate::math::transformations::{coords_to_index, index_to_coords, u32_map_range};
 
 #[derive(Resource)]
 pub struct GradientResource(pub colorgrad::Gradient);
@@ -100,20 +101,22 @@ pub fn draw_pixels(
     }
 }
 
-// pub fn draw_walls(mut pb: QueryPixelBuffer, walls: Query<&Wall>, ui_state: Res<UiState>) {
-//     let mut frame = pb.frame();
-//     for wall in walls.iter() {
-//         let (x, y) = Grid::index_to_coords(wall.0 as u32, ui_state.e_al);
-//         frame
-//             .set(
-//                 UVec2::new(x, y),
-//                 Pixel {
-//                     r: 255,
-//                     g: 255,
-//                     b: 255,
-//                     a: 255,
-//                 },
-//             )
-//             .expect("Wall pixel out of bounds");
-//     }
-// }
+pub fn draw_walls(pixel_buffers: QueryPixelBuffer, walls: Query<&Wall>, ui_state: Res<UiState>) {
+    let (query, mut images) = pixel_buffers.split();
+    let mut frame = images.frame(query.iter().next().expect("one pixel buffer"));
+
+    for wall in walls.iter() {
+        let (x, y) = index_to_coords(wall.0 as u32, ui_state.e_al);
+        frame
+            .set(
+                UVec2::new(x, y),
+                Pixel {
+                    r: 255,
+                    g: 255,
+                    b: 255,
+                    a: 255,
+                },
+            )
+            .expect("Wall pixel out of bounds");
+    }
+}

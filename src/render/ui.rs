@@ -305,6 +305,7 @@ pub fn draw_egui(
                             "Place",
                         );
                         ui.selectable_value(&mut ui_state.tool_type, ToolType::MoveSource, "Move");
+                        ui.selectable_value(&mut ui_state.tool_type, ToolType::DrawWall, "Draw Wall");
                     });
                 });
 

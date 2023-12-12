@@ -3,8 +3,9 @@ use bevy::window::PrimaryWindow;
 use bevy_pixel_buffer::bevy_egui::egui::emath::Rect;
 
 use crate::components::source::{Drag, Source, SourceType};
+use crate::components::wall::Wall;
 use crate::math::constants::*;
-use crate::math::transformations::u32_map_range;
+use crate::math::transformations::{coords_to_index, u32_map_range};
 use crate::render::state::{ToolType, UiState};
 
 fn screen_to_grid(x: f32, y: f32, image_rect: Rect) -> Option<(u32, u32)> {
@@ -61,6 +62,7 @@ pub fn button_input(
                     }
                 }
             }
+            _ => {}
         }
     }
     if mouse_buttons.just_released(MouseButton::Left) {
@@ -79,26 +81,36 @@ pub fn button_input(
             }
         }
     }
-    // if mouse_buttons.just_pressed(MouseButton::Right) {
-    //     let window = q_windows.single();
-    //     if let Some(position) = window.cursor_position() {
-    //         if let Some((x, y)) = screen_to_grid(position.x, position.y, ui_state.image_rect.min) {
-    //             // this produces overlaping sources
-    //             commands.spawn(Source::new(x, y, 10., 0.0, 10_000.0, SourceType::Sin));
 
-    //             // //TODO: because of the brush size, the indices may be out of bounds
-    //             // //TODO: make bush size variable
-    //             // commands.spawn(Wall(Grid::coords_to_index(x, y, 0)));
-    //             // commands.spawn(Wall(Grid::coords_to_index(x + 1, y, 0)));
-    //             // commands.spawn(Wall(Grid::coords_to_index(x - 1, y, 0)));
-    //             // commands.spawn(Wall(Grid::coords_to_index(x, y + 1, 0)));
-    //             // commands.spawn(Wall(Grid::coords_to_index(x + 1, y + 1, 0)));
-    //             // commands.spawn(Wall(Grid::coords_to_index(x, y - 1, 0)));
-    //             // commands.spawn(Wall(Grid::coords_to_index(x - 1, y - 1, 0)));
-    //             // commands.spawn(Wall(Grid::coords_to_index(x + 1, y - 1, 0)));
-    //             // commands.spawn(Wall(Grid::coords_to_index(x - 1, y + 1, 0)));
-    //         }
-    //     }
+    if mouse_buttons.pressed(MouseButton::Left) {
+        match ui_state.tool_type {
+            ToolType::DrawWall => {
+                let window = q_windows.single();
+                if let Some(position) = window.cursor_position() {
+                    if let Some((x, y)) =
+                        screen_to_grid(position.x, position.y, ui_state.image_rect)
+                    {
+                        //TODO: because of the brush size, the indices may be out of bounds
+                        //TODO: make bush size variable
+                        //TODO: make wall act on x and y coords like sources
+                        commands.spawn(Wall(coords_to_index(x, y, 0, ui_state.e_al)));
+                        commands.spawn(Wall(coords_to_index(x + 1, y, 0, ui_state.e_al)));
+                        commands.spawn(Wall(coords_to_index(x - 1, y, 0, ui_state.e_al)));
+                        commands.spawn(Wall(coords_to_index(x, y + 1, 0, ui_state.e_al)));
+                        commands.spawn(Wall(coords_to_index(x + 1, y + 1, 0, ui_state.e_al)));
+                        commands.spawn(Wall(coords_to_index(x, y - 1, 0, ui_state.e_al)));
+                        commands.spawn(Wall(coords_to_index(x - 1, y - 1, 0, ui_state.e_al)));
+                        commands.spawn(Wall(coords_to_index(x + 1, y - 1, 0, ui_state.e_al)));
+                        commands.spawn(Wall(coords_to_index(x - 1, y + 1, 0, ui_state.e_al)));
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
+    // if mouse_buttons.just_pressed(MouseButton::Right) {
+    //
     // }
 
     // if mouse_buttons.any_just_pressed([MouseButton::Left, MouseButton::Right]) {
