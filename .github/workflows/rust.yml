@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         platform:
-          - release_for: FreeBSD-x86_64
+          - release_for: Linux-Gnu-x86_64
             os: ubuntu-20.04
             target: x86_64-unknown-linux-gnu
             bin: tlm
@@ -33,14 +33,34 @@ jobs:
     env: 
       RUSTFLAGS: "-D warnings"
     steps:
-      - uses: Swatinem/rust-cache@v2
       - name: Checkout
-        uses: actions/checkout@v3
-      - name: Build binary
-        uses: houseabsolute/actions-rust-cross@v0
+        uses: actions/checkout@v1
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
         with:
-          command: ${{ matrix.platform.command }}
-          target: ${{ matrix.platform.target }}
-          args: "--locked --release"
-          strip: true
           toolchain: nightly
+          profile: minimal
+          override: true
+          target: ${{ matrix.platform.target }}
+        
+      - uses: Swatinem/rust-cache@v2
+      
+      - name: Build target
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+          args: --release --target ${{ matrix.platform.target }}
+
+      - name: Package
+        shell: bash
+        run: |
+          cd target/${{ matrix.platform.target }}/release      
+          tar czvf ../../../tlm_rs-${{ matrix.platform.target }}.tar.gz tlm_rs
+          cd -
+      - name: Publish
+        uses: softprops/action-gh-release@v1
+        with:
+            files: 'tlm_rs*'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
