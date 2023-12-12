@@ -202,8 +202,24 @@ pub fn draw_egui(
 
                 ui.checkbox(&mut ui_state.show_fft, "Show FFT");
 
+                egui::ComboBox::from_label("FFT Microphone")
+                    .selected_text(if let Some(index) = ui_state.current_fft_microphone {
+                        format!("Microphone {index}")
+                    } else {
+                        "No Microphone Selected".to_string()
+                    })
+                    .show_ui(ui, |ui| {
+                        for mic in microphones.iter() {
+                            ui.selectable_value(
+                                &mut ui_state.current_fft_microphone,
+                                Some(mic.id),
+                                format!("Microphone {}", mic.id),
+                            );
+                        }
+                    });
+
                 if ui
-                    .checkbox(&mut ui_state.show_mic_plot, "Show Microphone Plot")
+                    .checkbox(&mut ui_state.show_plots, "Show Plots")
                     .clicked()
                     && !ui_state.show_fft
                 {
@@ -291,53 +307,6 @@ pub fn draw_egui(
             .default_width(400.)
             // .resizable(false)
             .show(ctx, |ui| {
-                Plot::new("mic_plot")
-                    .allow_zoom([true, false])
-                    .allow_scroll(false)
-                    .allow_drag(false)
-                    .allow_boxed_zoom(false)
-                    .x_axis_label("Frequency (Hz)")
-                    .y_axis_label("Intensity")
-                    // .x_grid_spacer(log_grid_spacer(10)) // doesn't do anything
-                    .view_aspect(1.5)
-                    .show(ui, |plot_ui| {
-                        if ui_state.current_fft_microphone.is_none() {
-                            return;
-                        }
-
-                        let mut mic = microphones
-                            .iter_mut()
-                            .find(|m| {
-                                m.id == ui_state.current_fft_microphone.expect("no mic selected")
-                            })
-                            .unwrap();
-
-                        let mapped_spectrum = calc_mic_spectrum(&mut mic, grid.delta_t);
-
-                        let points = PlotPoints::new(mapped_spectrum);
-                        let line = Line::new(points);
-                        plot_ui.line(line);
-                    });
-
-                egui::ComboBox::from_label("Microphone")
-                    .selected_text(format!(
-                        "{:?}",
-                        if let Some(index) = ui_state.current_fft_microphone {
-                            format!("Microphone {index}")
-                        } else {
-                            "No Microphone Selected".to_string()
-                        }
-                    ))
-                    .show_ui(ui, |ui| {
-                        for mic in microphones.iter() {
-                            ui.selectable_value(
-                                &mut ui_state.current_fft_microphone,
-                                Some(mic.id),
-                                format!("Microphone {}", mic.id),
-                            );
-                        }
-                    });
-
                 let pb = pixel_buffers.iter().nth(1).expect("second pixel buffer");
                 let texture = pb.egui_texture();
 
@@ -348,7 +317,7 @@ pub fn draw_egui(
             });
     }
 
-    if ui_state.show_mic_plot {
+    if ui_state.show_plots {
         egui::TopBottomPanel::bottom("bottom_panel")
             .resizable(true)
             .default_height(400.0)
@@ -394,7 +363,35 @@ pub fn draw_egui(
                             });
                     }
 
-                    PlotType::FrequencyDomain => {}
+                    PlotType::FrequencyDomain => {
+                        Plot::new("mic_plot")
+                            .allow_zoom([true, false])
+                            .allow_scroll(false)
+                            .allow_drag(false)
+                            .allow_boxed_zoom(false)
+                            .x_axis_label("Frequency (Hz)")
+                            .y_axis_label("Intensity")
+                            .show(ui, |plot_ui| {
+                                if ui_state.current_fft_microphone.is_none() {
+                                    return;
+                                }
+
+                                let mut mic = microphones
+                                    .iter_mut()
+                                    .find(|m| {
+                                        m.id == ui_state
+                                            .current_fft_microphone
+                                            .expect("no mic selected")
+                                    })
+                                    .unwrap();
+
+                                let mapped_spectrum = calc_mic_spectrum(&mut mic, grid.delta_t);
+
+                                let points = PlotPoints::new(mapped_spectrum);
+                                let line = Line::new(points);
+                                plot_ui.line(line);
+                            });
+                    }
                 }
             });
     }

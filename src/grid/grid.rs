@@ -405,7 +405,7 @@ pub fn apply_system(
         grid.apply_microphones(
             microphones,
             ui_state.e_al,
-            ui_state.show_mic_plot,
+            ui_state.show_plots,
             ui_state.show_fft,
         );
         grid.apply_boundaries(ui_state);
