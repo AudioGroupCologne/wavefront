@@ -58,5 +58,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: tlm_rs-${{ matrix.platform.os_name }}
-          path: "${{ matrix.platform.name }}-*"
+          path: "${{ matrix.platform.name }}"
   
