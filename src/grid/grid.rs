@@ -2,9 +2,12 @@ use std::f32::consts::PI;
 
 use bevy::prelude::*;
 
-use crate::components::{GameTicks, Microphone, Source, SourceType, Wall};
-use crate::constants::*;
-use crate::render::{AttenuationType, UiState};
+use crate::components::microphone::Microphone;
+use crate::components::source::{Source, SourceType};
+use crate::components::wall::Wall;
+use crate::math::constants::*;
+use crate::math::transformations::{coords_to_index, index_to_coords};
+use crate::render::state::{AttenuationType, GameTicks, UiState};
 
 #[derive(Debug, Resource)]
 pub struct Grid {
@@ -65,11 +68,11 @@ impl Grid {
         for x in e_al..(SIMULATION_WIDTH + e_al) {
             for y in e_al..(SIMULATION_HEIGHT + e_al) {
                 self.calc_cell(
-                    Grid::coords_to_index(x, y, 0, e_al),
-                    self.cells[Grid::coords_to_index(x, y + 1, 2, e_al)],
-                    self.cells[Grid::coords_to_index(x - 1, y, 3, e_al)],
-                    self.cells[Grid::coords_to_index(x, y - 1, 0, e_al)],
-                    self.cells[Grid::coords_to_index(x + 1, y, 1, e_al)],
+                    coords_to_index(x, y, 0, e_al),
+                    self.cells[coords_to_index(x, y + 1, 2, e_al)],
+                    self.cells[coords_to_index(x - 1, y, 3, e_al)],
+                    self.cells[coords_to_index(x, y - 1, 0, e_al)],
+                    self.cells[coords_to_index(x + 1, y, 1, e_al)],
                 );
             }
         }
@@ -92,17 +95,8 @@ impl Grid {
     fn apply_sources(&mut self, ticks_since_start: u64, sources: &Query<&Source>, e_al: u32) {
         let time = self.delta_t * ticks_since_start as f32; //the cast feels wrong, but it works for now
         for source in sources.iter() {
-            //? maybe needs to be optimized
-            let calc = match source.r#type {
-                SourceType::Sin => {
-                    source.amplitude
-                        * (2. * PI * source.frequency * (time - source.phase * PI / 180.)).sin()
-                }
-                SourceType::Gauss => {
-                    Source::periodic_gaussian(time, source.frequency, source.amplitude, 5., 1.)
-                }
-            };
-            let source_pos = Grid::coords_to_index(source.x + e_al, source.y + e_al, 0, e_al); //source.index;
+            let calc = source.calc(time);
+            let source_pos = coords_to_index(source.x + e_al, source.y + e_al, 0, e_al); //source.index;
             self.cells[source_pos + 4] = calc;
             self.cells[source_pos + 5] = calc;
             self.cells[source_pos + 6] = calc;
@@ -114,57 +108,55 @@ impl Grid {
         &mut self, //doesn't actually need to mutable but it throws errors further down if not
         mut microphones: Query<&mut Microphone>,
         e_al: u32,
+        plot_enabled: bool,
+        fft_enabled: bool,
     ) {
-        for mut mic in microphones.iter_mut() {
-            let x = mic.x;
-            let y = mic.y;
-            let cur_time = mic.record.last().unwrap()[0] + self.delta_t as f64;
+        if plot_enabled || fft_enabled {
+            for mut mic in microphones.iter_mut() {
+                let x = mic.x;
+                let y = mic.y;
+                let cur_time = mic.record.last().unwrap()[0] + self.delta_t as f64;
 
-            mic.record.push([
-                cur_time,
-                self.cells[Grid::coords_to_index(x, y, 8, e_al)] as f64,
-            ]);
+                mic.record
+                    .push([cur_time, self.cells[coords_to_index(x, y, 8, e_al)] as f64]);
+            }
         }
     }
 
     fn apply_walls(&mut self, walls: &Query<&Wall>, e_al: u32) {
         for wall in walls.iter() {
-            let (x, y) = Grid::index_to_coords(wall.0 as u32, e_al);
-            self.cells[wall.0 + 4] =
-                WALL_FAC * self.cells[Grid::coords_to_index(x, y + 1, 2, e_al)];
-            self.cells[wall.0 + 5] =
-                WALL_FAC * self.cells[Grid::coords_to_index(x - 1, y, 3, e_al)];
-            self.cells[wall.0 + 6] =
-                WALL_FAC * self.cells[Grid::coords_to_index(x, y - 1, 0, e_al)];
-            self.cells[wall.0 + 7] =
-                WALL_FAC * self.cells[Grid::coords_to_index(x + 1, y, 1, e_al)];
+            let (x, y) = index_to_coords(wall.0 as u32, e_al);
+            self.cells[wall.0 + 4] = WALL_FAC * self.cells[coords_to_index(x, y + 1, 2, e_al)];
+            self.cells[wall.0 + 5] = WALL_FAC * self.cells[coords_to_index(x - 1, y, 3, e_al)];
+            self.cells[wall.0 + 6] = WALL_FAC * self.cells[coords_to_index(x, y - 1, 0, e_al)];
+            self.cells[wall.0 + 7] = WALL_FAC * self.cells[coords_to_index(x + 1, y, 1, e_al)];
         }
     }
 
     fn calc_cell_boundary(&mut self, x: u32, y: u32, e_al: u32, attenuation_factors: &[f32; 4]) {
-        let current_cell = Grid::coords_to_index(x, y, 0, e_al);
-        let bottom_top = self.cells[Grid::coords_to_index(x, y + 1, 2, e_al)];
-        let left_right = self.cells[Grid::coords_to_index(x - 1, y, 3, e_al)];
-        let top_bottom = self.cells[Grid::coords_to_index(x, y - 1, 0, e_al)];
-        let right_left = self.cells[Grid::coords_to_index(x + 1, y, 1, e_al)];
+        let current_cell = coords_to_index(x, y, 0, e_al);
+        let bottom_top = self.cells[coords_to_index(x, y + 1, 2, e_al)];
+        let left_right = self.cells[coords_to_index(x - 1, y, 3, e_al)];
+        let top_bottom = self.cells[coords_to_index(x, y - 1, 0, e_al)];
+        let right_left = self.cells[coords_to_index(x + 1, y, 1, e_al)];
 
         self.cells[current_cell + 4] = 0.5
             * (-bottom_top * attenuation_factors[0]
-                + left_right * attenuation_factors[0]
-                + top_bottom * attenuation_factors[0]
-                + right_left * attenuation_factors[0]);
+                + left_right * attenuation_factors[1]
+                + top_bottom * attenuation_factors[2]
+                + right_left * attenuation_factors[3]);
         self.cells[current_cell + 5] = 0.5
-            * (bottom_top * attenuation_factors[1] - left_right * attenuation_factors[1]
-                + top_bottom * attenuation_factors[1]
-                + right_left * attenuation_factors[1]);
+            * (bottom_top * attenuation_factors[0] - left_right * attenuation_factors[1]
+                + top_bottom * attenuation_factors[2]
+                + right_left * attenuation_factors[3]);
         self.cells[current_cell + 6] = 0.5
-            * (bottom_top * attenuation_factors[2] + left_right * attenuation_factors[2]
+            * (bottom_top * attenuation_factors[0] + left_right * attenuation_factors[1]
                 - top_bottom * attenuation_factors[2]
-                + right_left * attenuation_factors[2]);
+                + right_left * attenuation_factors[3]);
         self.cells[current_cell + 7] = 0.5
-            * (bottom_top * attenuation_factors[3]
-                + left_right * attenuation_factors[3]
-                + top_bottom * attenuation_factors[3]
+            * (bottom_top * attenuation_factors[0]
+                + left_right * attenuation_factors[1]
+                + top_bottom * attenuation_factors[2]
                 - right_left * attenuation_factors[3]);
     }
 
@@ -254,7 +246,12 @@ impl Grid {
                     ui_state.power_order,
                 );
 
-                self.calc_cell_boundary(x, y, ui_state.e_al, &[attenuation_factor_top, 1., 1., attenuation_factor_left]);
+                self.calc_cell_boundary(
+                    x,
+                    y,
+                    ui_state.e_al,
+                    &[attenuation_factor_top, 1., 1., attenuation_factor_left],
+                );
             }
         }
         //RightTop
@@ -278,7 +275,12 @@ impl Grid {
                     ui_state.power_order,
                 );
 
-                self.calc_cell_boundary(x, y, ui_state.e_al, &[attenuation_factor_top, attenuation_factor_right, 1., 1.]);
+                self.calc_cell_boundary(
+                    x,
+                    y,
+                    ui_state.e_al,
+                    &[attenuation_factor_top, attenuation_factor_right, 1., 1.],
+                );
             }
         }
         //RightBottom
@@ -304,7 +306,12 @@ impl Grid {
                     ui_state.power_order,
                 );
 
-                self.calc_cell_boundary(x, y, ui_state.e_al, &[1., attenuation_factor_right, attenuation_factor_bottom, 1.]);
+                self.calc_cell_boundary(
+                    x,
+                    y,
+                    ui_state.e_al,
+                    &[1., attenuation_factor_right, attenuation_factor_bottom, 1.],
+                );
             }
         }
         //LeftBottom
@@ -330,7 +337,12 @@ impl Grid {
                     ui_state.power_order,
                 );
 
-                self.calc_cell_boundary(x, y, ui_state.e_al, &[1., 1., attenuation_factor_bottom, attenuation_factor_left]);
+                self.calc_cell_boundary(
+                    x,
+                    y,
+                    ui_state.e_al,
+                    &[1., 1., attenuation_factor_bottom, attenuation_factor_left],
+                );
             }
         }
     }
@@ -362,18 +374,6 @@ impl Grid {
             AttenuationType::DoNothing => 0.0,
         }
     }
-
-    /// Calculates 1D array index from x,y coordinates (and an offset `index`)
-    pub fn coords_to_index(x: u32, y: u32, index: u32, e_al: u32) -> usize {
-        (y * (SIMULATION_WIDTH + 2 * e_al) * NUM_INDEX + x * NUM_INDEX + index) as usize
-    }
-
-    /// Calculates x,y coordinates from 1D array index
-    pub fn index_to_coords(i: u32, e_al: u32) -> (u32, u32) {
-        let x = (i / 9) % (SIMULATION_WIDTH + 2 * e_al);
-        let y = i / 9 / (SIMULATION_WIDTH + 2 * e_al);
-        (x, y)
-    }
 }
 
 pub fn calc_system(mut grid: ResMut<Grid>, ui_state: Res<UiState>) {
@@ -393,7 +393,12 @@ pub fn apply_system(
     if ui_state.is_running {
         grid.apply_sources(game_ticks.ticks_since_start, &sources, ui_state.e_al);
         grid.apply_walls(&walls, ui_state.e_al);
-        grid.apply_microphones(microphones, ui_state.e_al);
+        grid.apply_microphones(
+            microphones,
+            ui_state.e_al,
+            ui_state.show_plots,
+            ui_state.show_fft,
+        );
         grid.apply_boundaries(ui_state);
     }
 }
