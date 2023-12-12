@@ -3,13 +3,12 @@ name: build
 on: [push]
 
 jobs:
-  check:
-    name: Rust project
+  build:
+    name: TLM
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: rui314/setup-mold@v1
-      - name: Install latest nightly
       - uses: actions-rs/toolchain@v1
         with:
             toolchain: nightly
