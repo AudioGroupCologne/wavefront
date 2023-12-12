@@ -27,6 +27,7 @@ pub enum SourceType {
     #[default]
     Sin,
     Gauss,
+    WhiteNoise,
 }
 
 impl Source {
@@ -52,6 +53,7 @@ impl Source {
         match self.source_type {
             SourceType::Sin => self.sin(time),
             SourceType::Gauss => Source::periodic_gaussian(1., 1., 1., 1., 1.),
+            SourceType::WhiteNoise => rand::random::<f32>() * self.amplitude,
         }
     }
 

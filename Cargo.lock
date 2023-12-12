@@ -3190,6 +3190,7 @@ dependencies = [
  "bevy_pixel_buffer",
  "colorgrad",
  "egui_plot",
+ "rand",
  "rayon",
  "smallvec",
  "spectrum-analyzer",

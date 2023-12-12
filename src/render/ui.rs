@@ -70,6 +70,11 @@ pub fn draw_egui(
                                         SourceType::Gauss,
                                         "Gauss",
                                     );
+                                    ui.selectable_value(
+                                        &mut s.source_type,
+                                        SourceType::WhiteNoise,
+                                        "White Noise",
+                                    );
                                 });
                         });
                     }
