@@ -58,10 +58,18 @@ pub fn draw_egui(
                             );
                             ui.add(egui::Slider::new(&mut s.phase, 0.0..=360.0).text("Phase (°)"));
                             egui::ComboBox::from_label("Waveform")
-                                .selected_text(format!("{:?}", s.r#type))
+                                .selected_text(format!("{:?}", s.source_type))
                                 .show_ui(ui, |ui| {
-                                    ui.selectable_value(&mut s.r#type, SourceType::Sin, "Sinus");
-                                    ui.selectable_value(&mut s.r#type, SourceType::Gauss, "Gauss");
+                                    ui.selectable_value(
+                                        &mut s.source_type,
+                                        SourceType::Sin,
+                                        "Sinus",
+                                    );
+                                    ui.selectable_value(
+                                        &mut s.source_type,
+                                        SourceType::Gauss,
+                                        "Gauss",
+                                    );
                                 });
                         });
                     }

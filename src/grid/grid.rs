@@ -95,16 +95,7 @@ impl Grid {
     fn apply_sources(&mut self, ticks_since_start: u64, sources: &Query<&Source>, e_al: u32) {
         let time = self.delta_t * ticks_since_start as f32; //the cast feels wrong, but it works for now
         for source in sources.iter() {
-            //? maybe needs to be optimized
-            let calc = match source.r#type {
-                SourceType::Sin => {
-                    source.amplitude
-                        * (2. * PI * source.frequency * (time - source.phase * PI / 180.)).sin()
-                }
-                SourceType::Gauss => {
-                    Source::periodic_gaussian(time, source.frequency, source.amplitude, 5., 1.)
-                }
-            };
+            let calc = source.calc(time);
             let source_pos = coords_to_index(source.x + e_al, source.y + e_al, 0, e_al); //source.index;
             self.cells[source_pos + 4] = calc;
             self.cells[source_pos + 5] = calc;
