@@ -1,6 +1,6 @@
-on: [push]
-
 name: build
+
+on: [push]
 
 jobs:
   check:
