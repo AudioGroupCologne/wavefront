@@ -1,9 +1,7 @@
-use std::f32::consts::PI;
-
 use bevy::prelude::*;
 
 use crate::components::microphone::Microphone;
-use crate::components::source::{Source, SourceType};
+use crate::components::source::Source;
 use crate::components::wall::Wall;
 use crate::math::constants::*;
 use crate::math::transformations::{coords_to_index, index_to_coords};
