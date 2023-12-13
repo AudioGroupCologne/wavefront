@@ -1,7 +1,8 @@
 use bevy::app::{App, Plugin, Update};
 use bevy::ecs::schedule::IntoSystemConfigs;
 
-use super::grid::{apply_system, calc_system, update_system, Grid};
+use super::grid::Grid;
+use super::systems::{apply_system, calc_system, update_system};
 
 pub struct GridPlugin;
 

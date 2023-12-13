@@ -2,10 +2,10 @@ use bevy::prelude::*;
 
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
-use crate::components::wall::Wall;
+use crate::components::wall::WallBlock;
 use crate::math::constants::*;
-use crate::math::transformations::{coords_to_index, index_to_coords};
-use crate::render::state::{AttenuationType, GameTicks, UiState};
+use crate::math::transformations::{coords_to_index, true_rect_from_rect};
+use crate::render::state::{AttenuationType, UiState};
 
 #[derive(Debug, Resource)]
 pub struct Grid {
@@ -32,7 +32,7 @@ impl Default for Grid {
 }
 
 impl Grid {
-    fn update_delta_t(&mut self, ui_state: Res<UiState>) {
+    pub fn update_delta_t(&mut self, ui_state: Res<UiState>) {
         self.delta_t = ui_state.delta_l / PROPAGATION_SPEED;
     }
 
@@ -44,7 +44,7 @@ impl Grid {
         ];
     }
 
-    fn update(&mut self, e_al: u32) {
+    pub fn update(&mut self, e_al: u32) {
         for i in 0..(SIMULATION_WIDTH + 2 * e_al) * (SIMULATION_HEIGHT + 2 * e_al) {
             let array_pos: usize = (i * NUM_INDEX) as usize;
 
@@ -62,7 +62,7 @@ impl Grid {
         }
     }
 
-    fn calc(&mut self, e_al: u32) {
+    pub fn calc(&mut self, e_al: u32) {
         for x in e_al..(SIMULATION_WIDTH + e_al) {
             for y in e_al..(SIMULATION_HEIGHT + e_al) {
                 self.calc_cell(
@@ -90,11 +90,11 @@ impl Grid {
         self.cells[coord_one_d + 7] = 0.5 * (bottom_top + left_right + top_bottom - right_left);
     }
 
-    fn apply_sources(&mut self, ticks_since_start: u64, sources: &Query<&Source>, e_al: u32) {
+    pub fn apply_sources(&mut self, ticks_since_start: u64, sources: &Query<&Source>, e_al: u32) {
         let time = self.delta_t * ticks_since_start as f32; //the cast feels wrong, but it works for now
         for source in sources.iter() {
             let calc = source.calc(time);
-            let source_pos = coords_to_index(source.x + e_al, source.y + e_al, 0, e_al); //source.index;
+            let source_pos = coords_to_index(source.x + e_al, source.y + e_al, 0, e_al);
             self.cells[source_pos + 4] = calc;
             self.cells[source_pos + 5] = calc;
             self.cells[source_pos + 6] = calc;
@@ -102,7 +102,7 @@ impl Grid {
         }
     }
 
-    fn apply_microphones(
+    pub fn apply_microphones(
         &mut self, //doesn't actually need to mutable but it throws errors further down if not
         mut microphones: Query<&mut Microphone>,
         e_al: u32,
@@ -121,13 +121,49 @@ impl Grid {
         }
     }
 
-    fn apply_walls(&mut self, walls: &Query<&Wall>, e_al: u32) {
+    pub fn apply_walls(&mut self, walls: &Query<&WallBlock>, e_al: u32) {
         for wall in walls.iter() {
-            let (x, y) = index_to_coords(wall.0 as u32, e_al);
-            self.cells[wall.0 + 4] = WALL_FAC * self.cells[coords_to_index(x, y + 1, 2, e_al)];
-            self.cells[wall.0 + 5] = WALL_FAC * self.cells[coords_to_index(x - 1, y, 3, e_al)];
-            self.cells[wall.0 + 6] = WALL_FAC * self.cells[coords_to_index(x, y - 1, 0, e_al)];
-            self.cells[wall.0 + 7] = WALL_FAC * self.cells[coords_to_index(x + 1, y, 1, e_al)];
+            let true_rect = true_rect_from_rect(wall.rect);
+
+            // Rethink this ._.
+
+            for x in true_rect.min.x as u32..true_rect.max.x as u32 {
+                for y in true_rect.min.y as u32..true_rect.max.y as u32 {
+                    let wall_index = coords_to_index(x + e_al, y + e_al, 0, e_al);
+                    self.cells[wall_index + 4] = 0.;
+                    self.cells[wall_index + 5] = 0.;
+                    self.cells[wall_index + 6] = 0.;
+                    self.cells[wall_index + 7] = 0.;
+                }
+            }
+
+            for x in true_rect.min.x as u32..true_rect.max.x as u32 {
+                //bottom row
+                let wall_index = coords_to_index(x + e_al, true_rect.max.y as u32 + e_al, 0, e_al);
+                self.cells[wall_index + 4] = wall.reflection_factor
+                    * self.cells
+                        [coords_to_index(x + e_al, true_rect.max.y as u32 + e_al + 1, 2, e_al)];
+
+                //top row
+                let wall_index = coords_to_index(x + e_al, true_rect.min.y as u32 + e_al, 0, e_al);
+                self.cells[wall_index + 6] = wall.reflection_factor
+                    * self.cells
+                        [coords_to_index(x + e_al, true_rect.min.y as u32 + e_al - 1, 0, e_al)];
+            }
+
+            for y in true_rect.min.y as u32..true_rect.max.y as u32 {
+                //left row
+                let wall_index = coords_to_index(true_rect.min.x as u32 + e_al, y + e_al, 0, e_al);
+                self.cells[wall_index + 5] = wall.reflection_factor
+                    * self.cells
+                        [coords_to_index(true_rect.min.x as u32 + e_al - 1, y + e_al, 3, e_al)];
+
+                //right row
+                let wall_index = coords_to_index(true_rect.max.x as u32 + e_al, y + e_al, 0, e_al);
+                self.cells[wall_index + 7] = wall.reflection_factor
+                    * self.cells
+                        [coords_to_index(true_rect.max.x as u32 + e_al + 1, y + e_al, 1, e_al)];
+            }
         }
     }
 
@@ -158,7 +194,7 @@ impl Grid {
                 - right_left * attenuation_factors[3]);
     }
 
-    fn apply_boundaries(&mut self, ui_state: Res<UiState>) {
+    pub fn apply_boundaries(&mut self, ui_state: Res<UiState>) {
         let b = (ui_state.e_al * ui_state.e_al) as f32 / ui_state.epsilon.ln();
 
         //Left
@@ -371,44 +407,5 @@ impl Grid {
             }
             AttenuationType::DoNothing => 0.0,
         }
-    }
-}
-
-pub fn calc_system(mut grid: ResMut<Grid>, ui_state: Res<UiState>) {
-    if ui_state.is_running {
-        grid.calc(ui_state.e_al);
-    }
-}
-
-pub fn apply_system(
-    mut grid: ResMut<Grid>,
-    sources: Query<&Source>,
-    microphones: Query<&mut Microphone>,
-    walls: Query<&Wall>,
-    game_ticks: Res<GameTicks>,
-    ui_state: Res<UiState>,
-) {
-    if ui_state.is_running {
-        grid.apply_sources(game_ticks.ticks_since_start, &sources, ui_state.e_al);
-        grid.apply_walls(&walls, ui_state.e_al);
-        grid.apply_microphones(
-            microphones,
-            ui_state.e_al,
-            ui_state.show_plots,
-            ui_state.show_fft,
-        );
-        grid.apply_boundaries(ui_state);
-    }
-}
-
-pub fn update_system(
-    mut grid: ResMut<Grid>,
-    mut game_ticks: ResMut<GameTicks>,
-    ui_state: Res<UiState>,
-) {
-    if ui_state.is_running {
-        grid.update(ui_state.e_al);
-        grid.update_delta_t(ui_state);
-        game_ticks.ticks_since_start += 1;
     }
 }

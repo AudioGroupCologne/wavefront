@@ -1,7 +1,7 @@
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::epaint::CircleShape;
-use bevy_pixel_buffer::bevy_egui::egui::{pos2, Color32, Frame, Margin, Stroke};
+use bevy_pixel_buffer::bevy_egui::egui::{pos2, Color32, Frame, Margin, Stroke, Vec2};
 use bevy_pixel_buffer::bevy_egui::{egui, EguiContexts};
 use bevy_pixel_buffer::prelude::*;
 use egui_plot::{Legend, Line, Plot, PlotPoints};
@@ -11,7 +11,7 @@ use crate::components::source::*;
 use crate::grid::grid::Grid;
 use crate::math::constants::*;
 use crate::math::fft::calc_mic_spectrum;
-use crate::math::transformations::u32_map_range;
+use crate::math::transformations::f32_map_range;
 use crate::render::state::*;
 
 pub fn draw_egui(
@@ -21,7 +21,7 @@ pub fn draw_egui(
     mut microphones: Query<&mut Microphone>,
     mut ui_state: ResMut<UiState>,
     diagnostics: Res<DiagnosticsStore>,
-    grid: Res<Grid>,
+    mut grid: ResMut<Grid>,
     images: Local<Images>,
 ) {
     let cursor_icon = egui_context.add_image(images.cursor_icon.clone_weak());
@@ -130,6 +130,7 @@ pub fn draw_egui(
                         .add(egui::Slider::new(&mut ui_state.e_al, 2..=200).text("E_AL"))
                         .changed()
                     {
+                        grid.update_cells(ui_state.e_al);
                         for (index, mut pb) in pixel_buffers.iter_mut().enumerate() {
                             if index == 0 {
                                 pb.pixel_buffer.size = PixelBufferSize {
@@ -245,134 +246,11 @@ pub fn draw_egui(
             })
         });
 
-    egui::CentralPanel::default()
-        .frame(
-            Frame::default()
-                .inner_margin(Margin {
-                    left: 0.,
-                    right: 0.,
-                    top: 0.,
-                    bottom: 0.,
-                })
-                .fill(Color32::from_rgb(25, 25, 25)),
-        )
-        .show(ctx, |ui| {
-            // Tool Panel
-
-            egui::SidePanel::left("tool_panel")
-                .frame(
-                    Frame::default()
-                        .inner_margin(Margin {
-                            left: 0.,
-                            right: 0.,
-                            top: 0.,
-                            bottom: 0.,
-                        })
-                        .fill(Color32::from_rgb(25, 25, 25)),
-                )
-                .default_width(35.)
-                .resizable(false)
-                .show_inside(ui, |ui| {
-                    //Tests for tool buttons
-                    ui.add_space(4.);
-
-                    ui.add(
-                        egui::Image::new(egui::load::SizedTexture::new(cursor_icon, [25., 25.]))
-                            .bg_fill(Color32::DARK_GRAY)
-                            .shrink_to_fit(),
-                    );
-
-                    ui.add_space(2.);
-
-                    ui.add(
-                        egui::Image::new(egui::load::SizedTexture::new(cursor_icon, [25., 25.]))
-                            .shrink_to_fit(),
-                    );
-
-                    ui.add_space(2.);
-
-                    ui.add(
-                        egui::Image::new(egui::load::SizedTexture::new(cursor_icon, [25., 25.]))
-                            .shrink_to_fit(),
-                    );
-
-                    ui.add_space(2.);
-
-                    ui.vertical(|ui| {
-                        ui.selectable_value(
-                            &mut ui_state.tool_type,
-                            ToolType::PlaceSource,
-                            "Place",
-                        );
-                        ui.selectable_value(&mut ui_state.tool_type, ToolType::MoveSource, "Move");
-                        ui.selectable_value(&mut ui_state.tool_type, ToolType::DrawWall, "Draw Wall");
-                    });
-                });
-
-            // Main Simulation Area
-
-            let pb = pixel_buffers.iter().next().expect("first pixel buffer");
-            let texture = pb.egui_texture();
-            // let image = ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
-
-            let image = ui.add(
-                egui::Image::new(egui::load::SizedTexture::new(texture.id, texture.size))
-                    .shrink_to_fit(),
-            );
-
-            ui_state.image_rect = image.rect;
-
-            // Gizmos
-
-            if image.hovered() && ui_state.tool_type == ToolType::MoveSource {
-                let painter = ui.painter();
-
-                for source in sources.iter() {
-                    let gizmo_pos = pos2(
-                        u32_map_range(
-                            0,
-                            SIMULATION_WIDTH,
-                            image.rect.min.x as u32,
-                            image.rect.max.x as u32,
-                            source.x,
-                        ) as f32,
-                        u32_map_range(
-                            0,
-                            SIMULATION_HEIGHT,
-                            image.rect.min.y as u32,
-                            image.rect.max.y as u32,
-                            source.y,
-                        ) as f32,
-                    );
-
-                    painter.add(egui::Shape::Circle(CircleShape::stroke(
-                        gizmo_pos,
-                        10.,
-                        Stroke::new(10.0, Color32::from_rgb(255, 100, 0)),
-                    )));
-                }
-            }
-        });
-
-    if ui_state.show_fft {
-        egui::SidePanel::right("spectrum_panel")
-            .default_width(400.)
-            // .resizable(false)
-            .show(ctx, |ui| {
-                let pb = pixel_buffers.iter().nth(1).expect("second pixel buffer");
-                let texture = pb.egui_texture();
-
-                ui.add(
-                    egui::Image::new(egui::load::SizedTexture::new(texture.id, texture.size))
-                        .shrink_to_fit(),
-                );
-            });
-    }
-
     if ui_state.show_plots {
         egui::TopBottomPanel::bottom("bottom_panel")
             .resizable(true)
             .default_height(400.0)
+            .max_height(700.)
             .show(ctx, |ui| {
                 ui.heading("Microphone Plot");
 
@@ -445,6 +323,119 @@ pub fn draw_egui(
                             });
                     }
                 }
+            });
+    }
+
+    egui::CentralPanel::default()
+        .frame(
+            Frame::default()
+                .inner_margin(Margin {
+                    left: 0.,
+                    right: 0.,
+                    top: 0.,
+                    bottom: 0.,
+                })
+                .fill(Color32::from_rgb(25, 25, 25)),
+        )
+        .show(ctx, |ui| {
+            // Tool Panel
+
+            egui::SidePanel::left("tool_panel")
+                .frame(
+                    Frame::default()
+                        .inner_margin(Margin {
+                            left: 8., //looks better
+                            right: 10.,
+                            top: 10.,
+                            bottom: 10.,
+                        })
+                        .fill(Color32::from_rgb(25, 25, 25)),
+                )
+                .default_width(35.)
+                .resizable(false)
+                .show_inside(ui, |ui| {
+                    //Tests for tool buttons
+
+                    for tool_type in ToolType::TYPES {
+                        if ui
+                            .add(
+                                egui::Button::image_and_text(
+                                    egui::load::SizedTexture::new(cursor_icon, [25., 25.]),
+                                    "",
+                                )
+                                .fill(if tool_type == ui_state.current_tool {
+                                    Color32::DARK_GRAY
+                                } else {
+                                    Color32::TRANSPARENT
+                                })
+                                .min_size(Vec2::new(0., 35.)),
+                            )
+                            .on_hover_text(format!("{:?}", tool_type))
+                            .clicked()
+                        {
+                            ui_state.current_tool = tool_type;
+                        }
+                        ui.add_space(4.);
+                    }
+                });
+
+            // Main Simulation Area
+
+            let pb = pixel_buffers.iter().next().expect("first pixel buffer");
+            let texture = pb.egui_texture();
+            // let image = ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
+
+            let image = ui.add(
+                egui::Image::new(egui::load::SizedTexture::new(texture.id, texture.size))
+                    .shrink_to_fit(),
+            );
+
+            ui_state.image_rect = image.rect;
+
+            // Gizmos
+
+            if image.hovered() && ui_state.current_tool == ToolType::MoveSource {
+                let painter = ui.painter();
+
+                for source in sources.iter() {
+                    let gizmo_pos = pos2(
+                        f32_map_range(
+                            0.,
+                            SIMULATION_WIDTH as f32,
+                            image.rect.min.x,
+                            image.rect.max.x,
+                            source.x as f32,
+                        ),
+                        f32_map_range(
+                            0.,
+                            SIMULATION_HEIGHT as f32,
+                            image.rect.min.y,
+                            image.rect.max.y,
+                            source.y as f32,
+                        ),
+                    );
+
+                    painter.add(egui::Shape::Circle(CircleShape::stroke(
+                        gizmo_pos,
+                        10.,
+                        Stroke::new(10.0, Color32::from_rgb(255, 100, 0)),
+                    )));
+                }
+            }
+        });
+
+    if ui_state.show_fft {
+        egui::SidePanel::right("spectrum_panel")
+            .default_width(400.)
+            // .resizable(false)
+            .show(ctx, |ui| {
+                let pb = pixel_buffers.iter().nth(1).expect("second pixel buffer");
+                let texture = pb.egui_texture();
+
+                ui.add(
+                    egui::Image::new(egui::load::SizedTexture::new(texture.id, texture.size))
+                        .shrink_to_fit(),
+                );
             });
     }
 }

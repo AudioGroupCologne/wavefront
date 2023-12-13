@@ -26,6 +26,16 @@ pub enum ToolType {
     PlaceSource,
     MoveSource,
     DrawWall,
+    MoveWall,
+}
+
+impl ToolType {
+    pub const TYPES: [Self; 4] = [
+        ToolType::DrawWall,
+        ToolType::MoveSource,
+        ToolType::PlaceSource,
+        ToolType::MoveWall,
+    ]; //not very pretty but works for now
 }
 
 #[derive(Resource)]
@@ -42,7 +52,7 @@ pub struct UiState {
     pub show_plots: bool,
     pub current_fft_microphone: Option<usize>,
     pub plot_type: PlotType,
-    pub tool_type: ToolType,
+    pub current_tool: ToolType,
 }
 
 impl Default for UiState {
@@ -60,7 +70,7 @@ impl Default for UiState {
             show_plots: false,
             current_fft_microphone: None,
             plot_type: PlotType::TimeDomain,
-            tool_type: ToolType::PlaceSource,
+            current_tool: ToolType::MoveSource,
         }
     }
 }
