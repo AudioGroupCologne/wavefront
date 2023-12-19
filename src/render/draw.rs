@@ -7,6 +7,7 @@ use super::state::UiState;
 use crate::components::microphone::Microphone;
 use crate::components::wall::{WallBlock, WallCell};
 use crate::grid::grid::Grid;
+use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::transformations::{coords_to_index, u32_map_range};
 
 #[derive(Resource)]
@@ -105,9 +106,9 @@ pub fn draw_wall_blocks(
     let (query, mut images) = pixel_buffers.split();
     let mut frame = images.frame(query.iter().next().expect("one pixel buffer"));
     for wall in walls.iter() {
-        let origin = wall.rect.min;
-        let x_sign = wall.rect.width().signum();
-        let y_sign = wall.rect.height().signum();
+        let origin = wall.calc_rect.min;
+        let x_sign = wall.calc_rect.width().signum();
+        let y_sign = wall.calc_rect.height().signum();
 
         let offset = if ui_state.render_abc_area {
             ui_state.e_al
@@ -115,13 +116,13 @@ pub fn draw_wall_blocks(
             0
         };
 
-        for x in 0..wall.rect.width().abs() as u32 {
-            for y in 0..wall.rect.height().abs() as u32 {
+        for x in 0..wall.calc_rect.width().abs() as u32 {
+            for y in 0..wall.calc_rect.height().abs() as u32 {
                 frame
                     .set(
                         UVec2::new(
-                            (origin.x + x as f32 * x_sign) as u32 + offset,
-                            (origin.y + y as f32 * y_sign) as u32 + offset,
+                            ((origin.x + x as f32 * x_sign) as u32 + offset),
+                            ((origin.y + y as f32 * y_sign) as u32 + offset),
                         ),
                         Pixel {
                             r: (255. * wall.reflection_factor) as u8,

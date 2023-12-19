@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
+use bevy_pixel_buffer::bevy_egui::egui::Pos2;
 
 use crate::components::source::{Drag, Source, SourceType};
 use crate::components::wall::{CornerResize, WallBlock, WallCell};
@@ -12,9 +13,10 @@ pub fn button_input(
     keys: Res<Input<KeyCode>>,
     q_windows: Query<&Window, With<PrimaryWindow>>,
     sources: Query<(Entity, &Source), Without<Drag>>,
-    walls: Query<(Entity, &Source), Without<Drag>>,
     mut drag_sources: Query<(Entity, &mut Source), With<Drag>>,
-    mut resize_walls: Query<(Entity, &mut WallBlock), With<CornerResize>>,
+    wallblocks: Query<(Entity, &WallBlock), (Without<Drag>, Without<CornerResize>)>,
+    mut drag_wallblocks: Query<(Entity, &mut WallBlock), With<Drag>>,
+    mut resize_wallblocks: Query<(Entity, &mut WallBlock), (With<CornerResize>, Without<Drag>)>,
     mut commands: Commands,
     mut ui_state: ResMut<UiState>,
 ) {
@@ -42,12 +44,9 @@ pub fn button_input(
             }
             ToolType::PlaceSource => {
                 if let Some(position) = window.cursor_position() {
-                    if let Some((x, y)) = screen_to_nearest_grid(
-                        position.x,
-                        position.y,
-                        ui_state.image_rect,
-                        &ui_state,
-                    ) {
+                    if let Some((x, y)) =
+                        screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
+                    {
                         // this produces overlaping sources
                         commands.spawn(Source::new(x, y, 10., 0.0, 10_000.0, SourceType::Sin));
                     }
@@ -103,20 +102,21 @@ pub fn button_input(
                 }
             },
             ToolType::MoveWall => {
-                // if let Some(position) = window.cursor_position() {
-                //     if let Some((x, y)) =
-                //         screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
-                //     {
-                //         for (entity, wall) in walls.iter() {
-                //             let (w_x, w_y) = (source.x, source.y);
-                //             if s_x.abs_diff(x) <= 10 && s_y.abs_diff(y) <= 10 {
-                //                 //values should change depending on image size (smaller image -> greater radius)
-                //                 commands.entity(entity).insert(Drag);
-                //                 break; // only drag one at a time
-                //             }
-                //         }
-                //     }
-                // }
+                if let Some(position) = window.cursor_position() {
+                    if let Some((x, y)) =
+                        screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
+                    {
+                        for (entity, wall) in wallblocks.iter() {
+                            let center = wall.rect.center();
+                            if (center.x as u32).abs_diff(x) <= 10
+                                && (center.y as u32).abs_diff(y) <= 10
+                            {
+                                commands.entity(entity).insert(Drag);
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -125,8 +125,11 @@ pub fn button_input(
         drag_sources.iter_mut().for_each(|(entity, _)| {
             commands.entity(entity).remove::<Drag>();
         });
-        resize_walls.iter_mut().for_each(|(entity, _)| {
+        resize_wallblocks.iter_mut().for_each(|(entity, _)| {
             commands.entity(entity).remove::<CornerResize>();
+        });
+        drag_wallblocks.iter_mut().for_each(|(entity, _)| {
+            commands.entity(entity).remove::<Drag>();
         });
     }
 
@@ -157,10 +160,28 @@ pub fn button_input(
                         ui_state.image_rect,
                         &ui_state,
                     ) {
-                        resize_walls.iter_mut().for_each(|(_, mut wall)| {
+                        resize_wallblocks.iter_mut().for_each(|(_, mut wall)| {
                             wall.rect.max.x = x as f32;
                             wall.rect.max.y = y as f32;
-                            wall.update();
+                            wall.update_calc_rect();
+                        });
+                    }
+                }
+            }
+            ToolType::MoveWall => {
+                if let Some(position) = window.cursor_position() {
+                    if let Some((x, y)) = screen_to_nearest_grid(
+                        position.x,
+                        position.y,
+                        ui_state.image_rect,
+                        &ui_state,
+                    ) {
+                        drag_wallblocks.iter_mut().for_each(|(_, mut wall)| {
+                            let width = wall.rect.width() / 2.;
+                            let height = wall.rect.height() / 2.;
+                            wall.rect.min = Pos2::new(x as f32 - width, y as f32 - height);
+                            wall.rect.max = Pos2::new(x as f32 + width, y as f32 + height);
+                            wall.update_calc_rect();
                         });
                     }
                 }
