@@ -103,7 +103,7 @@ impl Grid {
     }
 
     pub fn apply_microphones(
-        &mut self, //doesn't actually need to mutable but it throws errors further down if not
+        &self,
         mut microphones: Query<&mut Microphone>,
         e_al: u32,
         plot_enabled: bool,
