@@ -8,16 +8,19 @@ use egui_plot::{Legend, Line, Plot, PlotPoints};
 
 use crate::components::microphone::*;
 use crate::components::source::*;
+use crate::components::wall::WallBlock;
 use crate::grid::grid::Grid;
 use crate::math::constants::*;
 use crate::math::fft::calc_mic_spectrum;
 use crate::math::transformations::f32_map_range;
+use crate::math::{self};
 use crate::render::state::*;
 
 pub fn draw_egui(
     mut pixel_buffers: QueryPixelBuffer,
     mut egui_context: EguiContexts,
     mut sources: Query<&mut Source>,
+    mut wallblocks: Query<&mut WallBlock>,
     mut microphones: Query<&mut Microphone>,
     mut ui_state: ResMut<UiState>,
     diagnostics: Res<DiagnosticsStore>,
@@ -420,32 +423,63 @@ pub fn draw_egui(
 
             // Gizmos
 
-            if ui_state.current_tool == ToolType::MoveSource && !ui_state.render_abc_area {
+            if !ui_state.render_abc_area {
                 let painter = ui.painter();
 
-                for source in sources.iter() {
-                    let gizmo_pos = pos2(
-                        f32_map_range(
-                            0.,
-                            SIMULATION_WIDTH as f32,
-                            image.rect.min.x,
-                            image.rect.max.x,
-                            source.x as f32,
-                        ),
-                        f32_map_range(
-                            0.,
-                            SIMULATION_HEIGHT as f32,
-                            image.rect.min.y,
-                            image.rect.max.y,
-                            source.y as f32,
-                        ),
-                    );
+                match ui_state.current_tool {
+                    ToolType::MoveSource => {
+                        for source in sources.iter() {
+                            let gizmo_pos = pos2(
+                                f32_map_range(
+                                    0.,
+                                    SIMULATION_WIDTH as f32,
+                                    image.rect.min.x,
+                                    image.rect.max.x,
+                                    source.x as f32,
+                                ),
+                                f32_map_range(
+                                    0.,
+                                    SIMULATION_HEIGHT as f32,
+                                    image.rect.min.y,
+                                    image.rect.max.y,
+                                    source.y as f32,
+                                ),
+                            );
 
-                    painter.add(egui::Shape::Circle(CircleShape::stroke(
-                        gizmo_pos,
-                        10.,
-                        Stroke::new(10.0, Color32::from_rgb(255, 100, 0)),
-                    )));
+                            painter.add(egui::Shape::Circle(CircleShape::stroke(
+                                gizmo_pos,
+                                10.,
+                                Stroke::new(10.0, Color32::from_rgb(255, 100, 0)),
+                            )));
+                        }
+                    }
+                    ToolType::MoveWall => {
+                        for wall in wallblocks.iter() {
+                            let gizmo_pos = pos2(
+                                f32_map_range(
+                                    0.,
+                                    SIMULATION_WIDTH as f32,
+                                    image.rect.min.x,
+                                    image.rect.max.x,
+                                    wall.rect.center().x as f32,
+                                ),
+                                f32_map_range(
+                                    0.,
+                                    SIMULATION_HEIGHT as f32,
+                                    image.rect.min.y,
+                                    image.rect.max.y,
+                                    wall.rect.center().y as f32,
+                                ),
+                            );
+
+                            painter.add(egui::Shape::Circle(CircleShape::stroke(
+                                gizmo_pos,
+                                10.,
+                                Stroke::new(10.0, Color32::from_rgb(255, 100, 0)),
+                            )));
+                        }
+                    }
+                    _ => {}
                 }
             }
         });

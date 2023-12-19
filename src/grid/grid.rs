@@ -120,9 +120,7 @@ impl Grid {
 
     pub fn apply_walls(&mut self, walls: &Query<&WallBlock>, e_al: u32) {
         for wall in walls.iter() {
-            let true_rect = true_rect_from_rect(wall.rect);
-
-            // Rethink this ._.
+            let true_rect = wall.calc_rect;
 
             for x in true_rect.min.x as u32..true_rect.max.x as u32 {
                 for y in true_rect.min.y as u32..true_rect.max.y as u32 {
@@ -197,11 +195,7 @@ impl Grid {
         //Left
         for x in 1..ui_state.e_al {
             for y in ui_state.e_al..(SIMULATION_HEIGHT + ui_state.e_al) {
-                let attenuation_factor = Grid::attenuation_factor(
-                    &ui_state,
-                    ui_state.e_al - x,
-                    b,
-                );
+                let attenuation_factor = Grid::attenuation_factor(&ui_state, ui_state.e_al - x, b);
 
                 self.calc_cell_boundary(x, y, ui_state.e_al, &[1., 1., 1., attenuation_factor]);
             }
@@ -209,11 +203,7 @@ impl Grid {
         //Top
         for x in ui_state.e_al..(SIMULATION_WIDTH + ui_state.e_al) {
             for y in 1..ui_state.e_al {
-                let attenuation_factor = Grid::attenuation_factor(
-                    &ui_state,
-                    ui_state.e_al - y,
-                    b,
-                );
+                let attenuation_factor = Grid::attenuation_factor(&ui_state, ui_state.e_al - y, b);
 
                 self.calc_cell_boundary(x, y, ui_state.e_al, &[attenuation_factor, 1., 1., 1.]);
             }
@@ -221,11 +211,8 @@ impl Grid {
         //Right
         for x in (SIMULATION_WIDTH + ui_state.e_al)..(SIMULATION_WIDTH + 2 * ui_state.e_al - 1) {
             for y in ui_state.e_al..(SIMULATION_HEIGHT + ui_state.e_al) {
-                let attenuation_factor = Grid::attenuation_factor(
-                    &ui_state,
-                    x - (SIMULATION_WIDTH + ui_state.e_al),
-                    b,
-                );
+                let attenuation_factor =
+                    Grid::attenuation_factor(&ui_state, x - (SIMULATION_WIDTH + ui_state.e_al), b);
 
                 self.calc_cell_boundary(x, y, ui_state.e_al, &[1., attenuation_factor, 1., 1.]);
             }
@@ -235,11 +222,8 @@ impl Grid {
             for y in
                 (SIMULATION_HEIGHT + ui_state.e_al)..(SIMULATION_HEIGHT + 2 * ui_state.e_al - 1)
             {
-                let attenuation_factor = Grid::attenuation_factor(
-                    &ui_state,
-                    y - (SIMULATION_HEIGHT + ui_state.e_al),
-                    b,
-                );
+                let attenuation_factor =
+                    Grid::attenuation_factor(&ui_state, y - (SIMULATION_HEIGHT + ui_state.e_al), b);
 
                 self.calc_cell_boundary(x, y, ui_state.e_al, &[1., 1., attenuation_factor, 1.]);
             }
@@ -247,17 +231,11 @@ impl Grid {
         //LeftTop
         for x in 1..ui_state.e_al {
             for y in 1..ui_state.e_al {
-                let attenuation_factor_left = Grid::attenuation_factor(
-                    &ui_state,
-                    ui_state.e_al - x,
-                    b,
-                );
+                let attenuation_factor_left =
+                    Grid::attenuation_factor(&ui_state, ui_state.e_al - x, b);
 
-                let attenuation_factor_top = Grid::attenuation_factor(
-                    &ui_state,
-                    ui_state.e_al - y,
-                    b,
-                );
+                let attenuation_factor_top =
+                    Grid::attenuation_factor(&ui_state, ui_state.e_al - y, b);
 
                 self.calc_cell_boundary(
                     x,
@@ -270,17 +248,11 @@ impl Grid {
         //RightTop
         for x in (SIMULATION_WIDTH + ui_state.e_al)..(SIMULATION_WIDTH + 2 * ui_state.e_al - 1) {
             for y in 1..ui_state.e_al {
-                let attenuation_factor_right = Grid::attenuation_factor(
-                    &ui_state,
-                    x - (SIMULATION_WIDTH + ui_state.e_al),
-                    b,
-                );
+                let attenuation_factor_right =
+                    Grid::attenuation_factor(&ui_state, x - (SIMULATION_WIDTH + ui_state.e_al), b);
 
-                let attenuation_factor_top = Grid::attenuation_factor(
-                    &ui_state,
-                    ui_state.e_al - y,
-                    b,
-                );
+                let attenuation_factor_top =
+                    Grid::attenuation_factor(&ui_state, ui_state.e_al - y, b);
 
                 self.calc_cell_boundary(
                     x,
@@ -295,17 +267,11 @@ impl Grid {
             for y in
                 (SIMULATION_HEIGHT + ui_state.e_al)..(SIMULATION_HEIGHT + 2 * ui_state.e_al - 1)
             {
-                let attenuation_factor_right = Grid::attenuation_factor(
-                    &ui_state,
-                    x - (SIMULATION_WIDTH + ui_state.e_al),
-                    b,
-                );
+                let attenuation_factor_right =
+                    Grid::attenuation_factor(&ui_state, x - (SIMULATION_WIDTH + ui_state.e_al), b);
 
-                let attenuation_factor_bottom = Grid::attenuation_factor(
-                    &ui_state,
-                    y - (SIMULATION_HEIGHT + ui_state.e_al),
-                    b,
-                );
+                let attenuation_factor_bottom =
+                    Grid::attenuation_factor(&ui_state, y - (SIMULATION_HEIGHT + ui_state.e_al), b);
 
                 self.calc_cell_boundary(
                     x,
@@ -320,17 +286,11 @@ impl Grid {
             for y in
                 (SIMULATION_HEIGHT + ui_state.e_al)..(SIMULATION_HEIGHT + 2 * ui_state.e_al - 1)
             {
-                let attenuation_factor_left = Grid::attenuation_factor(
-                    &ui_state,
-                    ui_state.e_al - x,
-                    b,
-                );
+                let attenuation_factor_left =
+                    Grid::attenuation_factor(&ui_state, ui_state.e_al - x, b);
 
-                let attenuation_factor_bottom = Grid::attenuation_factor(
-                    &ui_state,
-                    y - (SIMULATION_HEIGHT + ui_state.e_al),
-                    b,
-                );
+                let attenuation_factor_bottom =
+                    Grid::attenuation_factor(&ui_state, y - (SIMULATION_HEIGHT + ui_state.e_al), b);
 
                 self.calc_cell_boundary(
                     x,
@@ -342,11 +302,7 @@ impl Grid {
         }
     }
 
-    fn attenuation_factor(
-        ui_state: &UiState,
-        distance: u32,
-        b: f32,
-    ) -> f32 {
+    fn attenuation_factor(ui_state: &UiState, distance: u32, b: f32) -> f32 {
         match ui_state.at_type {
             AttenuationType::OriginalOneWay => {
                 1.0 - ((1. + ui_state.epsilon) - ((distance * distance) as f32 / b).exp())
