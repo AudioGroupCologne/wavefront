@@ -51,12 +51,12 @@ impl WallBlock {
         let calc_rect = true_rect_from_rect(self.rect);
         self.calc_rect = Rect {
             min: Pos2::new(
-                calc_rect.min.x.clamp(0., SIMULATION_WIDTH as f32 - 1.),
-                calc_rect.min.y.clamp(0., SIMULATION_HEIGHT as f32 - 1.),
+                calc_rect.min.x.clamp(0., SIMULATION_WIDTH as f32),
+                calc_rect.min.y.clamp(0., SIMULATION_HEIGHT as f32),
             ),
             max: Pos2::new(
-                calc_rect.max.x.clamp(0., SIMULATION_WIDTH as f32 - 1.),
-                calc_rect.max.y.clamp(0., SIMULATION_HEIGHT as f32 - 1.),
+                calc_rect.max.x.clamp(0., SIMULATION_WIDTH as f32),
+                calc_rect.max.y.clamp(0., SIMULATION_HEIGHT as f32),
             ),
         };
     }
