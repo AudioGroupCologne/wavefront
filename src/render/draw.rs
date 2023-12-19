@@ -124,9 +124,9 @@ pub fn draw_walls(
                             (origin.y + y as f32 * y_sign) as u32 + offset,
                         ),
                         Pixel {
-                            r: 255,
-                            g: 255,
-                            b: 255,
+                            r: (255. * wall.reflection_factor) as u8,
+                            g: (255. * wall.reflection_factor) as u8,
+                            b: (255. * wall.reflection_factor) as u8,
                             a: 255,
                         },
                     )
