@@ -70,10 +70,6 @@ pub fn draw_pixels(
         let spectrum = &mic.spektrum;
         let len_y = spectrum.len();
 
-        // if len_y > 0 {
-        //     println!("{:?}", spectrum);
-        // }
-
         frame.per_pixel_par(|coords, _| Pixel {
             r: (if len_y > 1 && coords.y < len_y as u32 {
                 spectrum[coords.y as usize][u32_map_range(0, 250, 0, 120, coords.x) as usize][1]
