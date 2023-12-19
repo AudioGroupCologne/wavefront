@@ -7,7 +7,7 @@ use crate::math::transformations::true_rect_from_rect;
 #[derive(Component)]
 pub struct CornerResize;
 
-pub trait Wall{}
+pub trait Wall {}
 
 /// A single wall "pixel"
 #[derive(Debug, Component)]
@@ -19,7 +19,11 @@ pub struct WallCell {
 
 impl WallCell {
     pub fn new(x: u32, y: u32, reflection_factor: f32) -> Self {
-        Self { x, y, reflection_factor }
+        Self {
+            x,
+            y,
+            reflection_factor,
+        }
     }
 }
 

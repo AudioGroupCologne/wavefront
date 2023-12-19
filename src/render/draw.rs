@@ -7,7 +7,6 @@ use super::state::UiState;
 use crate::components::microphone::Microphone;
 use crate::components::wall::{WallBlock, WallCell};
 use crate::grid::grid::Grid;
-use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::transformations::{coords_to_index, u32_map_range};
 
 #[derive(Resource)]
@@ -121,8 +120,8 @@ pub fn draw_wall_blocks(
                 frame
                     .set(
                         UVec2::new(
-                            ((origin.x + x as f32 * x_sign) as u32 + offset),
-                            ((origin.y + y as f32 * y_sign) as u32 + offset),
+                            (origin.x + x as f32 * x_sign) as u32 + offset,
+                            (origin.y + y as f32 * y_sign) as u32 + offset,
                         ),
                         Pixel {
                             r: (255. * wall.reflection_factor) as u8,
@@ -153,10 +152,7 @@ pub fn draw_wall_cells(
 
         frame
             .set(
-                UVec2::new(
-                    wall.x + offset,
-                    wall.y + offset,
-                ),
+                UVec2::new(wall.x + offset, wall.y + offset),
                 Pixel {
                     r: (255. * wall.reflection_factor) as u8,
                     g: (255. * wall.reflection_factor) as u8,

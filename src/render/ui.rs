@@ -13,14 +13,13 @@ use crate::grid::grid::Grid;
 use crate::math::constants::*;
 use crate::math::fft::calc_mic_spectrum;
 use crate::math::transformations::f32_map_range;
-use crate::math::{self};
 use crate::render::state::*;
 
 pub fn draw_egui(
     mut pixel_buffers: QueryPixelBuffer,
     mut egui_context: EguiContexts,
     mut sources: Query<&mut Source>,
-    mut wallblocks: Query<&mut WallBlock>,
+    wallblocks: Query<&WallBlock>,
     mut microphones: Query<&mut Microphone>,
     mut ui_state: ResMut<UiState>,
     diagnostics: Res<DiagnosticsStore>,
@@ -262,7 +261,6 @@ pub fn draw_egui(
                     ToolType::MoveSource => {}
                     ToolType::MoveWall => {}
                     ToolType::DrawWall => {
-                        
                         egui::ComboBox::from_label("Select Brush Type")
                             .selected_text(format!("{:?}", ui_state.wall_brush))
                             .show_ui(ui, |ui| {
@@ -278,12 +276,12 @@ pub fn draw_egui(
                                     "Brush",
                                 );
                             });
-                            if ui_state.wall_brush == WallBrush::CircleBrush {
-                                ui.add(
-                                    egui::Slider::new(&mut ui_state.wall_brush_radius, 1..=100)
-                                        .text("Brush Radius"),
-                                );
-                            }
+                        if ui_state.wall_brush == WallBrush::CircleBrush {
+                            ui.add(
+                                egui::Slider::new(&mut ui_state.wall_brush_radius, 1..=100)
+                                    .text("Brush Radius"),
+                            );
+                        }
                         ui.add(
                             egui::Slider::new(&mut ui_state.wall_reflection_factor, 0.0..=1.0)
                                 .text("Wall Reflection Factor"),
@@ -483,14 +481,14 @@ pub fn draw_egui(
                                     SIMULATION_WIDTH as f32,
                                     image.rect.min.x,
                                     image.rect.max.x,
-                                    wall.rect.center().x as f32,
+                                    wall.rect.center().x,
                                 ),
                                 f32_map_range(
                                     0.,
                                     SIMULATION_HEIGHT as f32,
                                     image.rect.min.y,
                                     image.rect.max.y,
-                                    wall.rect.center().y as f32,
+                                    wall.rect.center().y,
                                 ),
                             );
 

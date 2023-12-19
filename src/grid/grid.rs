@@ -4,7 +4,7 @@ use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::components::wall::WallBlock;
 use crate::math::constants::*;
-use crate::math::transformations::{coords_to_index, true_rect_from_rect};
+use crate::math::transformations::coords_to_index;
 use crate::render::state::{AttenuationType, UiState};
 
 #[derive(Debug, Resource)]
