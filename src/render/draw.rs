@@ -17,9 +17,9 @@ impl GradientResource {
         Self(
             colorgrad::CustomGradient::new()
                 .colors(&[
-                    colorgrad::Color::from_rgba8(250, 172, 168, 255),
+                    colorgrad::Color::from_rgba8(80, 80, 80, 255),
                     colorgrad::Color::from_rgba8(0, 0, 0, 255),
-                    colorgrad::Color::from_rgba8(221, 214, 243, 255),
+                    colorgrad::Color::from_rgba8(255, 255, 255, 255),
                 ])
                 .domain(&[-2.0, 2.0])
                 .build()
