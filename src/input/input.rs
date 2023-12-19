@@ -2,9 +2,10 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
 use crate::components::source::{Drag, Source, SourceType};
-use crate::components::wall::{CornerResize, WallBlock};
+use crate::components::wall::{CornerResize, WallBlock, WallCell};
+use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
-use crate::render::state::{ToolType, UiState};
+use crate::render::state::{ToolType, UiState, WallBrush};
 
 pub fn button_input(
     mouse_buttons: Res<Input<MouseButton>>,
@@ -52,21 +53,55 @@ pub fn button_input(
                     }
                 }
             }
-            ToolType::DrawWall => {
-                if let Some(position) = window.cursor_position() {
-                    if let Some((x, y)) = screen_to_nearest_grid(
-                        position.x,
-                        position.y,
-                        ui_state.image_rect,
-                        &ui_state,
-                    ) {
-                        commands.spawn((
-                            WallBlock::new(x, y, ui_state.wall_reflection_factor),
-                            CornerResize,
-                        ));
+            ToolType::DrawWall => match ui_state.wall_brush {
+                WallBrush::Rectangle => {
+                    if let Some(position) = window.cursor_position() {
+                        if let Some((x, y)) = screen_to_nearest_grid(
+                            position.x,
+                            position.y,
+                            ui_state.image_rect,
+                            &ui_state,
+                        ) {
+                            commands.spawn((
+                                WallBlock::new(x, y, ui_state.wall_reflection_factor),
+                                CornerResize,
+                            ));
+                        }
                     }
                 }
-            }
+                WallBrush::CircleBrush => {
+                    if let Some(position) = window.cursor_position() {
+                        if let Some((x, y)) =
+                            screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
+                        {
+                            for dx in -(ui_state.wall_brush_radius as i32)
+                                ..ui_state.wall_brush_radius as i32
+                            {
+                                for dy in -(ui_state.wall_brush_radius as i32)
+                                    ..ui_state.wall_brush_radius as i32
+                                {
+                                    if dx * dx + dy * dy
+                                        <= ui_state.wall_brush_radius as i32
+                                            * ui_state.wall_brush_radius as i32
+                                    {
+                                        let x = (x as i32 + dx)
+                                            .clamp(0, SIMULATION_WIDTH as i32 - 1)
+                                            as u32;
+                                        let y = (y as i32 + dy)
+                                            .clamp(0, SIMULATION_HEIGHT as i32 - 1)
+                                            as u32;
+                                        commands.spawn((WallCell::new(
+                                            x,
+                                            y,
+                                            ui_state.wall_reflection_factor,
+                                        ),));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             ToolType::MoveWall => {
                 // if let Some(position) = window.cursor_position() {
                 //     if let Some((x, y)) =

@@ -38,6 +38,13 @@ impl ToolType {
     ]; //not very pretty but works for now
 }
 
+#[derive(Debug, PartialEq)]
+pub enum WallBrush {
+    /// Circular brush
+    CircleBrush,
+    Rectangle,
+}
+
 #[derive(Resource)]
 pub struct UiState {
     pub is_running: bool,
@@ -54,6 +61,8 @@ pub struct UiState {
     pub plot_type: PlotType,
     pub current_tool: ToolType,
     pub wall_reflection_factor: f32,
+    pub wall_brush: WallBrush,
+    pub wall_brush_radius: u32,
 }
 
 impl Default for UiState {
@@ -73,6 +82,8 @@ impl Default for UiState {
             plot_type: PlotType::TimeDomain,
             current_tool: ToolType::MoveSource,
             wall_reflection_factor: 1.,
+            wall_brush: WallBrush::Rectangle,
+            wall_brush_radius: 10,
         }
     }
 }

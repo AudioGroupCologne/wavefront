@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_pixel_buffer::builder::PixelBufferBuilder;
 use bevy_pixel_buffer::pixel_buffer::PixelBufferSize;
 
-use super::draw::{draw_pixels, draw_walls, GradientResource};
+use super::draw::{draw_pixels, draw_wall_blocks, GradientResource, draw_wall_cells};
 use super::state::{GameTicks, UiState};
 use super::ui::draw_egui;
 use crate::components::microphone::Microphone;
@@ -29,7 +29,8 @@ impl Plugin for RenderPlugin {
                     Microphone::spawn_initial_microphones,
                 ),
             )
-            .add_systems(Update, (draw_pixels, draw_walls, draw_egui).chain());
+            .add_systems(Update, (draw_pixels, draw_wall_blocks, draw_wall_cells).chain())
+            .add_systems(Update, draw_egui);
     }
 }
 

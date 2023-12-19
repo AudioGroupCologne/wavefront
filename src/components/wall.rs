@@ -4,18 +4,23 @@ use bevy_pixel_buffer::bevy_egui::egui::{Pos2, Rect};
 #[derive(Component)]
 pub struct CornerResize;
 
-/// A wall component containing the coordinates of the corresponding cell in the grid
-#[derive(Debug)]
+pub trait Wall{}
+
+/// A single wall "pixel"
+#[derive(Debug, Component)]
 pub struct WallCell {
     pub x: u32,
     pub y: u32,
+    pub reflection_factor: f32,
 }
 
 impl WallCell {
-    pub fn new(x: u32, y: u32) -> Self {
-        Self { x, y }
+    pub fn new(x: u32, y: u32, reflection_factor: f32) -> Self {
+        Self { x, y, reflection_factor }
     }
 }
+
+impl Wall for WallCell {}
 
 #[derive(Debug, Component)]
 pub struct WallBlock {

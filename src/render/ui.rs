@@ -29,7 +29,7 @@ pub fn draw_egui(
 
     // Side Panel (Sources, Mic, Tool Options, Settings)
     egui::SidePanel::left("left_panel")
-        .default_width(300.)
+        .default_width(450.)
         .show(ctx, |ui| {
             ui.spacing_mut().slider_width = 200.0;
 
@@ -257,13 +257,35 @@ pub fn draw_egui(
                 match ui_state.current_tool {
                     ToolType::PlaceSource => {}
                     ToolType::MoveSource => {}
+                    ToolType::MoveWall => {}
                     ToolType::DrawWall => {
+                        
+                        egui::ComboBox::from_label("Select Brush Type")
+                            .selected_text(format!("{:?}", ui_state.wall_brush))
+                            .show_ui(ui, |ui| {
+                                ui.style_mut().wrap = Some(false);
+                                ui.selectable_value(
+                                    &mut ui_state.wall_brush,
+                                    WallBrush::Rectangle,
+                                    "Rectangle",
+                                );
+                                ui.selectable_value(
+                                    &mut ui_state.wall_brush,
+                                    WallBrush::CircleBrush,
+                                    "Brush",
+                                );
+                            });
+                            if ui_state.wall_brush == WallBrush::CircleBrush {
+                                ui.add(
+                                    egui::Slider::new(&mut ui_state.wall_brush_radius, 1..=100)
+                                        .text("Brush Radius"),
+                                );
+                            }
                         ui.add(
                             egui::Slider::new(&mut ui_state.wall_reflection_factor, 0.0..=1.0)
                                 .text("Wall Reflection Factor"),
                         );
                     }
-                    ToolType::MoveWall => {}
                 }
 
                 ui.add_space(10.);

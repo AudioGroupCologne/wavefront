@@ -5,7 +5,7 @@ use bevy_pixel_buffer::query::QueryPixelBuffer;
 
 use super::state::UiState;
 use crate::components::microphone::Microphone;
-use crate::components::wall::WallBlock;
+use crate::components::wall::{WallBlock, WallCell};
 use crate::grid::grid::Grid;
 use crate::math::transformations::{coords_to_index, u32_map_range};
 
@@ -97,7 +97,7 @@ pub fn draw_pixels(
     }
 }
 
-pub fn draw_walls(
+pub fn draw_wall_blocks(
     pixel_buffers: QueryPixelBuffer,
     walls: Query<&WallBlock>,
     ui_state: Res<UiState>,
@@ -133,5 +133,36 @@ pub fn draw_walls(
                     .expect("Wall pixel out of bounds");
             }
         }
+    }
+}
+
+pub fn draw_wall_cells(
+    pixel_buffers: QueryPixelBuffer,
+    walls: Query<&WallCell>,
+    ui_state: Res<UiState>,
+) {
+    let (query, mut images) = pixel_buffers.split();
+    let mut frame = images.frame(query.iter().next().expect("one pixel buffer"));
+    for wall in walls.iter() {
+        let offset = if ui_state.render_abc_area {
+            ui_state.e_al
+        } else {
+            0
+        };
+
+        frame
+            .set(
+                UVec2::new(
+                    wall.x + offset,
+                    wall.y + offset,
+                ),
+                Pixel {
+                    r: (255. * wall.reflection_factor) as u8,
+                    g: (255. * wall.reflection_factor) as u8,
+                    b: (255. * wall.reflection_factor) as u8,
+                    a: 255,
+                },
+            )
+            .expect("Wall pixel out of bounds");
     }
 }
