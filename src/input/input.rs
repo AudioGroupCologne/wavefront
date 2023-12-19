@@ -3,7 +3,7 @@ use bevy::window::PrimaryWindow;
 
 use crate::components::source::{Drag, Source, SourceType};
 use crate::components::wall::{CornerResize, WallBlock};
-use crate::math::transformations::screen_to_grid;
+use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
 use crate::render::state::{ToolType, UiState};
 
 pub fn button_input(
@@ -22,9 +22,12 @@ pub fn button_input(
         match ui_state.current_tool {
             ToolType::MoveSource => {
                 if let Some(position) = window.cursor_position() {
-                    if let Some((x, y)) =
-                        screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
-                    {
+                    if let Some((x, y)) = screen_to_nearest_grid(
+                        position.x,
+                        position.y,
+                        ui_state.image_rect,
+                        &ui_state,
+                    ) {
                         for (entity, source) in sources.iter() {
                             let (s_x, s_y) = (source.x, source.y);
                             if s_x.abs_diff(x) <= 10 && s_y.abs_diff(y) <= 10 {
@@ -38,9 +41,12 @@ pub fn button_input(
             }
             ToolType::PlaceSource => {
                 if let Some(position) = window.cursor_position() {
-                    if let Some((x, y)) =
-                        screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
-                    {
+                    if let Some((x, y)) = screen_to_nearest_grid(
+                        position.x,
+                        position.y,
+                        ui_state.image_rect,
+                        &ui_state,
+                    ) {
                         // this produces overlaping sources
                         commands.spawn(Source::new(x, y, 10., 0.0, 10_000.0, SourceType::Sin));
                     }
@@ -48,13 +54,16 @@ pub fn button_input(
             }
             ToolType::DrawWall => {
                 if let Some(position) = window.cursor_position() {
-                    if let Some((x, y)) =
-                        screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
-                    {
-                        //TODO: because of the brush size, the indices may be out of bounds
-                        //TODO: make bush size variable
-                        //TODO: make wall act on x and y coords like sources
-                        commands.spawn((WallBlock::new(x, y, 1.), CornerResize));
+                    if let Some((x, y)) = screen_to_nearest_grid(
+                        position.x,
+                        position.y,
+                        ui_state.image_rect,
+                        &ui_state,
+                    ) {
+                        commands.spawn((
+                            WallBlock::new(x, y, ui_state.wall_reflection_factor),
+                            CornerResize,
+                        ));
                     }
                 }
             }
@@ -92,9 +101,12 @@ pub fn button_input(
         match ui_state.current_tool {
             ToolType::MoveSource => {
                 if let Some(position) = window.cursor_position() {
-                    if let Some((x, y)) =
-                        screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
-                    {
+                    if let Some((x, y)) = screen_to_nearest_grid(
+                        position.x,
+                        position.y,
+                        ui_state.image_rect,
+                        &ui_state,
+                    ) {
                         drag_sources.iter_mut().for_each(|(_, mut source)| {
                             source.x = x;
                             source.y = y;
@@ -104,9 +116,12 @@ pub fn button_input(
             }
             ToolType::DrawWall => {
                 if let Some(position) = window.cursor_position() {
-                    if let Some((x, y)) =
-                        screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
-                    {
+                    if let Some((x, y)) = screen_to_nearest_grid(
+                        position.x,
+                        position.y,
+                        ui_state.image_rect,
+                        &ui_state,
+                    ) {
                         resize_walls.iter_mut().for_each(|(_, mut wall)| {
                             wall.rect.max.x = x as f32;
                             wall.rect.max.y = y as f32;

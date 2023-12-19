@@ -25,8 +25,9 @@ pub fn draw_egui(
     images: Local<Images>,
 ) {
     let cursor_icon = egui_context.add_image(images.cursor_icon.clone_weak());
-
     let ctx = egui_context.ctx_mut();
+
+    // Side Panel (Sources, Mic, Tool Options, Settings)
     egui::SidePanel::left("left_panel")
         .default_width(300.)
         .show(ctx, |ui| {
@@ -42,6 +43,7 @@ pub fn draw_egui(
 
             ui.separator();
 
+            // Sources
             egui::ScrollArea::vertical()
                 .id_source("source_scroll_area")
                 .max_height(400.)
@@ -82,6 +84,7 @@ pub fn draw_egui(
 
             ui.separator();
 
+            // Microphones
             egui::ScrollArea::vertical()
                 .id_source("mic_scroll_area")
                 .max_height(400.)
@@ -108,6 +111,7 @@ pub fn draw_egui(
                     }
                 });
 
+            // General Settings
             egui::TopBottomPanel::bottom("general_settings_bottom_panel").show_inside(ui, |ui| {
                 ui.heading("General Settings");
                 ui.separator();
@@ -243,9 +247,30 @@ pub fn draw_egui(
                 }
 
                 ui.add_space(10.);
-            })
+            });
+
+            // Tool Options
+            egui::TopBottomPanel::bottom("tool_options_panel").show_inside(ui, |ui| {
+                ui.heading("Tool Options");
+                ui.separator();
+
+                match ui_state.current_tool {
+                    ToolType::PlaceSource => {}
+                    ToolType::MoveSource => {}
+                    ToolType::DrawWall => {
+                        ui.add(
+                            egui::Slider::new(&mut ui_state.wall_reflection_factor, 0.0..=1.0)
+                                .text("Wall Reflection Factor"),
+                        );
+                    }
+                    ToolType::MoveWall => {}
+                }
+
+                ui.add_space(10.);
+            });
         });
 
+    //Plot Panel
     if ui_state.show_plots {
         egui::TopBottomPanel::bottom("bottom_panel")
             .resizable(true)
@@ -326,59 +351,60 @@ pub fn draw_egui(
             });
     }
 
+    // Tool Panel
+    egui::SidePanel::left("tool_panel")
+        .frame(
+            Frame::default()
+                .inner_margin(Margin {
+                    left: 8., //looks better
+                    right: 10.,
+                    top: 10.,
+                    bottom: 10.,
+                })
+                .fill(Color32::from_rgb(25, 25, 25)),
+        )
+        .default_width(35.)
+        .resizable(false)
+        .show(ctx, |ui| {
+            ui.set_enabled(!ui_state.render_abc_area);
+            //Tests for tool buttons
+
+            for tool_type in ToolType::TYPES {
+                if ui
+                    .add(
+                        egui::Button::image_and_text(
+                            egui::load::SizedTexture::new(cursor_icon, [25., 25.]),
+                            "",
+                        )
+                        .fill(if tool_type == ui_state.current_tool {
+                            Color32::DARK_GRAY
+                        } else {
+                            Color32::TRANSPARENT
+                        })
+                        .min_size(Vec2::new(0., 35.)),
+                    )
+                    .on_hover_text(format!("{:?}", tool_type))
+                    .clicked()
+                {
+                    ui_state.current_tool = tool_type;
+                }
+                ui.add_space(4.);
+            }
+        });
+
+    // Main Render Area
     egui::CentralPanel::default()
         .frame(
             Frame::default()
                 .inner_margin(Margin {
-                    left: 0.,
-                    right: 0.,
-                    top: 0.,
-                    bottom: 0.,
+                    left: 20.,
+                    right: 20.,
+                    top: 20.,
+                    bottom: 20.,
                 })
                 .fill(Color32::from_rgb(25, 25, 25)),
         )
         .show(ctx, |ui| {
-            // Tool Panel
-
-            egui::SidePanel::left("tool_panel")
-                .frame(
-                    Frame::default()
-                        .inner_margin(Margin {
-                            left: 8., //looks better
-                            right: 10.,
-                            top: 10.,
-                            bottom: 10.,
-                        })
-                        .fill(Color32::from_rgb(25, 25, 25)),
-                )
-                .default_width(35.)
-                .resizable(false)
-                .show_inside(ui, |ui| {
-                    //Tests for tool buttons
-
-                    for tool_type in ToolType::TYPES {
-                        if ui
-                            .add(
-                                egui::Button::image_and_text(
-                                    egui::load::SizedTexture::new(cursor_icon, [25., 25.]),
-                                    "",
-                                )
-                                .fill(if tool_type == ui_state.current_tool {
-                                    Color32::DARK_GRAY
-                                } else {
-                                    Color32::TRANSPARENT
-                                })
-                                .min_size(Vec2::new(0., 35.)),
-                            )
-                            .on_hover_text(format!("{:?}", tool_type))
-                            .clicked()
-                        {
-                            ui_state.current_tool = tool_type;
-                        }
-                        ui.add_space(4.);
-                    }
-                });
-
             // Main Simulation Area
 
             let pb = pixel_buffers.iter().next().expect("first pixel buffer");
@@ -394,7 +420,7 @@ pub fn draw_egui(
 
             // Gizmos
 
-            if image.hovered() && ui_state.current_tool == ToolType::MoveSource {
+            if ui_state.current_tool == ToolType::MoveSource && !ui_state.render_abc_area {
                 let painter = ui.painter();
 
                 for source in sources.iter() {
@@ -424,10 +450,11 @@ pub fn draw_egui(
             }
         });
 
+    // FFT Heatmap
     if ui_state.show_fft {
         egui::SidePanel::right("spectrum_panel")
             .default_width(400.)
-            // .resizable(false)
+            .resizable(false)
             .show(ctx, |ui| {
                 let pb = pixel_buffers.iter().nth(1).expect("second pixel buffer");
                 let texture = pb.egui_texture();

@@ -53,6 +53,7 @@ pub struct UiState {
     pub current_fft_microphone: Option<usize>,
     pub plot_type: PlotType,
     pub current_tool: ToolType,
+    pub wall_reflection_factor: f32,
 }
 
 impl Default for UiState {
@@ -71,6 +72,7 @@ impl Default for UiState {
             current_fft_microphone: None,
             plot_type: PlotType::TimeDomain,
             current_tool: ToolType::MoveSource,
+            wall_reflection_factor: 1.,
         }
     }
 }
