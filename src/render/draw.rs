@@ -5,8 +5,9 @@ use bevy_pixel_buffer::query::QueryPixelBuffer;
 
 use super::state::{PlotType, UiState};
 use crate::components::microphone::Microphone;
-use crate::components::wall::{WallBlock, WallCell};
+use crate::components::wall::{Overlay, WallBlock, WallCell};
 use crate::grid::grid::Grid;
+use crate::math::constants::SIMULATION_WIDTH;
 use crate::math::transformations::{coords_to_index, u32_map_range};
 
 #[derive(Resource)]
@@ -104,7 +105,8 @@ pub fn draw_pixels(
 
 pub fn draw_wall_blocks(
     pixel_buffers: QueryPixelBuffer,
-    walls: Query<&WallBlock>,
+    walls: Query<&WallBlock, Without<Overlay>>,
+    walls_overlay: Query<&WallBlock, With<Overlay>>,
     ui_state: Res<UiState>,
 ) {
     let (query, mut images) = pixel_buffers.split();
@@ -136,6 +138,39 @@ pub fn draw_wall_blocks(
                         },
                     )
                     .expect("Wall pixel out of bounds");
+            }
+        }
+    }
+
+    let raw_pixles = frame.raw_mut();
+
+    for wall in walls_overlay.iter() {
+        let origin = wall.calc_rect.min;
+        let x_sign = wall.calc_rect.width().signum();
+        let y_sign = wall.calc_rect.height().signum();
+
+        let offset = if ui_state.render_abc_area {
+            ui_state.e_al
+        } else {
+            0
+        };
+
+        for x in 0..wall.calc_rect.width().abs() as u32 {
+            for y in 0..wall.calc_rect.height().abs() as u32 {
+                // no out of bounds check
+                let index = ((origin.x + x as f32 * x_sign) as u32 + offset)
+                    + ((origin.y + y as f32 * y_sign) as u32 + offset) * SIMULATION_WIDTH;
+
+                let r = raw_pixles[index as usize].r;
+                let g = raw_pixles[index as usize].g;
+                let b = raw_pixles[index as usize].b;
+
+                raw_pixles[index as usize] = Pixel {
+                    r: r as u8,
+                    g: g as u8,
+                    b: b as u8,
+                    a: 70,
+                };
             }
         }
     }

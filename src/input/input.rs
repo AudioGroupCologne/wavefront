@@ -131,7 +131,9 @@ pub fn button_input(
                             let max = wall.rect.max;
                             if (max.x as u32).abs_diff(x) <= 10 && (max.y as u32).abs_diff(y) <= 10
                             {
-                                commands.entity(entity).insert(WallResize::BottomRight);
+                                commands
+                                    .entity(entity)
+                                    .insert((WallResize::BottomRight, Overlay));
                                 break;
                             }
                         }
