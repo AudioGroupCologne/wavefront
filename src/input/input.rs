@@ -65,7 +65,7 @@ pub fn button_input(
                             &ui_state,
                         ) {
                             commands.spawn((
-                                WallBlock::new(x, y, ui_state.wall_reflection_factor),
+                                WallBlock::new(x, y, x, y, ui_state.wall_reflection_factor),
                                 WallResize::BottomRight,
                                 Overlay,
                             ));
@@ -147,9 +147,14 @@ pub fn button_input(
         drag_sources.iter_mut().for_each(|(entity, _)| {
             commands.entity(entity).remove::<Drag>();
         });
-        resize_wallblocks.iter_mut().for_each(|(entity, _, _)| {
-            commands.entity(entity).remove::<(WallResize, Overlay)>();
-        });
+        resize_wallblocks
+            .iter_mut()
+            .for_each(|(entity, _, wallblock)| {
+                if wallblock.rect.width() == 0. || wallblock.rect.height() == 0. {
+                    commands.entity(entity).despawn();
+                }
+                commands.entity(entity).remove::<(WallResize, Overlay)>();
+            });
         drag_wallblocks.iter_mut().for_each(|(entity, _)| {
             commands.entity(entity).remove::<Drag>();
         });
@@ -205,12 +210,16 @@ pub fn button_input(
             }
             ToolType::MoveWall => {
                 if let Some(position) = window.cursor_position() {
-                    if let Some((x, y)) = screen_to_nearest_grid(
+                    if let Some((mut x, mut y)) = screen_to_nearest_grid(
                         position.x,
                         position.y,
                         ui_state.image_rect,
                         &ui_state,
                     ) {
+                        if keys.pressed(KeyCode::ControlLeft) {
+                            x = (x as f32 / 10.).round() as u32 * 10;
+                            y = (y as f32 / 10.).round() as u32 * 10;
+                        }
                         drag_wallblocks.iter_mut().for_each(|(_, mut wall)| {
                             let width = wall.rect.width() / 2.;
                             let height = wall.rect.height() / 2.;
@@ -224,13 +233,6 @@ pub fn button_input(
             _ => {}
         }
     }
-
-    // if mouse_buttons.just_pressed(MouseButton::Right) {
-    //
-    // }
-
-    // if mouse_buttons.any_just_pressed([MouseButton::Left, MouseButton::Right]) {
-    // }
 
     if keys.just_pressed(KeyCode::Space) {
         ui_state.is_running = !ui_state.is_running;

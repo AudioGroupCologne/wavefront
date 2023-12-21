@@ -50,21 +50,17 @@ pub struct WallBlock {
 }
 
 impl WallBlock {
-    pub fn new(x: u32, y: u32, reflection_factor: f32) -> Self {
+    pub fn new(x_min: u32, y_min: u32, x_max: u32, y_max: u32, reflection_factor: f32) -> Self {
+        let rect = Rect {
+            min: Pos2::new(x_min as f32, y_min as f32),
+            max: Pos2::new(x_max as f32, y_max as f32),
+        };
+
         Self {
-            rect: Rect {
-                min: Pos2::new(x as f32, y as f32),
-                max: Pos2::new(x as f32, y as f32),
-            },
-            center: Pos2 {
-                x: x as f32,
-                y: y as f32,
-            },
+            rect: rect,
+            center: rect.center(),
             reflection_factor,
-            calc_rect: Rect {
-                min: Pos2::new(x as f32, y as f32),
-                max: Pos2::new(x as f32, y as f32),
-            },
+            calc_rect: rect,
         }
     }
 
@@ -72,12 +68,12 @@ impl WallBlock {
         let calc_rect = true_rect_from_rect(self.rect);
         self.calc_rect = Rect {
             min: Pos2::new(
-                calc_rect.min.x.clamp(0., SIMULATION_WIDTH as f32),
-                calc_rect.min.y.clamp(0., SIMULATION_HEIGHT as f32),
+                calc_rect.min.x.clamp(0., SIMULATION_WIDTH as f32 - 1.),
+                calc_rect.min.y.clamp(0., SIMULATION_HEIGHT as f32 - 1.),
             ),
             max: Pos2::new(
-                calc_rect.max.x.clamp(0., SIMULATION_WIDTH as f32),
-                calc_rect.max.y.clamp(0., SIMULATION_HEIGHT as f32),
+                calc_rect.max.x.clamp(0., SIMULATION_WIDTH as f32 - 1.),
+                calc_rect.max.y.clamp(0., SIMULATION_HEIGHT as f32 - 1.),
             ),
         };
     }

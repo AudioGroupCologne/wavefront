@@ -128,7 +128,7 @@ impl Grid {
                 }
             }
 
-            for x in true_rect.min.x as u32..true_rect.max.x as u32 {
+            for x in true_rect.min.x as u32..=true_rect.max.x as u32 {
                 //bottom row
                 let wall_index = coords_to_index(x + e_al, true_rect.max.y as u32 + e_al, 0, e_al);
                 self.cells[wall_index + 4] = wall.reflection_factor
@@ -142,7 +142,7 @@ impl Grid {
                         [coords_to_index(x + e_al, true_rect.min.y as u32 + e_al - 1, 0, e_al)];
             }
 
-            for y in true_rect.min.y as u32..true_rect.max.y as u32 {
+            for y in true_rect.min.y as u32..=true_rect.max.y as u32 {
                 //left row
                 let wall_index = coords_to_index(true_rect.min.x as u32 + e_al, y + e_al, 0, e_al);
                 self.cells[wall_index + 5] = wall.reflection_factor

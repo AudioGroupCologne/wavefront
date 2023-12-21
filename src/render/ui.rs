@@ -8,7 +8,7 @@ use egui_plot::{Legend, Line, Plot, PlotPoints};
 
 use crate::components::microphone::*;
 use crate::components::source::*;
-use crate::components::wall::WallBlock;
+use crate::components::wall::{Overlay, WallBlock};
 use crate::grid::grid::Grid;
 use crate::math::constants::*;
 use crate::math::fft::calc_mic_spectrum;
@@ -19,7 +19,7 @@ pub fn draw_egui(
     mut pixel_buffers: QueryPixelBuffer,
     mut egui_context: EguiContexts,
     mut sources: Query<&mut Source>,
-    wallblocks: Query<&WallBlock>,
+    wallblocks: Query<&WallBlock, Without<Overlay>>,
     mut microphones: Query<&mut Microphone>,
     mut ui_state: ResMut<UiState>,
     diagnostics: Res<DiagnosticsStore>,

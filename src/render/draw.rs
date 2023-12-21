@@ -112,7 +112,7 @@ pub fn draw_wall_blocks(
     let (query, mut images) = pixel_buffers.split();
     let mut frame = images.frame(query.iter().next().expect("one pixel buffer"));
     for wall in walls.iter() {
-        let origin = wall.calc_rect.min;
+        let min = wall.calc_rect.min;
         let x_sign = wall.calc_rect.width().signum();
         let y_sign = wall.calc_rect.height().signum();
 
@@ -122,13 +122,13 @@ pub fn draw_wall_blocks(
             0
         };
 
-        for x in 0..wall.calc_rect.width().abs() as u32 {
-            for y in 0..wall.calc_rect.height().abs() as u32 {
+        for x in 0..=wall.calc_rect.width().abs() as u32 {
+            for y in 0..=wall.calc_rect.height().abs() as u32 {
                 frame
                     .set(
                         UVec2::new(
-                            (origin.x + x as f32 * x_sign) as u32 + offset,
-                            (origin.y + y as f32 * y_sign) as u32 + offset,
+                            (min.x + x as f32 * x_sign) as u32 + offset,
+                            (min.y + y as f32 * y_sign) as u32 + offset,
                         ),
                         Pixel {
                             r: (255. * wall.reflection_factor) as u8,
@@ -145,7 +145,7 @@ pub fn draw_wall_blocks(
     let raw_pixles = frame.raw_mut();
 
     for wall in walls_overlay.iter() {
-        let origin = wall.calc_rect.min;
+        let min = wall.calc_rect.min;
         let x_sign = wall.calc_rect.width().signum();
         let y_sign = wall.calc_rect.height().signum();
 
@@ -155,11 +155,11 @@ pub fn draw_wall_blocks(
             0
         };
 
-        for x in 0..wall.calc_rect.width().abs() as u32 {
-            for y in 0..wall.calc_rect.height().abs() as u32 {
+        for x in 0..=wall.calc_rect.width().abs() as u32 {
+            for y in 0..=wall.calc_rect.height().abs() as u32 {
                 // no out of bounds check
-                let index = ((origin.x + x as f32 * x_sign) as u32 + offset)
-                    + ((origin.y + y as f32 * y_sign) as u32 + offset) * SIMULATION_WIDTH;
+                let index = ((min.x + x as f32 * x_sign) as u32 + offset)
+                    + ((min.y + y as f32 * y_sign) as u32 + offset) * SIMULATION_WIDTH;
 
                 let r = raw_pixles[index as usize].r;
                 let g = raw_pixles[index as usize].g;
