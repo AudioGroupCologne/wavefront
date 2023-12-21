@@ -125,6 +125,13 @@ pub fn draw_egui(
                     ui_state.is_running = !ui_state.is_running;
                 }
 
+                if ui.button("Reset").clicked() {
+                    grid.update_cells(ui_state.e_al);
+                    for mut mic in microphones.iter_mut() {
+                        mic.clear();
+                    }
+                }
+
                 ui.add(
                     egui::Slider::new(&mut ui_state.delta_l, 0.0..=10.0)
                         .text("Delta L")
@@ -266,6 +273,7 @@ pub fn draw_egui(
                                 .text("Wall Reflection Factor"),
                         );
                     }
+                    ToolType::ResizeWall => {}
                 }
 
                 ui.add_space(10.);
@@ -526,6 +534,32 @@ pub fn draw_egui(
                                 gizmo_pos,
                                 10.,
                                 Stroke::new(10.0, Color32::from_rgb(255, 100, 0)),
+                            )));
+                        }
+                    }
+                    ToolType::ResizeWall => {
+                        for wall in wallblocks.iter() {
+                            let gizmo_pos = pos2(
+                                f32_map_range(
+                                    0.,
+                                    SIMULATION_WIDTH as f32,
+                                    image.rect.min.x,
+                                    image.rect.max.x,
+                                    wall.rect.max.x,
+                                ),
+                                f32_map_range(
+                                    0.,
+                                    SIMULATION_HEIGHT as f32,
+                                    image.rect.min.y,
+                                    image.rect.max.y,
+                                    wall.rect.max.y,
+                                ),
+                            );
+
+                            painter.add(egui::Shape::Circle(CircleShape::filled(
+                                gizmo_pos,
+                                5.,
+                                Color32::from_rgb(54, 188, 255),
                             )));
                         }
                     }

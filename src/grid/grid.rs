@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
-use crate::components::wall::WallBlock;
+use crate::components::wall::{Overlay, WallBlock};
 use crate::math::constants::*;
 use crate::math::transformations::coords_to_index;
 use crate::render::state::{AttenuationType, UiState};
@@ -114,8 +114,8 @@ impl Grid {
         }
     }
 
-    pub fn apply_walls(&mut self, walls: &Query<&WallBlock>, e_al: u32) {
-        for wall in walls.iter() {
+    pub fn apply_walls(&mut self, wallblocks: &Query<&WallBlock, Without<Overlay>>, e_al: u32) {
+        for wall in wallblocks.iter() {
             let true_rect = wall.calc_rect;
 
             for x in true_rect.min.x as u32..true_rect.max.x as u32 {
