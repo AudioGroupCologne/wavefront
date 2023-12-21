@@ -23,7 +23,7 @@ pub fn button_input(
     mut commands: Commands,
     mut ui_state: ResMut<UiState>,
 ) {
-    if mouse_buttons.just_pressed(MouseButton::Left) {
+    if mouse_buttons.just_pressed(MouseButton::Left) && !ui_state.render_abc_area {
         let window = q_windows.single();
         match ui_state.current_tool {
             ToolType::MoveSource => {
@@ -203,7 +203,7 @@ pub fn button_input(
                                     WallResize::Bottom => {}
                                     WallResize::Left => {}
                                 }
-                                wall.update_calc_rect();
+                                wall.update_calc_rect(ui_state.e_al);
                             });
                     }
                 }
@@ -225,7 +225,7 @@ pub fn button_input(
                             let height = wall.rect.height() / 2.;
                             wall.rect.min = Pos2::new(x as f32 - width, y as f32 - height);
                             wall.rect.max = Pos2::new(x as f32 + width, y as f32 + height);
-                            wall.update_calc_rect();
+                            wall.update_calc_rect(ui_state.e_al);
                         });
                     }
                 }

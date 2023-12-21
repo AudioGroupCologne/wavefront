@@ -22,9 +22,9 @@ pub fn apply_system(
 ) {
     if ui_state.is_running {
         grid.apply_sources(game_ticks.ticks_since_start, &sources, ui_state.e_al);
+        grid.apply_boundaries(&ui_state);
         grid.apply_walls(&wallblocks, ui_state.e_al);
         grid.apply_microphones(microphones, &ui_state);
-        grid.apply_boundaries(ui_state);
     }
 }
 
@@ -35,7 +35,7 @@ pub fn update_system(
 ) {
     if ui_state.is_running {
         grid.update(ui_state.e_al);
-        grid.update_delta_t(ui_state);
+        grid.update_delta_t(&ui_state);
         game_ticks.ticks_since_start += 1;
     }
 }

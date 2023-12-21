@@ -29,7 +29,7 @@ impl Default for Grid {
 }
 
 impl Grid {
-    pub fn update_delta_t(&mut self, ui_state: Res<UiState>) {
+    pub fn update_delta_t(&mut self, ui_state: &UiState) {
         self.delta_t = ui_state.delta_l / PROPAGATION_SPEED;
     }
 
@@ -116,11 +116,11 @@ impl Grid {
 
     pub fn apply_walls(&mut self, wallblocks: &Query<&WallBlock, Without<Overlay>>, e_al: u32) {
         for wall in wallblocks.iter() {
-            let true_rect = wall.calc_rect;
+            let true_rect = wall.calc_rect_with_boundaries;
 
             for x in true_rect.min.x as u32..true_rect.max.x as u32 {
                 for y in true_rect.min.y as u32..true_rect.max.y as u32 {
-                    let wall_index = coords_to_index(x + e_al, y + e_al, 0, e_al);
+                    let wall_index = coords_to_index(x, y, 0, e_al);
                     self.cells[wall_index + 4] = 0.;
                     self.cells[wall_index + 5] = 0.;
                     self.cells[wall_index + 6] = 0.;
@@ -130,30 +130,26 @@ impl Grid {
 
             for x in true_rect.min.x as u32..=true_rect.max.x as u32 {
                 //bottom row
-                let wall_index = coords_to_index(x + e_al, true_rect.max.y as u32 + e_al, 0, e_al);
+                let wall_index = coords_to_index(x, true_rect.max.y as u32, 0, e_al);
                 self.cells[wall_index + 4] = wall.reflection_factor
-                    * self.cells
-                        [coords_to_index(x + e_al, true_rect.max.y as u32 + e_al + 1, 2, e_al)];
+                    * self.cells[coords_to_index(x, true_rect.max.y as u32 + 1, 2, e_al)];
 
                 //top row
-                let wall_index = coords_to_index(x + e_al, true_rect.min.y as u32 + e_al, 0, e_al);
+                let wall_index = coords_to_index(x, true_rect.min.y as u32, 0, e_al);
                 self.cells[wall_index + 6] = wall.reflection_factor
-                    * self.cells
-                        [coords_to_index(x + e_al, true_rect.min.y as u32 + e_al - 1, 0, e_al)];
+                    * self.cells[coords_to_index(x, true_rect.min.y as u32 - 1, 0, e_al)];
             }
 
             for y in true_rect.min.y as u32..=true_rect.max.y as u32 {
                 //left row
-                let wall_index = coords_to_index(true_rect.min.x as u32 + e_al, y + e_al, 0, e_al);
+                let wall_index = coords_to_index(true_rect.min.x as u32, y, 0, e_al);
                 self.cells[wall_index + 5] = wall.reflection_factor
-                    * self.cells
-                        [coords_to_index(true_rect.min.x as u32 + e_al - 1, y + e_al, 3, e_al)];
+                    * self.cells[coords_to_index(true_rect.min.x as u32 - 1, y, 3, e_al)];
 
                 //right row
-                let wall_index = coords_to_index(true_rect.max.x as u32 + e_al, y + e_al, 0, e_al);
+                let wall_index = coords_to_index(true_rect.max.x as u32, y, 0, e_al);
                 self.cells[wall_index + 7] = wall.reflection_factor
-                    * self.cells
-                        [coords_to_index(true_rect.max.x as u32 + e_al + 1, y + e_al, 1, e_al)];
+                    * self.cells[coords_to_index(true_rect.max.x as u32 + 1, y, 1, e_al)];
             }
         }
     }
@@ -185,7 +181,7 @@ impl Grid {
                 - right_left * attenuation_factors[3]);
     }
 
-    pub fn apply_boundaries(&mut self, ui_state: Res<UiState>) {
+    pub fn apply_boundaries(&mut self, ui_state: &UiState) {
         let b = (ui_state.e_al * ui_state.e_al) as f32 / ui_state.epsilon.ln();
 
         //Left
