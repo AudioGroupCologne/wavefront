@@ -3,7 +3,7 @@ use bevy_pixel_buffer::frame::GetFrameFromImages;
 use bevy_pixel_buffer::pixel::Pixel;
 use bevy_pixel_buffer::query::QueryPixelBuffer;
 
-use super::state::UiState;
+use super::state::{PlotType, UiState};
 use crate::components::microphone::Microphone;
 use crate::components::wall::{WallBlock, WallCell};
 use crate::grid::grid::Grid;
@@ -37,8 +37,9 @@ pub fn draw_pixels(
 ) {
     let (query, mut images) = pixel_buffers.split();
     let mut items = query.iter();
-    let mut frame = images.frame(items.next().expect("one pixel buffer"));
 
+    // draw TLM
+    let mut frame = images.frame(items.next().expect("one pixel buffer"));
     frame.per_pixel_par(|coords, _| {
         let p = if ui_state.render_abc_area {
             grid.cells[coords_to_index(coords.x, coords.y, 8, ui_state.e_al)]
@@ -59,10 +60,10 @@ pub fn draw_pixels(
         }
     });
 
+    // draw spectrum
     let mut frame = images.frame(items.next().expect("two pixel buffers"));
-    if ui_state.show_fft && ui_state.current_fft_microphone.is_some() {
-        //? for now we don't draw the spectrum if no mic is selected, is this ok?
-        // paint spectrum
+    if ui_state.plot_type == PlotType::FrequencyDomain && ui_state.current_fft_microphone.is_some()
+    {
         let mic = microphones
             .iter()
             .find(|m| m.id == ui_state.current_fft_microphone.expect("no mic selected"))
@@ -71,24 +72,28 @@ pub fn draw_pixels(
         let len_y = spectrum.len();
 
         frame.per_pixel_par(|coords, _| Pixel {
+            //TODO: is 120 hardcoded <- doesn't work when frequency range changes and linear
             r: (if len_y > 1 && coords.y < len_y as u32 {
-                spectrum[coords.y as usize][u32_map_range(0, 250, 0, 120, coords.x) as usize][1]
+                spectrum[coords.y as usize]
+                    [u32_map_range(0, (ui_state.spectrum_size.x) as u32, 0, 120, coords.x) as usize]
+                    [1]
                     * 255.
-            //TODO: is 120 hardcoded + 250 is hardcoded
             } else {
                 0.
             }) as u8,
             g: (if len_y > 1 && coords.y < len_y as u32 {
-                spectrum[coords.y as usize][u32_map_range(0, 250, 0, 120, coords.x) as usize][1]
+                spectrum[coords.y as usize]
+                    [u32_map_range(0, (ui_state.spectrum_size.x) as u32, 0, 120, coords.x) as usize]
+                    [1]
                     * 255.
-            //TODO: is 120 hardcoded + 250 is hardcoded
             } else {
                 0.
             }) as u8,
             b: (if len_y > 1 && coords.y < len_y as u32 {
-                spectrum[coords.y as usize][u32_map_range(0, 250, 0, 120, coords.x) as usize][1]
+                spectrum[coords.y as usize]
+                    [u32_map_range(0, (ui_state.spectrum_size.x) as u32, 0, 120, coords.x) as usize]
+                    [1]
                     * 255.
-            //TODO: is 120 hardcoded + 250 is hardcoded
             } else {
                 0.
             }) as u8,

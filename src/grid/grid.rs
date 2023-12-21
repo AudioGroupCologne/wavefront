@@ -100,7 +100,7 @@ impl Grid {
     }
 
     pub fn apply_microphones(&self, mut microphones: Query<&mut Microphone>, ui_state: &UiState) {
-        if ui_state.show_plots || ui_state.show_fft {
+        if ui_state.show_plots {
             for mut mic in microphones.iter_mut() {
                 let x = mic.x;
                 let y = mic.y;

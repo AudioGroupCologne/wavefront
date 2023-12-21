@@ -4,8 +4,13 @@ use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
 
 use crate::components::microphone::Microphone;
 use crate::math::constants::*;
+use crate::render::state::UiState;
 
-pub fn calc_mic_spectrum(microphone: &mut Microphone, delta_t: f32) -> Vec<[f64; 2]> {
+pub fn calc_mic_spectrum(
+    microphone: &mut Microphone,
+    delta_t: f32,
+    ui_state: &UiState,
+) -> Vec<[f64; 2]> {
     let samples = if microphone.record.len() < FFT_WINDOW_SIZE {
         let mut s = microphone.record.clone();
         s.resize(FFT_WINDOW_SIZE, [0.0, 0.0]);
@@ -15,7 +20,7 @@ pub fn calc_mic_spectrum(microphone: &mut Microphone, delta_t: f32) -> Vec<[f64;
     };
 
     let hann_window = hann_window(&samples.iter().map(|x| x[1] as f32).collect::<Vec<_>>());
-
+    // always returns frequencies up to sampling_rate/2
     let spectrum_hann_window = samples_fft_to_spectrum(
         &hann_window,
         (1. / delta_t) as u32,
@@ -32,8 +37,7 @@ pub fn calc_mic_spectrum(microphone: &mut Microphone, delta_t: f32) -> Vec<[f64;
         .collect::<Vec<_>>();
 
     microphone.spektrum.push(mapped_spectrum.clone());
-    if microphone.spektrum.len() > 500 {
-        //TODO: hardcode
+    if microphone.spektrum.len() > ui_state.spectrum_size.y as usize {
         microphone.spektrum.remove(0);
     }
 

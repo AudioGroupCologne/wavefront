@@ -131,48 +131,53 @@ pub fn draw_egui(
                         .logarithmic(true),
                 );
 
+                if ui
+                    .checkbox(&mut ui_state.show_plots, "Show Plots")
+                    .clicked()
+                {
+                    for mut mic in microphones.iter_mut() {
+                        mic.clear();
+                    }
+                }
+
+                // ABC
                 ui.collapsing("ABC", |ui| {
                     if ui
                         .add(egui::Slider::new(&mut ui_state.e_al, 2..=200).text("E_AL"))
                         .changed()
                     {
                         grid.update_cells(ui_state.e_al);
-                        for (index, mut pb) in pixel_buffers.iter_mut().enumerate() {
-                            if index == 0 {
-                                pb.pixel_buffer.size = PixelBufferSize {
-                                    size: if ui_state.render_abc_area {
-                                        UVec2::new(
-                                            SIMULATION_WIDTH + 2 * ui_state.e_al,
-                                            SIMULATION_HEIGHT + 2 * ui_state.e_al,
-                                        )
-                                    } else {
-                                        UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
-                                    },
-                                    pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
-                                };
-                            }
-                        }
+                        let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
+                        pb.pixel_buffer.size = PixelBufferSize {
+                            size: if ui_state.render_abc_area {
+                                UVec2::new(
+                                    SIMULATION_WIDTH + 2 * ui_state.e_al,
+                                    SIMULATION_HEIGHT + 2 * ui_state.e_al,
+                                )
+                            } else {
+                                UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
+                            },
+                            pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
+                        };
                     }
 
                     if ui
                         .checkbox(&mut ui_state.render_abc_area, "Render Absorbing Boundary")
                         .clicked()
                     {
-                        for (index, mut pb) in pixel_buffers.iter_mut().enumerate() {
-                            if index == 0 {
-                                pb.pixel_buffer.size = PixelBufferSize {
-                                    size: if ui_state.render_abc_area {
-                                        UVec2::new(
-                                            SIMULATION_WIDTH + 2 * ui_state.e_al,
-                                            SIMULATION_HEIGHT + 2 * ui_state.e_al,
-                                        )
-                                    } else {
-                                        UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
-                                    },
-                                    pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
-                                };
-                            }
-                        }
+                        let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
+
+                        pb.pixel_buffer.size = PixelBufferSize {
+                            size: if ui_state.render_abc_area {
+                                UVec2::new(
+                                    SIMULATION_WIDTH + 2 * ui_state.e_al,
+                                    SIMULATION_HEIGHT + 2 * ui_state.e_al,
+                                )
+                            } else {
+                                UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
+                            },
+                            pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
+                        };
                     }
 
                     egui::ComboBox::from_label("Attenuation Type")
@@ -196,12 +201,12 @@ pub fn draw_egui(
                             ui.selectable_value(
                                 &mut ui_state.at_type,
                                 AttenuationType::Old,
-                                "Old (ThTank)",
+                                "Old (ThTank) NOT WORKING",
                             );
                             ui.selectable_value(
                                 &mut ui_state.at_type,
                                 AttenuationType::DoNothing,
-                                "Nothing",
+                                "Nothing NOT WORKING",
                             );
                         });
 
@@ -220,34 +225,6 @@ pub fn draw_egui(
                     }
                 });
 
-                ui.checkbox(&mut ui_state.show_fft, "Show FFT");
-
-                egui::ComboBox::from_label("FFT Microphone")
-                    .selected_text(if let Some(index) = ui_state.current_fft_microphone {
-                        format!("Microphone {index}")
-                    } else {
-                        "No Microphone Selected".to_string()
-                    })
-                    .show_ui(ui, |ui| {
-                        for mic in microphones.iter() {
-                            ui.selectable_value(
-                                &mut ui_state.current_fft_microphone,
-                                Some(mic.id),
-                                format!("Microphone {}", mic.id),
-                            );
-                        }
-                    });
-
-                if ui
-                    .checkbox(&mut ui_state.show_plots, "Show Plots")
-                    .clicked()
-                    && !ui_state.show_fft
-                {
-                    for mut mic in microphones.iter_mut() {
-                        mic.clear();
-                    }
-                }
-
                 ui.add_space(10.);
             });
 
@@ -255,6 +232,8 @@ pub fn draw_egui(
             egui::TopBottomPanel::bottom("tool_options_panel").show_inside(ui, |ui| {
                 ui.heading("Tool Options");
                 ui.separator();
+
+                ui.set_enabled(!ui_state.render_abc_area);
 
                 match ui_state.current_tool {
                     ToolType::PlaceSource => {}
@@ -293,6 +272,41 @@ pub fn draw_egui(
             });
         });
 
+    // FFT Heatmap
+    if ui_state.plot_type == PlotType::FrequencyDomain && ui_state.show_plots {
+        egui::SidePanel::right("spectrum_panel")
+            .frame(Frame::default().inner_margin(Margin {
+                left: 0.,
+                right: 0.,
+                top: 0.,
+                bottom: 0.,
+            }))
+            .default_width(400.)
+            .resizable(false)
+            .show(ctx, |ui| {
+                ui_state.spectrum_size = ui.available_size();
+                let mut pb = pixel_buffers
+                    .iter_mut()
+                    .nth(1)
+                    .expect("second pixel buffer");
+
+                let texture = pb.egui_texture();
+                ui.add(
+                    egui::Image::new(egui::load::SizedTexture::new(texture.id, texture.size))
+                        .shrink_to_fit(),
+                );
+
+                pb.pixel_buffer.size = PixelBufferSize {
+                    size: UVec2::new(
+                        ui_state.spectrum_size.x as u32,
+                        ui_state.spectrum_size.y as u32,
+                    ),
+
+                    pixel_size: UVec2::new(1, 1),
+                };
+            });
+    }
+
     //Plot Panel
     if ui_state.show_plots {
         egui::TopBottomPanel::bottom("bottom_panel")
@@ -318,10 +332,9 @@ pub fn draw_egui(
                         );
                     });
 
-                ui.separator();
-
                 match ui_state.plot_type {
                     PlotType::TimeDomain => {
+                        ui.separator();
                         Plot::new("mic_plot")
                             .allow_zoom([true, false])
                             // .allow_scroll(false)
@@ -342,6 +355,22 @@ pub fn draw_egui(
                     }
 
                     PlotType::FrequencyDomain => {
+                        egui::ComboBox::from_label("FFT Microphone")
+                            .selected_text(if let Some(index) = ui_state.current_fft_microphone {
+                                format!("Microphone {index}")
+                            } else {
+                                "No Microphone Selected".to_string()
+                            })
+                            .show_ui(ui, |ui| {
+                                for mic in microphones.iter() {
+                                    ui.selectable_value(
+                                        &mut ui_state.current_fft_microphone,
+                                        Some(mic.id),
+                                        format!("Microphone {}", mic.id),
+                                    );
+                                }
+                            });
+                        ui.separator();
                         Plot::new("mic_plot")
                             .allow_zoom([true, false])
                             .allow_scroll(false)
@@ -363,7 +392,8 @@ pub fn draw_egui(
                                     })
                                     .unwrap();
 
-                                let mapped_spectrum = calc_mic_spectrum(&mut mic, grid.delta_t);
+                                let mapped_spectrum =
+                                    calc_mic_spectrum(&mut mic, grid.delta_t, &ui_state);
 
                                 let points = PlotPoints::new(mapped_spectrum);
                                 let line = Line::new(points);
@@ -503,20 +533,4 @@ pub fn draw_egui(
                 }
             }
         });
-
-    // FFT Heatmap
-    if ui_state.show_fft {
-        egui::SidePanel::right("spectrum_panel")
-            .default_width(400.)
-            .resizable(false)
-            .show(ctx, |ui| {
-                let pb = pixel_buffers.iter().nth(1).expect("second pixel buffer");
-                let texture = pb.egui_texture();
-
-                ui.add(
-                    egui::Image::new(egui::load::SizedTexture::new(texture.id, texture.size))
-                        .shrink_to_fit(),
-                );
-            });
-    }
 }

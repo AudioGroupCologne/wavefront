@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_pixel_buffer::bevy_egui::egui;
+use bevy_pixel_buffer::bevy_egui::egui::{self, Vec2};
 
 #[derive(Default, Resource)]
 pub struct GameTicks {
@@ -55,9 +55,9 @@ pub struct UiState {
     pub at_type: AttenuationType,
     pub power_order: u32,
     pub image_rect: egui::emath::Rect,
-    pub show_fft: bool,
     pub show_plots: bool,
     pub current_fft_microphone: Option<usize>,
+    pub spectrum_size: Vec2,
     pub plot_type: PlotType,
     pub current_tool: ToolType,
     pub wall_reflection_factor: f32,
@@ -76,9 +76,9 @@ impl Default for UiState {
             at_type: AttenuationType::Power,
             power_order: 5,
             image_rect: egui::emath::Rect::NOTHING,
-            show_fft: false,
             show_plots: false,
             current_fft_microphone: None,
+            spectrum_size: Vec2 { x: 250., y: 500. }, // random init values
             plot_type: PlotType::TimeDomain,
             current_tool: ToolType::MoveSource,
             wall_reflection_factor: 1.,

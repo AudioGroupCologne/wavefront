@@ -42,7 +42,7 @@ pub fn setup_buffers(mut commands: Commands, mut images: ResMut<Assets<Image>>) 
         pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
     };
     let spectrum_size: PixelBufferSize = PixelBufferSize {
-        size: UVec2::new(250, 500), //TODO: hardcode
+        size: UVec2::new(250, 500), // random init values
         pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
     };
     insert_pixel_buffer(&mut commands, &mut images, main_size); //main
