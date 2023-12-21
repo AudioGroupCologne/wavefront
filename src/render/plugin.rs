@@ -31,9 +31,8 @@ impl Plugin for RenderPlugin {
             )
             .add_systems(
                 Update,
-                (draw_pixels, draw_wall_blocks, draw_wall_cells).chain(),
-            )
-            .add_systems(Update, draw_egui);
+                (draw_pixels, draw_wall_blocks, draw_wall_cells, draw_egui).chain(),
+            );
     }
 }
 

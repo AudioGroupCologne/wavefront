@@ -99,21 +99,17 @@ impl Grid {
         }
     }
 
-    pub fn apply_microphones(
-        &self,
-        mut microphones: Query<&mut Microphone>,
-        e_al: u32,
-        plot_enabled: bool,
-        fft_enabled: bool,
-    ) {
-        if plot_enabled || fft_enabled {
+    pub fn apply_microphones(&self, mut microphones: Query<&mut Microphone>, ui_state: &UiState) {
+        if ui_state.show_plots || ui_state.show_fft {
             for mut mic in microphones.iter_mut() {
                 let x = mic.x;
                 let y = mic.y;
                 let cur_time = mic.record.last().unwrap()[0] + self.delta_t as f64;
 
-                mic.record
-                    .push([cur_time, self.cells[coords_to_index(x, y, 8, e_al)] as f64]);
+                mic.record.push([
+                    cur_time,
+                    self.cells[coords_to_index(x, y, 8, ui_state.e_al)] as f64,
+                ]);
             }
         }
     }

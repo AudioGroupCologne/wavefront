@@ -23,12 +23,7 @@ pub fn apply_system(
     if ui_state.is_running {
         grid.apply_sources(game_ticks.ticks_since_start, &sources, ui_state.e_al);
         grid.apply_walls(&walls, ui_state.e_al);
-        grid.apply_microphones(
-            microphones,
-            ui_state.e_al,
-            ui_state.show_plots,
-            ui_state.show_fft,
-        );
+        grid.apply_microphones(microphones, &ui_state);
         grid.apply_boundaries(ui_state);
     }
 }
