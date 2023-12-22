@@ -106,21 +106,21 @@ impl WallBlock {
                 calc_rect
                     .min
                     .x
-                    .clamp(0., (SIMULATION_WIDTH + 2 * e_al) as f32 - 1.),
+                    .clamp(1., (SIMULATION_WIDTH + 2 * e_al) as f32 - 2.),
                 calc_rect
                     .min
                     .y
-                    .clamp(0., (SIMULATION_HEIGHT + 2 * e_al) as f32 - 1.),
+                    .clamp(1., (SIMULATION_HEIGHT + 2 * e_al) as f32 - 2.),
             ),
             max: Pos2::new(
                 calc_rect
                     .max
                     .x
-                    .clamp(0., (SIMULATION_WIDTH + 2 * e_al) as f32 - 1.),
+                    .clamp(1., (SIMULATION_WIDTH + 2 * e_al) as f32 - 2.),
                 calc_rect
                     .max
                     .y
-                    .clamp(0., (SIMULATION_HEIGHT + 2 * e_al) as f32 - 1.),
+                    .clamp(1., (SIMULATION_HEIGHT + 2 * e_al) as f32 - 2.),
             ),
         };
     }

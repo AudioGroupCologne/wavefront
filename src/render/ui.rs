@@ -19,21 +19,23 @@ pub fn draw_egui(
     mut pixel_buffers: QueryPixelBuffer,
     mut egui_context: EguiContexts,
     mut sources: Query<&mut Source>,
-    wallblocks: Query<&WallBlock, Without<Overlay>>,
+    mut wallblocks: Query<&mut WallBlock, Without<Overlay>>,
     mut microphones: Query<&mut Microphone>,
     mut ui_state: ResMut<UiState>,
     diagnostics: Res<DiagnosticsStore>,
     mut grid: ResMut<Grid>,
     images: Local<Images>,
-    wall_overlay: Query<&WallBlock, With<Overlay>>,
 ) {
     let cursor_icon = egui_context.add_image(images.cursor_icon.clone_weak());
     let ctx = egui_context.ctx_mut();
 
-    // Side Panel (Sources, Mic, Tool Options, Settings)
+    // Side Panel (Sources, Mic, Walls, Tool Options, Settings)
     egui::SidePanel::left("left_panel")
         .default_width(450.)
         .show(ctx, |ui| {
+            // not a perfect solution -> when resizing this will set tools_enabled to true
+            ui_state.tools_enabled = !ui.rect_contains_pointer(ui.available_rect_before_wrap());
+
             ui.spacing_mut().slider_width = 200.0;
 
             ui.heading("Settings");
@@ -114,6 +116,71 @@ pub fn draw_egui(
                     }
                 });
 
+            ui.separator();
+
+            // Walls
+            egui::ScrollArea::vertical()
+                .id_source("wallblock_scroll_area")
+                .max_height(400.)
+                .show(ui, |ui| {
+                    ui.set_min_width(ui.available_width());
+                    for (index, mut wb) in wallblocks.iter_mut().enumerate() {
+                        ui.collapsing(format!("Wallblock {}", index), |ui| {
+                            ui.horizontal(|ui| {
+                                ui.label("Top Corner x:");
+                                if ui
+                                    .add(
+                                        egui::DragValue::new(&mut wb.rect.min.x)
+                                            .speed(1)
+                                            .clamp_range(0.0..=SIMULATION_WIDTH as f32 - 1.),
+                                    )
+                                    .changed()
+                                {
+                                    wb.update_calc_rect(ui_state.e_al);
+                                }
+                                ui.add_space(10.);
+                                ui.label("Top Corner x:");
+                                if ui
+                                    .add(
+                                        egui::DragValue::new(&mut wb.rect.min.y)
+                                            .speed(1)
+                                            .clamp_range(0.0..=SIMULATION_WIDTH as f32 - 1.),
+                                    )
+                                    .changed()
+                                {
+                                    wb.update_calc_rect(ui_state.e_al);
+                                }
+                            });
+
+                            ui.horizontal(|ui| {
+                                ui.label("Bottom Corner x:");
+                                if ui
+                                    .add(
+                                        egui::DragValue::new(&mut wb.rect.max.x)
+                                            .speed(1)
+                                            .clamp_range(0.0..=SIMULATION_WIDTH as f32 - 1.),
+                                    )
+                                    .changed()
+                                {
+                                    wb.update_calc_rect(ui_state.e_al);
+                                }
+                                ui.add_space(10.);
+                                ui.label("Bottom Corner y:");
+                                if ui
+                                    .add(
+                                        egui::DragValue::new(&mut wb.rect.max.y)
+                                            .speed(1)
+                                            .clamp_range(0.0..=SIMULATION_HEIGHT as f32 - 1.),
+                                    )
+                                    .changed()
+                                {
+                                    wb.update_calc_rect(ui_state.e_al);
+                                }
+                            });
+                        });
+                    }
+                });
+
             // General Settings
             egui::TopBottomPanel::bottom("general_settings_bottom_panel").show_inside(ui, |ui| {
                 ui.heading("General Settings");
@@ -149,7 +216,27 @@ pub fn draw_egui(
                 }
 
                 // ABC
+                if ui
+                    .checkbox(&mut ui_state.render_abc_area, "Render Absorbing Boundary")
+                    .clicked()
+                {
+                    ui_state.tools_enabled = !ui_state.render_abc_area;
+                    let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
+
+                    pb.pixel_buffer.size = PixelBufferSize {
+                        size: if ui_state.render_abc_area {
+                            UVec2::new(
+                                SIMULATION_WIDTH + 2 * ui_state.e_al,
+                                SIMULATION_HEIGHT + 2 * ui_state.e_al,
+                            )
+                        } else {
+                            UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
+                        },
+                        pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
+                    };
+                }
                 ui.collapsing("ABC", |ui| {
+                    ui.set_enabled(ui_state.render_abc_area);
                     if ui
                         .add(egui::Slider::new(&mut ui_state.e_al, 2..=200).text("E_AL"))
                         .changed()
@@ -167,25 +254,10 @@ pub fn draw_egui(
                             },
                             pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
                         };
-                    }
 
-                    if ui
-                        .checkbox(&mut ui_state.render_abc_area, "Render Absorbing Boundary")
-                        .clicked()
-                    {
-                        let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
-
-                        pb.pixel_buffer.size = PixelBufferSize {
-                            size: if ui_state.render_abc_area {
-                                UVec2::new(
-                                    SIMULATION_WIDTH + 2 * ui_state.e_al,
-                                    SIMULATION_HEIGHT + 2 * ui_state.e_al,
-                                )
-                            } else {
-                                UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
-                            },
-                            pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
-                        };
+                        for mut wb in wallblocks.iter_mut() {
+                            wb.update_calc_rect(ui_state.e_al);
+                        }
                     }
 
                     egui::ComboBox::from_label("Attenuation Type")
@@ -428,7 +500,7 @@ pub fn draw_egui(
         .default_width(35.)
         .resizable(false)
         .show(ctx, |ui| {
-            ui.set_enabled(!ui_state.render_abc_area);
+            ui.set_enabled(ui_state.tools_enabled);
             //Tests for tool buttons
 
             for tool_type in ToolType::TYPES {
@@ -483,7 +555,7 @@ pub fn draw_egui(
 
             // Gizmos
 
-            if !ui_state.render_abc_area {
+            if ui_state.tools_enabled {
                 let painter = ui.painter();
 
                 match ui_state.current_tool {

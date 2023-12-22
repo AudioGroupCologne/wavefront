@@ -65,6 +65,7 @@ pub struct UiState {
     pub wall_reflection_factor: f32,
     pub wall_brush: WallBrush,
     pub wall_brush_radius: u32,
+    pub tools_enabled: bool,
 }
 
 impl Default for UiState {
@@ -86,6 +87,7 @@ impl Default for UiState {
             wall_reflection_factor: 1.,
             wall_brush: WallBrush::Rectangle,
             wall_brush_radius: 10,
+            tools_enabled: true,
         }
     }
 }

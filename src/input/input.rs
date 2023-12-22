@@ -23,7 +23,7 @@ pub fn button_input(
     mut commands: Commands,
     mut ui_state: ResMut<UiState>,
 ) {
-    if mouse_buttons.just_pressed(MouseButton::Left) && !ui_state.render_abc_area {
+    if mouse_buttons.just_pressed(MouseButton::Left) && ui_state.tools_enabled {
         let window = q_windows.single();
         match ui_state.current_tool {
             ToolType::MoveSource => {
@@ -164,7 +164,7 @@ pub fn button_input(
         });
     }
 
-    if mouse_buttons.pressed(MouseButton::Left) {
+    if mouse_buttons.pressed(MouseButton::Left) && ui_state.tools_enabled {
         let window = q_windows.single();
 
         match ui_state.current_tool {
