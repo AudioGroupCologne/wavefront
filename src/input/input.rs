@@ -58,12 +58,16 @@ pub fn button_input(
             ToolType::DrawWall => match ui_state.wall_brush {
                 WallBrush::Rectangle => {
                     if let Some(position) = window.cursor_position() {
-                        if let Some((x, y)) = screen_to_nearest_grid(
+                        if let Some((mut x, mut y)) = screen_to_nearest_grid(
                             position.x,
                             position.y,
                             ui_state.image_rect,
                             &ui_state,
                         ) {
+                            if keys.pressed(KeyCode::ControlLeft) {
+                                x = (x as f32 / 10.).round() as u32 * 10;
+                                y = (y as f32 / 10.).round() as u32 * 10;
+                            }
                             commands.spawn((
                                 WallBlock::new(x, y, x, y, ui_state.wall_reflection_factor),
                                 WallResize::BottomRight,
@@ -181,12 +185,16 @@ pub fn button_input(
             }
             ToolType::DrawWall | ToolType::ResizeWall => {
                 if let Some(position) = window.cursor_position() {
-                    if let Some((x, y)) = screen_to_nearest_grid(
+                    if let Some((mut x, mut y)) = screen_to_nearest_grid(
                         position.x,
                         position.y,
                         ui_state.image_rect,
                         &ui_state,
                     ) {
+                        if keys.pressed(KeyCode::ControlLeft) {
+                            x = (x as f32 / 10.).round() as u32 * 10;
+                            y = (y as f32 / 10.).round() as u32 * 10;
+                        }
                         resize_wallblocks
                             .iter_mut()
                             .for_each(|(_, wall_resize, mut wall)| {

@@ -1,14 +1,14 @@
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::epaint::CircleShape;
-use bevy_pixel_buffer::bevy_egui::egui::{pos2, Color32, Frame, Margin, Stroke, Vec2};
+use bevy_pixel_buffer::bevy_egui::egui::{pos2, Color32, Frame, Margin, Vec2};
 use bevy_pixel_buffer::bevy_egui::{egui, EguiContexts};
 use bevy_pixel_buffer::prelude::*;
 use egui_plot::{Legend, Line, Plot, PlotPoints};
 
 use crate::components::microphone::*;
 use crate::components::source::*;
-use crate::components::wall::{Overlay, WallBlock};
+use crate::components::wall::{Overlay, Wall, WallBlock};
 use crate::grid::grid::Grid;
 use crate::math::constants::*;
 use crate::math::fft::calc_mic_spectrum;
@@ -25,6 +25,7 @@ pub fn draw_egui(
     diagnostics: Res<DiagnosticsStore>,
     mut grid: ResMut<Grid>,
     images: Local<Images>,
+    wall_overlay: Query<&WallBlock, With<Overlay>>,
 ) {
     let cursor_icon = egui_context.add_image(images.cursor_icon.clone_weak());
     let ctx = egui_context.ctx_mut();
@@ -290,7 +291,7 @@ pub fn draw_egui(
                 bottom: 0.,
             }))
             .default_width(400.)
-            .resizable(false)
+            // .resizable(false)
             .show(ctx, |ui| {
                 ui_state.spectrum_size = ui.available_size();
                 let mut pb = pixel_buffers
@@ -466,6 +467,7 @@ pub fn draw_egui(
                 .fill(Color32::from_rgb(25, 25, 25)),
         )
         .show(ctx, |ui| {
+            ui.set_min_width(100.);
             // Main Simulation Area
 
             let pb = pixel_buffers.iter().next().expect("first pixel buffer");
@@ -504,10 +506,10 @@ pub fn draw_egui(
                                 ),
                             );
 
-                            painter.add(egui::Shape::Circle(CircleShape::stroke(
+                            painter.add(egui::Shape::Circle(CircleShape::filled(
                                 gizmo_pos,
-                                10.,
-                                Stroke::new(10.0, Color32::from_rgb(255, 100, 0)),
+                                5.,
+                                Color32::from_rgb(255, 100, 0),
                             )));
                         }
                     }
@@ -530,10 +532,10 @@ pub fn draw_egui(
                                 ),
                             );
 
-                            painter.add(egui::Shape::Circle(CircleShape::stroke(
+                            painter.add(egui::Shape::Circle(CircleShape::filled(
                                 gizmo_pos,
-                                10.,
-                                Stroke::new(10.0, Color32::from_rgb(255, 100, 0)),
+                                5.,
+                                Color32::from_rgb(255, 100, 0),
                             )));
                         }
                     }
