@@ -26,17 +26,21 @@ pub enum ToolType {
     PlaceSource,
     MoveSource,
     DrawWall,
-    MoveWall,
     ResizeWall,
+    MoveWall,
+    PlaceMic,
+    MoveMic,
 }
 
 impl ToolType {
-    pub const TYPES: [Self; 5] = [
-        ToolType::MoveSource,
+    pub const TYPES: [Self; 7] = [
         ToolType::PlaceSource,
+        ToolType::MoveSource,
         ToolType::DrawWall,
-        ToolType::MoveWall,
         ToolType::ResizeWall,
+        ToolType::MoveWall,
+        ToolType::PlaceMic,
+        ToolType::MoveMic,
     ]; //not very pretty but works for now
 }
 

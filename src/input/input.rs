@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_pixel_buffer::bevy_egui::egui::Pos2;
 
+use crate::components::microphone::{self, Microphone};
 use crate::components::source::{Drag, Source, SourceType};
 use crate::components::wall::{Overlay, WallBlock, WallCell, WallResize};
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
@@ -14,6 +15,8 @@ pub fn button_input(
     q_windows: Query<&Window, With<PrimaryWindow>>,
     sources: Query<(Entity, &Source), Without<Drag>>,
     mut drag_sources: Query<(Entity, &mut Source), With<Drag>>,
+    microphones: Query<(Entity, &Microphone), Without<Drag>>,
+    mut drag_microphones: Query<(Entity, &mut Microphone), With<Drag>>,
     wallblocks: Query<(Entity, &WallBlock), (Without<Drag>, Without<WallResize>)>,
     mut drag_wallblocks: Query<(Entity, &mut WallBlock), With<Drag>>,
     mut resize_wallblocks: Query<
@@ -144,11 +147,42 @@ pub fn button_input(
                     }
                 }
             }
+            ToolType::PlaceMic => {
+                if let Some(position) = window.cursor_position() {
+                    if let Some((x, y)) =
+                        screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
+                    {
+                        commands.spawn(Microphone::new(x, y, 1));
+                    }
+                }
+            }
+            ToolType::MoveMic => {
+                if let Some(position) = window.cursor_position() {
+                    if let Some((x, y)) = screen_to_nearest_grid(
+                        position.x,
+                        position.y,
+                        ui_state.image_rect,
+                        &ui_state,
+                    ) {
+                        for (entity, mic) in microphones.iter() {
+                            let (m_x, m_y) = (mic.x, mic.y);
+                            if m_x.abs_diff(x) <= 10 && m_y.abs_diff(y) <= 10 {
+                                //values should change depending on image size (smaller image -> greater radius)
+                                commands.entity(entity).insert(Drag);
+                                break; // only drag one at a time
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
     if mouse_buttons.just_released(MouseButton::Left) {
         drag_sources.iter_mut().for_each(|(entity, _)| {
+            commands.entity(entity).remove::<Drag>();
+        });
+        drag_microphones.iter_mut().for_each(|(entity, _)| {
             commands.entity(entity).remove::<Drag>();
         });
         resize_wallblocks
@@ -238,7 +272,23 @@ pub fn button_input(
                     }
                 }
             }
-            _ => {}
+            ToolType::MoveMic => {
+                if let Some(position) = window.cursor_position() {
+                    if let Some((x, y)) = screen_to_nearest_grid(
+                        position.x,
+                        position.y,
+                        ui_state.image_rect,
+                        &ui_state,
+                    ) {
+                        drag_microphones.iter_mut().for_each(|(_, mut mic)| {
+                            mic.x = x;
+                            mic.y = y;
+                        });
+                    }
+                }
+            }
+            ToolType::PlaceSource => {}
+            ToolType::PlaceMic => {}
         }
     }
 

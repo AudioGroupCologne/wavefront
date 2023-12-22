@@ -8,7 +8,7 @@ pub struct Microphone {
     ///TODO: think of a better id system, right now we are just counting up
     pub id: usize,
     pub record: Vec<[f64; 2]>,
-    pub spektrum: Vec<Vec<[f64; 2]>>,
+    pub spectrum: Vec<Vec<[f64; 2]>>,
 }
 
 impl Microphone {
@@ -18,7 +18,7 @@ impl Microphone {
             y,
             id,
             record: vec![[0., 0.]],
-            spektrum: vec![],
+            spectrum: vec![],
         }
     }
 

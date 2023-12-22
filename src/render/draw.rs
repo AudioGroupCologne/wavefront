@@ -69,7 +69,7 @@ pub fn draw_pixels(
             .iter()
             .find(|m| m.id == ui_state.current_fft_microphone.expect("no mic selected"))
             .unwrap();
-        let spectrum = &mic.spektrum;
+        let spectrum = &mic.spectrum;
         let len_y = spectrum.len();
 
         frame.per_pixel_par(|coords, _| Pixel {

@@ -347,6 +347,8 @@ pub fn draw_egui(
                         );
                     }
                     ToolType::ResizeWall => {}
+                    ToolType::MoveMic => {}
+                    ToolType::PlaceMic => {}
                 }
 
                 ui.add_space(10.);
@@ -637,7 +639,35 @@ pub fn draw_egui(
                             )));
                         }
                     }
-                    _ => {}
+                    ToolType::PlaceSource => {}
+                    ToolType::DrawWall => {}
+                    ToolType::PlaceMic => {}
+                    ToolType::MoveMic => {
+                        for mic in microphones.iter() {
+                            let gizmo_pos = pos2(
+                                f32_map_range(
+                                    0.,
+                                    SIMULATION_WIDTH as f32,
+                                    image.rect.min.x,
+                                    image.rect.max.x,
+                                    mic.x as f32,
+                                ),
+                                f32_map_range(
+                                    0.,
+                                    SIMULATION_HEIGHT as f32,
+                                    image.rect.min.y,
+                                    image.rect.max.y,
+                                    mic.y as f32,
+                                ),
+                            );
+
+                            painter.add(egui::Shape::Circle(CircleShape::filled(
+                                gizmo_pos,
+                                5.,
+                                Color32::from_rgb(255, 100, 0),
+                            )));
+                        }
+                    }
                 }
             }
         });

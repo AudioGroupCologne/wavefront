@@ -36,9 +36,9 @@ pub fn calc_mic_spectrum(
         .map(|(x, y)| [x.val() as f64, y.val() as f64])
         .collect::<Vec<_>>();
 
-    microphone.spektrum.push(mapped_spectrum.clone());
-    if microphone.spektrum.len() > ui_state.spectrum_size.y as usize {
-        microphone.spektrum.remove(0);
+    microphone.spectrum.push(mapped_spectrum.clone());
+    if microphone.spectrum.len() > ui_state.spectrum_size.y as usize {
+        microphone.spectrum.remove(0);
     }
 
     mapped_spectrum
