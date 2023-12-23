@@ -5,6 +5,7 @@ use bevy_pixel_buffer::bevy_egui::egui::Pos2;
 use crate::components::microphone::{self, Microphone};
 use crate::components::source::{Drag, Source, SourceType};
 use crate::components::wall::{Overlay, WallBlock, WallCell, WallResize};
+use crate::grid::plugin::ComponentIDs;
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
 use crate::render::state::{ToolType, UiState, WallBrush};
@@ -25,6 +26,7 @@ pub fn button_input(
     >,
     mut commands: Commands,
     mut ui_state: ResMut<UiState>,
+    mut component_ids: ResMut<ComponentIDs>,
 ) {
     if mouse_buttons.just_pressed(MouseButton::Left) && ui_state.tools_enabled {
         let window = q_windows.single();
@@ -152,7 +154,7 @@ pub fn button_input(
                     if let Some((x, y)) =
                         screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
                     {
-                        commands.spawn(Microphone::new(x, y, 1));
+                        commands.spawn(Microphone::new(x, y, component_ids.get_current_mic_id()));
                     }
                 }
             }

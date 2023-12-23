@@ -20,11 +20,12 @@ pub fn draw_egui(
     mut egui_context: EguiContexts,
     mut sources: Query<&mut Source>,
     mut wallblocks: Query<&mut WallBlock, Without<Overlay>>,
-    mut microphones: Query<&mut Microphone>,
+    mut microphones: Query<(Entity, &mut Microphone)>,
     mut ui_state: ResMut<UiState>,
     diagnostics: Res<DiagnosticsStore>,
     mut grid: ResMut<Grid>,
     images: Local<Images>,
+    mut commands: Commands,
 ) {
     let cursor_icon = egui_context.add_image(images.cursor_icon.clone_weak());
     let ctx = egui_context.ctx_mut();
@@ -95,25 +96,29 @@ pub fn draw_egui(
                 .max_height(400.)
                 .show(ui, |ui| {
                     ui.set_min_width(ui.available_width());
-                    for mut s in microphones.iter_mut() {
-                        ui.collapsing(format!("Microphone {}", s.id), |ui| {
+
+                    microphones.iter_mut().for_each(|(entity, mut mic)| {
+                        ui.collapsing(format!("Microphone {}", mic.id), |ui| {
                             ui.horizontal(|ui| {
                                 ui.label("x:");
                                 ui.add(
-                                    egui::DragValue::new(&mut s.x)
+                                    egui::DragValue::new(&mut mic.x)
                                         .speed(1)
-                                        .clamp_range(0.0..=SIMULATION_WIDTH as f32),
+                                        .clamp_range(0.0..=SIMULATION_WIDTH as f32 - 1.),
                                 );
                                 ui.add_space(10.);
                                 ui.label("y:");
                                 ui.add(
-                                    egui::DragValue::new(&mut s.y)
+                                    egui::DragValue::new(&mut mic.y)
                                         .speed(1)
-                                        .clamp_range(0.0..=SIMULATION_HEIGHT as f32),
+                                        .clamp_range(0.0..=SIMULATION_HEIGHT as f32 - 1.),
                                 );
                             });
+                            if ui.add(egui::Button::new("Delete")).clicked() {
+                                commands.entity(entity).despawn();
+                            }
                         });
-                    }
+                    });
                 });
 
             ui.separator();
@@ -195,7 +200,7 @@ pub fn draw_egui(
 
                 if ui.button("Reset").clicked() {
                     grid.update_cells(ui_state.e_al);
-                    for mut mic in microphones.iter_mut() {
+                    for (_, mut mic) in microphones.iter_mut() {
                         mic.clear();
                     }
                 }
@@ -210,7 +215,7 @@ pub fn draw_egui(
                     .checkbox(&mut ui_state.show_plots, "Show Plots")
                     .clicked()
                 {
-                    for mut mic in microphones.iter_mut() {
+                    for (_, mut mic) in microphones.iter_mut() {
                         mic.clear();
                     }
                 }
@@ -425,7 +430,7 @@ pub fn draw_egui(
                             .y_axis_label("Amplitude")
                             .legend(Legend::default())
                             .show(ui, |plot_ui| {
-                                for mic in microphones.iter() {
+                                for (_, mic) in microphones.iter() {
                                     //TODO: because of this clone, the app is getting slower as time goes on (because the vec is getting bigger)
                                     let points: PlotPoints = PlotPoints::new(mic.record.clone());
                                     let line = Line::new(points);
@@ -445,7 +450,7 @@ pub fn draw_egui(
                                 "No Microphone Selected".to_string()
                             })
                             .show_ui(ui, |ui| {
-                                for mic in microphones.iter() {
+                                for (_, mic) in microphones.iter() {
                                     ui.selectable_value(
                                         &mut ui_state.current_fft_microphone,
                                         Some(mic.id),
@@ -469,11 +474,13 @@ pub fn draw_egui(
                                 let mut mic = microphones
                                     .iter_mut()
                                     .find(|m| {
-                                        m.id == ui_state
-                                            .current_fft_microphone
-                                            .expect("no mic selected")
+                                        m.1.id
+                                            == ui_state
+                                                .current_fft_microphone
+                                                .expect("no mic selected")
                                     })
-                                    .unwrap();
+                                    .unwrap()
+                                    .1;
 
                                 let mapped_spectrum =
                                     calc_mic_spectrum(&mut mic, grid.delta_t, &ui_state);
@@ -557,9 +564,8 @@ pub fn draw_egui(
 
             // Gizmos
 
+            let painter = ui.painter();
             if ui_state.tools_enabled {
-                let painter = ui.painter();
-
                 match ui_state.current_tool {
                     ToolType::MoveSource => {
                         for source in sources.iter() {
@@ -642,32 +648,34 @@ pub fn draw_egui(
                     ToolType::PlaceSource => {}
                     ToolType::DrawWall => {}
                     ToolType::PlaceMic => {}
-                    ToolType::MoveMic => {
-                        for mic in microphones.iter() {
-                            let gizmo_pos = pos2(
-                                f32_map_range(
-                                    0.,
-                                    SIMULATION_WIDTH as f32,
-                                    image.rect.min.x,
-                                    image.rect.max.x,
-                                    mic.x as f32,
-                                ),
-                                f32_map_range(
-                                    0.,
-                                    SIMULATION_HEIGHT as f32,
-                                    image.rect.min.y,
-                                    image.rect.max.y,
-                                    mic.y as f32,
-                                ),
-                            );
+                    ToolType::MoveMic => {}
+                }
+            }
+            // always show microphones
+            if !ui_state.render_abc_area {
+                for (_, mic) in microphones.iter() {
+                    let gizmo_pos = pos2(
+                        f32_map_range(
+                            0.,
+                            SIMULATION_WIDTH as f32,
+                            image.rect.min.x,
+                            image.rect.max.x,
+                            mic.x as f32,
+                        ),
+                        f32_map_range(
+                            0.,
+                            SIMULATION_HEIGHT as f32,
+                            image.rect.min.y,
+                            image.rect.max.y,
+                            mic.y as f32,
+                        ),
+                    );
 
-                            painter.add(egui::Shape::Circle(CircleShape::filled(
-                                gizmo_pos,
-                                5.,
-                                Color32::from_rgb(255, 100, 0),
-                            )));
-                        }
-                    }
+                    painter.add(egui::Shape::Circle(CircleShape::filled(
+                        gizmo_pos,
+                        5.,
+                        Color32::from_rgb(0, 100, 255),
+                    )));
                 }
             }
         });
