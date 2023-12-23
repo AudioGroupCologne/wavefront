@@ -4,9 +4,6 @@ use bevy::prelude::*;
 
 use crate::math::constants::*;
 
-#[derive(Component)]
-pub struct Drag;
-
 #[derive(Debug, Default, Component)]
 /// A sound source on the grid
 pub struct Source {

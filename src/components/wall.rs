@@ -5,9 +5,6 @@ use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::transformations::true_rect_from_rect;
 
 #[derive(Component)]
-pub struct Overlay;
-
-#[derive(Component)]
 pub enum WallResize {
     TopLeft,
     TopRight,

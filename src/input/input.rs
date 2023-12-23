@@ -2,9 +2,10 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_pixel_buffer::bevy_egui::egui::Pos2;
 
-use crate::components::microphone::{self, Microphone};
-use crate::components::source::{Drag, Source, SourceType};
-use crate::components::wall::{Overlay, WallBlock, WallCell, WallResize};
+use crate::components::microphone::Microphone;
+use crate::components::source::{Source, SourceType};
+use crate::components::states::{Drag, Overlay, Selected};
+use crate::components::wall::{WallBlock, WallCell, WallResize};
 use crate::grid::plugin::ComponentIDs;
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
@@ -18,6 +19,7 @@ pub fn button_input(
     mut drag_sources: Query<(Entity, &mut Source), With<Drag>>,
     microphones: Query<(Entity, &Microphone), Without<Drag>>,
     mut drag_microphones: Query<(Entity, &mut Microphone), With<Drag>>,
+    mut selected: Query<Entity, With<Selected>>,
     wallblocks: Query<(Entity, &WallBlock), (Without<Drag>, Without<WallResize>)>,
     mut drag_wallblocks: Query<(Entity, &mut WallBlock), With<Drag>>,
     mut resize_wallblocks: Query<
@@ -154,7 +156,13 @@ pub fn button_input(
                     if let Some((x, y)) =
                         screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
                     {
-                        commands.spawn(Microphone::new(x, y, component_ids.get_current_mic_id()));
+                        selected.iter_mut().for_each(|entity| {
+                            commands.entity(entity).remove::<Selected>();
+                        });
+                        commands.spawn((
+                            Microphone::new(x, y, component_ids.get_current_mic_id()),
+                            Selected,
+                        ));
                     }
                 }
             }
@@ -170,7 +178,10 @@ pub fn button_input(
                             let (m_x, m_y) = (mic.x, mic.y);
                             if m_x.abs_diff(x) <= 10 && m_y.abs_diff(y) <= 10 {
                                 //values should change depending on image size (smaller image -> greater radius)
-                                commands.entity(entity).insert(Drag);
+                                selected.iter_mut().for_each(|entity| {
+                                    commands.entity(entity).remove::<Selected>();
+                                });
+                                commands.entity(entity).insert((Drag, Selected));
                                 break; // only drag one at a time
                             }
                         }
@@ -296,5 +307,11 @@ pub fn button_input(
 
     if keys.just_pressed(KeyCode::Space) {
         ui_state.is_running = !ui_state.is_running;
+    }
+
+    if keys.just_pressed(KeyCode::Delete) {
+        selected.iter_mut().for_each(|entity| {
+            commands.entity(entity).despawn();
+        });
     }
 }

@@ -3,7 +3,8 @@ use bevy::prelude::*;
 use super::grid::Grid;
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
-use crate::components::wall::{Overlay, WallBlock};
+use crate::components::states::Overlay;
+use crate::components::wall::WallBlock;
 use crate::render::state::{GameTicks, UiState};
 
 pub fn calc_system(mut grid: ResMut<Grid>, ui_state: Res<UiState>) {

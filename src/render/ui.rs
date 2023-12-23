@@ -8,7 +8,8 @@ use egui_plot::{Legend, Line, Plot, PlotPoints};
 
 use crate::components::microphone::*;
 use crate::components::source::*;
-use crate::components::wall::{Overlay, Wall, WallBlock};
+use crate::components::states::{Overlay, Selected};
+use crate::components::wall::WallBlock;
 use crate::grid::grid::Grid;
 use crate::math::constants::*;
 use crate::math::fft::calc_mic_spectrum;

@@ -5,7 +5,8 @@ use bevy_pixel_buffer::query::QueryPixelBuffer;
 
 use super::state::{PlotType, UiState};
 use crate::components::microphone::Microphone;
-use crate::components::wall::{Overlay, WallBlock, WallCell};
+use crate::components::states::Overlay;
+use crate::components::wall::{WallBlock, WallCell};
 use crate::grid::grid::Grid;
 use crate::math::constants::SIMULATION_WIDTH;
 use crate::math::transformations::{coords_to_index, u32_map_range};
