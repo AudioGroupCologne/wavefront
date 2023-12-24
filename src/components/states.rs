@@ -8,3 +8,6 @@ pub struct Drag;
 
 #[derive(Component, Debug)]
 pub struct Selected;
+
+#[derive(Component, Debug)]
+pub struct MenuSelected;
