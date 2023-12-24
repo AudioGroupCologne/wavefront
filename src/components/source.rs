@@ -2,6 +2,7 @@ use std::f32::consts::PI;
 
 use bevy::prelude::*;
 
+use crate::grid::plugin::ComponentIDs;
 use crate::math::constants::*;
 
 #[derive(Debug, Default, Component)]
@@ -17,6 +18,7 @@ pub struct Source {
     pub amplitude: f32,
     /// type of the source
     pub source_type: SourceType,
+    pub id: usize,
 }
 
 #[derive(Debug, Default, PartialEq)]
@@ -35,6 +37,7 @@ impl Source {
         phase: f32,
         frequency: f32,
         source_type: SourceType,
+        id: usize,
     ) -> Self {
         Self {
             x,
@@ -43,6 +46,7 @@ impl Source {
             frequency,
             amplitude,
             source_type,
+            id,
         }
     }
 
@@ -70,7 +74,7 @@ impl Source {
         amplitude * scaling_factor * exp_term
     }
 
-    pub fn spawn_initial_sources(mut commands: Commands) {
+    pub fn spawn_initial_sources(mut commands: Commands, mut component_ids: ResMut<ComponentIDs>) {
         commands.spawn(Source::new(
             (SIMULATION_WIDTH + 2 * E_AL) / 2,
             (SIMULATION_HEIGHT + 2 * E_AL) / 2,
@@ -78,6 +82,7 @@ impl Source {
             0.0,
             10000.0,
             SourceType::Sin,
+            component_ids.get_current_source_id(),
         ));
         commands.spawn(Source::new(
             (SIMULATION_WIDTH + 2 * E_AL) / 3,
@@ -86,6 +91,7 @@ impl Source {
             0.0,
             10000.0,
             SourceType::Sin,
+            component_ids.get_current_source_id(),
         ));
     }
 }

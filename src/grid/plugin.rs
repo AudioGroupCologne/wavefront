@@ -11,7 +11,7 @@ impl Plugin for GridPlugin {
     fn build(&self, app: &mut App) {
         let grid = Grid::default();
 
-        let component_ids = ComponentIDs::new();
+        let component_ids = ComponentIDs::default();
 
         app.insert_resource(grid)
             .insert_resource(component_ids)
@@ -22,15 +22,30 @@ impl Plugin for GridPlugin {
 #[derive(Resource)]
 pub struct ComponentIDs {
     microphone_id: usize,
+    source_id: usize,
 }
 
 impl ComponentIDs {
     pub fn new() -> Self {
-        Self { microphone_id: 0 }
+        Self {
+            microphone_id: 0,
+            source_id: 0,
+        }
     }
     pub fn get_current_mic_id(&mut self) -> usize {
         let current = self.microphone_id;
         self.microphone_id += 1;
         current
+    }
+    pub fn get_current_source_id(&mut self) -> usize {
+        let current = self.source_id;
+        self.source_id += 1;
+        current
+    }
+}
+
+impl Default for ComponentIDs {
+    fn default() -> Self {
+        Self::new()
     }
 }

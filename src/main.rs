@@ -1,5 +1,3 @@
-use std::env;
-
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
 use bevy::window::PresentMode;
@@ -10,7 +8,6 @@ use tlm_rs::input::plugin::InputPlugin;
 use tlm_rs::render::plugin::RenderPlugin;
 
 fn main() {
-    env::set_var("RUST_BACKTRACE", "1");
     App::new()
         .add_plugins((
             DefaultPlugins.set(WindowPlugin {

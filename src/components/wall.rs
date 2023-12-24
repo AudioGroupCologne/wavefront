@@ -55,7 +55,7 @@ impl WallBlock {
         };
 
         Self {
-            rect: rect,
+            rect,
             center: rect.center(),
             reflection_factor,
             calc_rect: rect,

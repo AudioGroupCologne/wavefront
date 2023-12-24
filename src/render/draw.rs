@@ -167,9 +167,9 @@ pub fn draw_wall_blocks(
                 let b = raw_pixles[index as usize].b;
 
                 raw_pixles[index as usize] = Pixel {
-                    r: r as u8,
-                    g: g as u8,
-                    b: b as u8,
+                    r: r,
+                    g: g,
+                    b: b,
                     a: 70,
                 };
             }

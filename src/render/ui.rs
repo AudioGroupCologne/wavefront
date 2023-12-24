@@ -1,7 +1,7 @@
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::epaint::CircleShape;
-use bevy_pixel_buffer::bevy_egui::egui::{pos2, CollapsingHeader, Color32, Frame, Margin, Vec2};
+use bevy_pixel_buffer::bevy_egui::egui::{pos2, Color32, Frame, Margin, Vec2};
 use bevy_pixel_buffer::bevy_egui::{egui, EguiContexts};
 use bevy_pixel_buffer::prelude::*;
 use egui_plot::{Legend, Line, Plot, PlotPoints};
@@ -24,8 +24,12 @@ pub fn draw_egui(
     mut egui_context: EguiContexts,
     mut ui_state: ResMut<UiState>,
     mut grid: ResMut<Grid>,
-    mut sources: Query<(Entity, &mut Source)>,
     mut wallblocks: Query<(Entity, &mut WallBlock), Without<Overlay>>,
+    mut source_set: ParamSet<(
+        Query<(Entity, &mut Source)>,
+        Query<(Entity, &Source), With<Selected>>,
+        Query<(Entity, &Source), With<MenuSelected>>,
+    )>,
     mut mic_set: ParamSet<(
         Query<(Entity, &mut Microphone)>,
         Query<(Entity, &Microphone), With<Selected>>,
@@ -60,8 +64,8 @@ pub fn draw_egui(
                 .max_height(400.)
                 .show(ui, |ui| {
                     ui.set_min_width(ui.available_width());
-                    for (index, (entity, mut s)) in sources.iter_mut().enumerate() {
-                        ui.collapsing(format!("Source {}", index), |ui| {
+                    for (entity, mut s) in source_set.p0().iter_mut() {
+                        let collapse = ui.collapsing(format!("Source {}", s.id), |ui| {
                             ui.add(
                                 egui::Slider::new(&mut s.frequency, 0.0..=20000.0)
                                     .text("Frequency (Hz)"),
@@ -93,6 +97,13 @@ pub fn draw_egui(
                                 commands.entity(entity).despawn();
                             }
                         });
+                        if collapse.header_response.clicked() {
+                            if collapse.openness < 0.5 {
+                                commands.entity(entity).insert(MenuSelected);
+                            } else {
+                                commands.entity(entity).remove::<MenuSelected>();
+                            }
+                        }
                     }
                 });
 
@@ -612,11 +623,35 @@ pub fn draw_egui(
                         Color32::from_rgb(255, 150, 255),
                     )));
                 }
+                for (_, source) in source_set.p2().iter() {
+                    let gizmo_pos = pos2(
+                        f32_map_range(
+                            0.,
+                            SIMULATION_WIDTH as f32,
+                            image.rect.min.x,
+                            image.rect.max.x,
+                            source.x as f32,
+                        ),
+                        f32_map_range(
+                            0.,
+                            SIMULATION_HEIGHT as f32,
+                            image.rect.min.y,
+                            image.rect.max.y,
+                            source.y as f32,
+                        ),
+                    );
+
+                    painter.add(egui::Shape::Circle(CircleShape::filled(
+                        gizmo_pos,
+                        5.,
+                        Color32::from_rgb(255, 150, 255),
+                    )));
+                }
                 // Tool specific gizmos
                 if ui_state.tools_enabled {
                     match ui_state.current_tool {
                         ToolType::MoveSource => {
-                            for (_, source) in sources.iter() {
+                            for (_, source) in source_set.p0().iter() {
                                 let gizmo_pos = pos2(
                                     f32_map_range(
                                         0.,
@@ -638,6 +673,30 @@ pub fn draw_egui(
                                     gizmo_pos,
                                     5.,
                                     Color32::from_rgb(255, 100, 0),
+                                )));
+                            }
+                            for (_, source) in source_set.p1().iter() {
+                                let gizmo_pos = pos2(
+                                    f32_map_range(
+                                        0.,
+                                        SIMULATION_WIDTH as f32,
+                                        image.rect.min.x,
+                                        image.rect.max.x,
+                                        source.x as f32,
+                                    ),
+                                    f32_map_range(
+                                        0.,
+                                        SIMULATION_HEIGHT as f32,
+                                        image.rect.min.y,
+                                        image.rect.max.y,
+                                        source.y as f32,
+                                    ),
+                                );
+
+                                painter.add(egui::Shape::Circle(CircleShape::filled(
+                                    gizmo_pos,
+                                    10.,
+                                    Color32::from_rgb(255, 120, 50),
                                 )));
                             }
                         }
@@ -742,7 +801,7 @@ pub fn draw_egui(
 
                                 painter.add(egui::Shape::Circle(CircleShape::filled(
                                     gizmo_pos,
-                                    5.,
+                                    10.,
                                     Color32::from_rgb(100, 150, 255),
                                 )));
                             }

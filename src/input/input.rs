@@ -44,8 +44,11 @@ pub fn button_input(
                         for (entity, source) in sources.iter() {
                             let (s_x, s_y) = (source.x, source.y);
                             if s_x.abs_diff(x) <= 10 && s_y.abs_diff(y) <= 10 {
+                                selected.iter_mut().for_each(|entity| {
+                                    commands.entity(entity).remove::<Selected>();
+                                });
                                 //values should change depending on image size (smaller image -> greater radius)
-                                commands.entity(entity).insert(Drag);
+                                commands.entity(entity).insert((Drag, Selected));
                                 break; // only drag one at a time
                             }
                         }
@@ -58,7 +61,15 @@ pub fn button_input(
                         screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
                     {
                         // this produces overlaping sources
-                        commands.spawn(Source::new(x, y, 10., 0.0, 10_000.0, SourceType::Sin));
+                        commands.spawn(Source::new(
+                            x,
+                            y,
+                            10.,
+                            0.0,
+                            10_000.0,
+                            SourceType::Sin,
+                            component_ids.get_current_source_id(),
+                        ));
                     }
                 }
             }
@@ -156,13 +167,7 @@ pub fn button_input(
                     if let Some((x, y)) =
                         screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
                     {
-                        selected.iter_mut().for_each(|entity| {
-                            commands.entity(entity).remove::<Selected>();
-                        });
-                        commands.spawn((
-                            Microphone::new(x, y, component_ids.get_current_mic_id()),
-                            Selected,
-                        ));
+                        commands.spawn(Microphone::new(x, y, component_ids.get_current_mic_id()));
                     }
                 }
             }
