@@ -1,6 +1,5 @@
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
-use bevy::utils::hashbrown::HashMap;
 use bevy_pixel_buffer::bevy_egui::egui::epaint::CircleShape;
 use bevy_pixel_buffer::bevy_egui::egui::{pos2, Color32, Frame, Margin, Vec2};
 use bevy_pixel_buffer::bevy_egui::{egui, EguiContexts};
@@ -102,47 +101,55 @@ pub fn draw_egui(
                 .max_height(400.)
                 .show(ui, |ui| {
                     ui.set_min_width(ui.available_width());
-                    for (entity, mut s) in source_set.p0().iter_mut() {
-                        let collapse = ui.collapsing(format!("Source {}", s.id), |ui| {
+
+                    let mut binding = source_set.p0();
+                    let mut source_vec = binding.iter_mut().collect::<Vec<_>>();
+                    source_vec.sort_by_cached_key(|(_, source)| source.id);
+
+                    source_vec.iter_mut().for_each(|(entity, ref mut source)| {
+                        let collapse = ui.collapsing(format!("Source {}", source.id), |ui| {
                             ui.add(
-                                egui::Slider::new(&mut s.frequency, 0.0..=20000.0)
+                                egui::Slider::new(&mut source.frequency, 0.0..=20000.0)
                                     .text("Frequency (Hz)"),
                             );
                             ui.add(
-                                egui::Slider::new(&mut s.amplitude, 0.0..=25.0).text("Amplitude"),
+                                egui::Slider::new(&mut source.amplitude, 0.0..=25.0)
+                                    .text("Amplitude"),
                             );
-                            ui.add(egui::Slider::new(&mut s.phase, 0.0..=360.0).text("Phase (°)"));
+                            ui.add(
+                                egui::Slider::new(&mut source.phase, 0.0..=360.0).text("Phase (°)"),
+                            );
                             egui::ComboBox::from_label("Waveform")
-                                .selected_text(format!("{:?}", s.source_type))
+                                .selected_text(format!("{:?}", source.source_type))
                                 .show_ui(ui, |ui| {
                                     ui.selectable_value(
-                                        &mut s.source_type,
+                                        &mut source.source_type,
                                         SourceType::Sin,
                                         "Sinus",
                                     );
                                     ui.selectable_value(
-                                        &mut s.source_type,
+                                        &mut source.source_type,
                                         SourceType::Gauss,
                                         "Gauss",
                                     );
                                     ui.selectable_value(
-                                        &mut s.source_type,
+                                        &mut source.source_type,
                                         SourceType::WhiteNoise,
                                         "White Noise",
                                     );
                                 });
                             if ui.add(egui::Button::new("Delete")).clicked() {
-                                commands.entity(entity).despawn();
+                                commands.entity(*entity).despawn();
                             }
                         });
                         if collapse.header_response.clicked() {
                             if collapse.openness < 0.5 {
-                                commands.entity(entity).insert(MenuSelected);
+                                commands.entity(*entity).insert(MenuSelected);
                             } else {
-                                commands.entity(entity).remove::<MenuSelected>();
+                                commands.entity(*entity).remove::<MenuSelected>();
                             }
                         }
-                    }
+                    });
                 });
 
             ui.separator();
@@ -154,7 +161,11 @@ pub fn draw_egui(
                 .show(ui, |ui| {
                     ui.set_min_width(ui.available_width());
 
-                    mic_set.p0().iter_mut().for_each(|(entity, mut mic)| {
+                    let mut binding = mic_set.p0();
+                    let mut mic_vec = binding.iter_mut().collect::<Vec<_>>();
+                    mic_vec.sort_by_cached_key(|(_, mic)| mic.id);
+
+                    mic_vec.iter_mut().for_each(|(entity, ref mut mic)| {
                         let collapse = ui.collapsing(format!("Microphone {}", mic.id), |ui| {
                             ui.horizontal(|ui| {
                                 ui.label("x:");
@@ -172,14 +183,14 @@ pub fn draw_egui(
                                 );
                             });
                             if ui.add(egui::Button::new("Delete")).clicked() {
-                                commands.entity(entity).despawn();
+                                commands.entity(*entity).despawn();
                             }
                         });
                         if collapse.header_response.clicked() {
                             if collapse.openness < 0.5 {
-                                commands.entity(entity).insert(MenuSelected);
+                                commands.entity(*entity).insert(MenuSelected);
                             } else {
-                                commands.entity(entity).remove::<MenuSelected>();
+                                commands.entity(*entity).remove::<MenuSelected>();
                             }
                         }
                     });
@@ -193,7 +204,12 @@ pub fn draw_egui(
                 .max_height(400.)
                 .show(ui, |ui| {
                     ui.set_min_width(ui.available_width());
-                    for (entity, mut wb) in wallblock_set.p0().iter_mut() {
+
+                    let mut binding = wallblock_set.p0();
+                    let mut wb_vec = binding.iter_mut().collect::<Vec<_>>();
+                    wb_vec.sort_by_cached_key(|(_, wb)| wb.id);
+
+                    wb_vec.iter_mut().for_each(|(entity, ref mut wb)| {
                         let collapse = ui.collapsing(format!("Wallblock {}", wb.id), |ui| {
                             ui.horizontal(|ui| {
                                 ui.label("Top Corner x:");
@@ -248,17 +264,17 @@ pub fn draw_egui(
                             });
 
                             if ui.add(egui::Button::new("Delete")).clicked() {
-                                commands.entity(entity).despawn();
+                                commands.entity(*entity).despawn();
                             }
                         });
                         if collapse.header_response.clicked() {
                             if collapse.openness < 0.5 {
-                                commands.entity(entity).insert(MenuSelected);
+                                commands.entity(*entity).insert(MenuSelected);
                             } else {
-                                commands.entity(entity).remove::<MenuSelected>();
+                                commands.entity(*entity).remove::<MenuSelected>();
                             }
                         }
-                    }
+                    });
                 });
 
             // General Settings
@@ -665,7 +681,7 @@ pub fn draw_egui(
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         gizmo_pos,
                         10.,
-                        Color32::from_rgb(255, 150, 255),
+                        Color32::from_rgb(0, 0, 255),
                     )));
                 }
                 for (_, source) in source_set.p2().iter() {
@@ -689,7 +705,7 @@ pub fn draw_egui(
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         gizmo_pos,
                         10.,
-                        Color32::from_rgb(255, 150, 255),
+                        Color32::from_rgb(0, 255, 0),
                     )));
                 }
                 for (_, wall) in wallblock_set.p2().iter() {
@@ -713,7 +729,7 @@ pub fn draw_egui(
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         gizmo_pos,
                         10.,
-                        Color32::from_rgb(255, 100, 0),
+                        Color32::from_rgb(255, 0, 0),
                     )));
                 }
                 // Tool specific gizmos
