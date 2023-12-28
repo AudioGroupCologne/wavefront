@@ -32,6 +32,9 @@ pub fn button_input(
 ) {
     if mouse_buttons.just_pressed(MouseButton::Left) && ui_state.tools_enabled {
         let window = q_windows.single();
+        selected.iter_mut().for_each(|entity| {
+            commands.entity(entity).remove::<Selected>();
+        });
         match ui_state.current_tool {
             ToolType::MoveSource => {
                 if let Some(position) = window.cursor_position() {
@@ -44,9 +47,6 @@ pub fn button_input(
                         for (entity, source) in sources.iter() {
                             let (s_x, s_y) = (source.x, source.y);
                             if s_x.abs_diff(x) <= 10 && s_y.abs_diff(y) <= 10 {
-                                selected.iter_mut().for_each(|entity| {
-                                    commands.entity(entity).remove::<Selected>();
-                                });
                                 //values should change depending on image size (smaller image -> greater radius)
                                 commands.entity(entity).insert((Drag, Selected));
                                 break; // only drag one at a time
@@ -87,7 +87,14 @@ pub fn button_input(
                                 y = (y as f32 / 10.).round() as u32 * 10;
                             }
                             commands.spawn((
-                                WallBlock::new(x, y, x, y, ui_state.wall_reflection_factor),
+                                WallBlock::new(
+                                    x,
+                                    y,
+                                    x,
+                                    y,
+                                    ui_state.wall_reflection_factor,
+                                    component_ids.get_current_wall_id(),
+                                ),
                                 WallResize::BottomRight,
                                 Overlay,
                             ));
@@ -137,7 +144,7 @@ pub fn button_input(
                             if (center.x as u32).abs_diff(x) <= 10
                                 && (center.y as u32).abs_diff(y) <= 10
                             {
-                                commands.entity(entity).insert(Drag);
+                                commands.entity(entity).insert((Drag, Selected));
                                 break;
                             }
                         }
@@ -183,9 +190,6 @@ pub fn button_input(
                             let (m_x, m_y) = (mic.x, mic.y);
                             if m_x.abs_diff(x) <= 10 && m_y.abs_diff(y) <= 10 {
                                 //values should change depending on image size (smaller image -> greater radius)
-                                selected.iter_mut().for_each(|entity| {
-                                    commands.entity(entity).remove::<Selected>();
-                                });
                                 commands.entity(entity).insert((Drag, Selected));
                                 break; // only drag one at a time
                             }
@@ -251,17 +255,11 @@ pub fn button_input(
                             .iter_mut()
                             .for_each(|(_, wall_resize, mut wall)| {
                                 match wall_resize {
-                                    WallResize::TopLeft => {}
-                                    WallResize::TopRight => {}
                                     WallResize::BottomRight => {
                                         wall.rect.max.x = x as f32;
                                         wall.rect.max.y = y as f32;
                                     }
-                                    WallResize::BottomLeft => {}
-                                    WallResize::Top => {}
-                                    WallResize::Right => {}
-                                    WallResize::Bottom => {}
-                                    WallResize::Left => {}
+                                    _ => {}
                                 }
                                 wall.update_calc_rect(ui_state.e_al);
                             });

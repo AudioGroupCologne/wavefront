@@ -23,6 +23,7 @@ impl Plugin for GridPlugin {
 pub struct ComponentIDs {
     microphone_id: usize,
     source_id: usize,
+    wall_id: usize,
 }
 
 impl ComponentIDs {
@@ -30,6 +31,7 @@ impl ComponentIDs {
         Self {
             microphone_id: 0,
             source_id: 0,
+            wall_id: 0,
         }
     }
     pub fn get_current_mic_id(&mut self) -> usize {
@@ -40,6 +42,11 @@ impl ComponentIDs {
     pub fn get_current_source_id(&mut self) -> usize {
         let current = self.source_id;
         self.source_id += 1;
+        current
+    }
+    pub fn get_current_wall_id(&mut self) -> usize {
+        let current = self.wall_id;
+        self.wall_id += 1;
         current
     }
 }

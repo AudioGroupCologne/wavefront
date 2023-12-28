@@ -45,10 +45,18 @@ pub struct WallBlock {
     pub reflection_factor: f32,
     pub calc_rect: Rect,
     pub calc_rect_with_boundaries: Rect,
+    pub id: usize,
 }
 
 impl WallBlock {
-    pub fn new(x_min: u32, y_min: u32, x_max: u32, y_max: u32, reflection_factor: f32) -> Self {
+    pub fn new(
+        x_min: u32,
+        y_min: u32,
+        x_max: u32,
+        y_max: u32,
+        reflection_factor: f32,
+        id: usize,
+    ) -> Self {
         let rect = Rect {
             min: Pos2::new(x_min as f32, y_min as f32),
             max: Pos2::new(x_max as f32, y_max as f32),
@@ -60,6 +68,7 @@ impl WallBlock {
             reflection_factor,
             calc_rect: rect,
             calc_rect_with_boundaries: rect,
+            id,
         }
     }
 

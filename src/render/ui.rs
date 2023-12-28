@@ -25,7 +25,11 @@ pub fn draw_egui(
     mut egui_context: EguiContexts,
     mut ui_state: ResMut<UiState>,
     mut grid: ResMut<Grid>,
-    mut wallblocks: Query<(Entity, &mut WallBlock), Without<Overlay>>,
+    mut wallblock_set: ParamSet<(
+        Query<(Entity, &mut WallBlock), Without<Overlay>>,
+        Query<(Entity, &mut WallBlock), (Without<Overlay>, With<Selected>)>,
+        Query<(Entity, &mut WallBlock), (Without<Overlay>, With<MenuSelected>)>,
+    )>,
     mut source_set: ParamSet<(
         Query<(Entity, &mut Source)>,
         Query<(Entity, &Source), With<Selected>>,
@@ -189,8 +193,8 @@ pub fn draw_egui(
                 .max_height(400.)
                 .show(ui, |ui| {
                     ui.set_min_width(ui.available_width());
-                    for (index, (entity, mut wb)) in wallblocks.iter_mut().enumerate() {
-                        ui.collapsing(format!("Wallblock {}", index), |ui| {
+                    for (entity, mut wb) in wallblock_set.p0().iter_mut() {
+                        let collapse = ui.collapsing(format!("Wallblock {}", wb.id), |ui| {
                             ui.horizontal(|ui| {
                                 ui.label("Top Corner x:");
                                 if ui
@@ -247,6 +251,13 @@ pub fn draw_egui(
                                 commands.entity(entity).despawn();
                             }
                         });
+                        if collapse.header_response.clicked() {
+                            if collapse.openness < 0.5 {
+                                commands.entity(entity).insert(MenuSelected);
+                            } else {
+                                commands.entity(entity).remove::<MenuSelected>();
+                            }
+                        }
                     }
                 });
 
@@ -324,7 +335,7 @@ pub fn draw_egui(
                             pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
                         };
 
-                        for (_, mut wb) in wallblocks.iter_mut() {
+                        for (_, mut wb) in wallblock_set.p0().iter_mut() {
                             wb.update_calc_rect(ui_state.e_al);
                         }
                     }
@@ -635,7 +646,7 @@ pub fn draw_egui(
 
             if !ui_state.render_abc_area {
                 let painter = ui.painter();
-                //general gizmos
+                //menu gizmos
                 for (_, mic) in mic_set.p2().iter() {
                     let gizmo_pos = pos2(
                         f32_map_range(
@@ -656,7 +667,7 @@ pub fn draw_egui(
 
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         gizmo_pos,
-                        5.,
+                        10.,
                         Color32::from_rgb(255, 150, 255),
                     )));
                 }
@@ -680,8 +691,32 @@ pub fn draw_egui(
 
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         gizmo_pos,
-                        5.,
+                        10.,
                         Color32::from_rgb(255, 150, 255),
+                    )));
+                }
+                for (_, wall) in wallblock_set.p2().iter() {
+                    let gizmo_pos = pos2(
+                        f32_map_range(
+                            0.,
+                            SIMULATION_WIDTH as f32,
+                            image.rect.min.x,
+                            image.rect.max.x,
+                            wall.rect.center().x,
+                        ),
+                        f32_map_range(
+                            0.,
+                            SIMULATION_HEIGHT as f32,
+                            image.rect.min.y,
+                            image.rect.max.y,
+                            wall.rect.center().y,
+                        ),
+                    );
+
+                    painter.add(egui::Shape::Circle(CircleShape::filled(
+                        gizmo_pos,
+                        10.,
+                        Color32::from_rgb(255, 100, 0),
                     )));
                 }
                 // Tool specific gizmos
@@ -738,7 +773,7 @@ pub fn draw_egui(
                             }
                         }
                         ToolType::MoveWall => {
-                            for (_, wall) in wallblocks.iter() {
+                            for (_, wall) in wallblock_set.p0().iter() {
                                 let gizmo_pos = pos2(
                                     f32_map_range(
                                         0.,
@@ -762,9 +797,33 @@ pub fn draw_egui(
                                     Color32::from_rgb(255, 100, 0),
                                 )));
                             }
+                            for (_, wall) in wallblock_set.p1().iter() {
+                                let gizmo_pos = pos2(
+                                    f32_map_range(
+                                        0.,
+                                        SIMULATION_WIDTH as f32,
+                                        image.rect.min.x,
+                                        image.rect.max.x,
+                                        wall.rect.center().x,
+                                    ),
+                                    f32_map_range(
+                                        0.,
+                                        SIMULATION_HEIGHT as f32,
+                                        image.rect.min.y,
+                                        image.rect.max.y,
+                                        wall.rect.center().y,
+                                    ),
+                                );
+
+                                painter.add(egui::Shape::Circle(CircleShape::filled(
+                                    gizmo_pos,
+                                    10.,
+                                    Color32::from_rgb(255, 100, 0),
+                                )));
+                            }
                         }
                         ToolType::ResizeWall => {
-                            for (_, wall) in wallblocks.iter() {
+                            for (_, wall) in wallblock_set.p0().iter() {
                                 let gizmo_pos = pos2(
                                     f32_map_range(
                                         0.,
