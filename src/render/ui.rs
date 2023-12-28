@@ -1,5 +1,6 @@
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
+use bevy::utils::hashbrown::HashMap;
 use bevy_pixel_buffer::bevy_egui::egui::epaint::CircleShape;
 use bevy_pixel_buffer::bevy_egui::egui::{pos2, Color32, Frame, Margin, Vec2};
 use bevy_pixel_buffer::bevy_egui::{egui, EguiContexts};
@@ -36,7 +37,40 @@ pub fn draw_egui(
         Query<(Entity, &Microphone), With<MenuSelected>>,
     )>,
 ) {
-    let cursor_icon = egui_context.add_image(images.cursor_icon.clone_weak());
+    //Icons
+    let _cursor_icon = egui_context.add_image(images.cursor_icon.clone_weak());
+
+    let icon_map: HashMap<ToolType, egui::TextureId> = HashMap::from([
+        (
+            ToolType::PlaceSource,
+            egui_context.add_image(images.place_source_icon.clone_weak()),
+        ),
+        (
+            ToolType::MoveSource,
+            egui_context.add_image(images.move_source_icon.clone_weak()),
+        ),
+        (
+            ToolType::DrawWall,
+            egui_context.add_image(images.draw_wall_icon.clone_weak()),
+        ),
+        (
+            ToolType::ResizeWall,
+            egui_context.add_image(images.resize_wall_icon.clone_weak()),
+        ),
+        (
+            ToolType::MoveWall,
+            egui_context.add_image(images.move_wall_icon.clone_weak()),
+        ),
+        (
+            ToolType::PlaceMic,
+            egui_context.add_image(images.place_mic_icon.clone_weak()),
+        ),
+        (
+            ToolType::MoveMic,
+            egui_context.add_image(images.move_mic_icon.clone_weak()),
+        ),
+    ]);
+
     let ctx = egui_context.ctx_mut();
 
     // Side Panel (Sources, Mic, Walls, Tool Options, Settings)
@@ -548,7 +582,10 @@ pub fn draw_egui(
                 if ui
                     .add(
                         egui::Button::image_and_text(
-                            egui::load::SizedTexture::new(cursor_icon, [25., 25.]),
+                            egui::load::SizedTexture::new(
+                                *icon_map.get(&tool_type).unwrap(),
+                                [25., 25.],
+                            ),
                             "",
                         )
                         .fill(if tool_type == ui_state.current_tool {

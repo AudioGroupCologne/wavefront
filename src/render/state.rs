@@ -21,7 +21,7 @@ pub enum PlotType {
     FrequencyDomain,
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone, Eq, Hash)]
 pub enum ToolType {
     PlaceSource,
     MoveSource,
@@ -98,6 +98,13 @@ impl Default for UiState {
 
 pub struct Images {
     pub cursor_icon: Handle<Image>,
+    pub place_source_icon: Handle<Image>,
+    pub move_source_icon: Handle<Image>,
+    pub draw_wall_icon: Handle<Image>,
+    pub resize_wall_icon: Handle<Image>,
+    pub move_wall_icon: Handle<Image>,
+    pub place_mic_icon: Handle<Image>,
+    pub move_mic_icon: Handle<Image>,
 }
 
 impl FromWorld for Images {
@@ -105,6 +112,13 @@ impl FromWorld for Images {
         let asset_server = world.get_resource_mut::<AssetServer>().unwrap();
         Self {
             cursor_icon: asset_server.load("test_icon.png"),
+            place_source_icon: asset_server.load("place_source.png"),
+            move_source_icon: asset_server.load("move_source.png"),
+            draw_wall_icon: asset_server.load("draw_wall.png"),
+            resize_wall_icon: asset_server.load("resize_wall.png"),
+            move_wall_icon: asset_server.load("move_wall.png"),
+            place_mic_icon: asset_server.load("place_mic.png"),
+            move_mic_icon: asset_server.load("move_mic.png"),
         }
     }
 }
