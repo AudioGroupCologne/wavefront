@@ -44,7 +44,7 @@ pub fn draw_egui(
     //Icons
     let _cursor_icon = egui_context.add_image(images.cursor_icon.clone_weak());
 
-    let icon_map: HashMap<ToolType, egui::TextureId> = HashMap::from([
+    let icon_vec = vec![
         (
             ToolType::PlaceSource,
             egui_context.add_image(images.place_source_icon.clone_weak()),
@@ -73,7 +73,7 @@ pub fn draw_egui(
             ToolType::MoveMic,
             egui_context.add_image(images.move_mic_icon.clone_weak()),
         ),
-    ]);
+    ];
 
     let ctx = egui_context.ctx_mut();
 
@@ -589,14 +589,11 @@ pub fn draw_egui(
             ui.set_enabled(ui_state.tools_enabled);
             //Tests for tool buttons
 
-            for tool_type in ToolType::TYPES {
+            for (tool_type, tool_icon) in icon_vec {
                 if ui
                     .add(
                         egui::Button::image_and_text(
-                            egui::load::SizedTexture::new(
-                                *icon_map.get(&tool_type).unwrap(),
-                                [25., 25.],
-                            ),
+                            egui::load::SizedTexture::new(tool_icon, [25., 25.]),
                             "",
                         )
                         .fill(if tool_type == ui_state.current_tool {

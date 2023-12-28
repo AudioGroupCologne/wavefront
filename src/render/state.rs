@@ -21,7 +21,7 @@ pub enum PlotType {
     FrequencyDomain,
 }
 
-#[derive(Debug, PartialEq, Copy, Clone, Eq, Hash)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum ToolType {
     PlaceSource,
     MoveSource,
@@ -30,18 +30,6 @@ pub enum ToolType {
     MoveWall,
     PlaceMic,
     MoveMic,
-}
-
-impl ToolType {
-    pub const TYPES: [Self; 7] = [
-        ToolType::PlaceSource,
-        ToolType::MoveSource,
-        ToolType::DrawWall,
-        ToolType::ResizeWall,
-        ToolType::MoveWall,
-        ToolType::PlaceMic,
-        ToolType::MoveMic,
-    ]; //not very pretty but works for now
 }
 
 #[derive(Debug, PartialEq)]
