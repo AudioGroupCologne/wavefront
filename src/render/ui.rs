@@ -660,77 +660,79 @@ pub fn draw_egui(
             if !ui_state.render_abc_area {
                 let painter = ui.painter();
                 //menu gizmos
-                for (_, mic) in mic_set.p2().iter() {
-                    let gizmo_pos = pos2(
-                        f32_map_range(
-                            0.,
-                            SIMULATION_WIDTH as f32,
-                            image.rect.min.x,
-                            image.rect.max.x,
-                            mic.x as f32,
-                        ),
-                        f32_map_range(
-                            0.,
-                            SIMULATION_HEIGHT as f32,
-                            image.rect.min.y,
-                            image.rect.max.y,
-                            mic.y as f32,
-                        ),
-                    );
+                if !ui_state.tools_enabled {
+                    for (_, mic) in mic_set.p2().iter() {
+                        let gizmo_pos = pos2(
+                            f32_map_range(
+                                0.,
+                                SIMULATION_WIDTH as f32,
+                                image.rect.min.x,
+                                image.rect.max.x,
+                                mic.x as f32,
+                            ),
+                            f32_map_range(
+                                0.,
+                                SIMULATION_HEIGHT as f32,
+                                image.rect.min.y,
+                                image.rect.max.y,
+                                mic.y as f32,
+                            ),
+                        );
 
-                    painter.add(egui::Shape::Circle(CircleShape::filled(
-                        gizmo_pos,
-                        10.,
-                        Color32::from_rgb(0, 0, 255),
-                    )));
-                }
-                for (_, source) in source_set.p2().iter() {
-                    let gizmo_pos = pos2(
-                        f32_map_range(
-                            0.,
-                            SIMULATION_WIDTH as f32,
-                            image.rect.min.x,
-                            image.rect.max.x,
-                            source.x as f32,
-                        ),
-                        f32_map_range(
-                            0.,
-                            SIMULATION_HEIGHT as f32,
-                            image.rect.min.y,
-                            image.rect.max.y,
-                            source.y as f32,
-                        ),
-                    );
+                        painter.add(egui::Shape::Circle(CircleShape::filled(
+                            gizmo_pos,
+                            10.,
+                            Color32::from_rgb(0, 0, 255),
+                        )));
+                    }
+                    for (_, source) in source_set.p2().iter() {
+                        let gizmo_pos = pos2(
+                            f32_map_range(
+                                0.,
+                                SIMULATION_WIDTH as f32,
+                                image.rect.min.x,
+                                image.rect.max.x,
+                                source.x as f32,
+                            ),
+                            f32_map_range(
+                                0.,
+                                SIMULATION_HEIGHT as f32,
+                                image.rect.min.y,
+                                image.rect.max.y,
+                                source.y as f32,
+                            ),
+                        );
 
-                    painter.add(egui::Shape::Circle(CircleShape::filled(
-                        gizmo_pos,
-                        10.,
-                        Color32::from_rgb(0, 255, 0),
-                    )));
-                }
-                for (_, wall) in wallblock_set.p2().iter() {
-                    let gizmo_pos = pos2(
-                        f32_map_range(
-                            0.,
-                            SIMULATION_WIDTH as f32,
-                            image.rect.min.x,
-                            image.rect.max.x,
-                            wall.rect.center().x,
-                        ),
-                        f32_map_range(
-                            0.,
-                            SIMULATION_HEIGHT as f32,
-                            image.rect.min.y,
-                            image.rect.max.y,
-                            wall.rect.center().y,
-                        ),
-                    );
+                        painter.add(egui::Shape::Circle(CircleShape::filled(
+                            gizmo_pos,
+                            10.,
+                            Color32::from_rgb(0, 255, 0),
+                        )));
+                    }
+                    for (_, wall) in wallblock_set.p2().iter() {
+                        let gizmo_pos = pos2(
+                            f32_map_range(
+                                0.,
+                                SIMULATION_WIDTH as f32,
+                                image.rect.min.x,
+                                image.rect.max.x,
+                                wall.rect.center().x,
+                            ),
+                            f32_map_range(
+                                0.,
+                                SIMULATION_HEIGHT as f32,
+                                image.rect.min.y,
+                                image.rect.max.y,
+                                wall.rect.center().y,
+                            ),
+                        );
 
-                    painter.add(egui::Shape::Circle(CircleShape::filled(
-                        gizmo_pos,
-                        10.,
-                        Color32::from_rgb(255, 0, 0),
-                    )));
+                        painter.add(egui::Shape::Circle(CircleShape::filled(
+                            gizmo_pos,
+                            10.,
+                            Color32::from_rgb(255, 0, 0),
+                        )));
+                    }
                 }
                 // Tool specific gizmos
                 if ui_state.tools_enabled {
