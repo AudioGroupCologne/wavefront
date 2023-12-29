@@ -81,7 +81,8 @@ pub fn draw_egui(
         .default_width(450.)
         .show(ctx, |ui| {
             // not a perfect solution -> when resizing this will set tools_enabled to true
-            ui_state.tools_enabled = !ui.rect_contains_pointer(ui.available_rect_before_wrap());
+            ui_state.tools_enabled = !ui.rect_contains_pointer(ui.available_rect_before_wrap())
+                && !ui_state.render_abc_area;
 
             ui.spacing_mut().slider_width = 200.0;
 
@@ -603,7 +604,6 @@ pub fn draw_egui(
         .resizable(false)
         .show(ctx, |ui| {
             ui.set_enabled(ui_state.tools_enabled);
-            //Tests for tool buttons
 
             for (tool_type, tool_icon) in icon_vec {
                 if ui
@@ -861,9 +861,59 @@ pub fn draw_egui(
                                 )));
                             }
                         }
-                        ToolType::PlaceSource => {}
+                        ToolType::PlaceSource => {
+                            for (_, source) in source_set.p0().iter() {
+                                let gizmo_pos = pos2(
+                                    f32_map_range(
+                                        0.,
+                                        SIMULATION_WIDTH as f32,
+                                        image.rect.min.x,
+                                        image.rect.max.x,
+                                        source.x as f32,
+                                    ),
+                                    f32_map_range(
+                                        0.,
+                                        SIMULATION_HEIGHT as f32,
+                                        image.rect.min.y,
+                                        image.rect.max.y,
+                                        source.y as f32,
+                                    ),
+                                );
+
+                                painter.add(egui::Shape::Circle(CircleShape::filled(
+                                    gizmo_pos,
+                                    2.5,
+                                    Color32::from_rgb(255, 100, 0),
+                                )));
+                            }
+                        }
                         ToolType::DrawWall => {}
-                        ToolType::PlaceMic => {}
+                        ToolType::PlaceMic => {
+                            for (_, mic) in mic_set.p0().iter() {
+                                let gizmo_pos = pos2(
+                                    f32_map_range(
+                                        0.,
+                                        SIMULATION_WIDTH as f32,
+                                        image.rect.min.x,
+                                        image.rect.max.x,
+                                        mic.x as f32,
+                                    ),
+                                    f32_map_range(
+                                        0.,
+                                        SIMULATION_HEIGHT as f32,
+                                        image.rect.min.y,
+                                        image.rect.max.y,
+                                        mic.y as f32,
+                                    ),
+                                );
+
+                                painter.add(egui::Shape::Circle(CircleShape::filled(
+                                    gizmo_pos,
+                                    2.5,
+                                    Color32::from_rgb(0, 100, 255),
+                                )));
+                            }
+                        }
                         ToolType::MoveMic => {
                             for (_, mic) in mic_set.p0().iter() {
                                 let gizmo_pos = pos2(
