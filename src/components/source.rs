@@ -53,7 +53,7 @@ impl Source {
     pub fn calc(&self, time: f32) -> f32 {
         match self.source_type {
             SourceType::Sin => self.sin(time),
-            SourceType::Gauss => self.periodic_gaussian(time, 4., 0., 1.),
+            SourceType::Gauss => self.periodic_gaussian(time, 4., 0., 0.45),
             SourceType::WhiteNoise => rand::random::<f32>() * self.amplitude,
         }
     }
