@@ -109,6 +109,21 @@ pub fn draw_egui(
 
                     source_vec.iter_mut().for_each(|(entity, ref mut source)| {
                         let collapse = ui.collapsing(format!("Source {}", source.id), |ui| {
+                            ui.horizontal(|ui| {
+                                ui.label("x:");
+                                ui.add(
+                                    egui::DragValue::new(&mut source.x)
+                                        .speed(1)
+                                        .clamp_range(0.0..=SIMULATION_WIDTH as f32 - 1.),
+                                );
+                                ui.add_space(10.);
+                                ui.label("y:");
+                                ui.add(
+                                    egui::DragValue::new(&mut source.y)
+                                        .speed(1)
+                                        .clamp_range(0.0..=SIMULATION_HEIGHT as f32 - 1.),
+                                );
+                            });
                             ui.add(
                                 egui::Slider::new(&mut source.frequency, 0.0..=20000.0)
                                     .text("Frequency (Hz)"),
