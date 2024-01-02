@@ -8,7 +8,7 @@ use egui_plot::{Legend, Line, Plot, PlotPoints};
 
 use crate::components::microphone::*;
 use crate::components::source::*;
-use crate::components::states::{MenuSelected, Overlay, Selected};
+use crate::components::states::{Gizmo, MenuSelected, Overlay, Selected};
 use crate::components::wall::WallBlock;
 use crate::grid::grid::Grid;
 use crate::math::constants::*;
@@ -748,9 +748,8 @@ pub fn draw_egui(
                             Color32::from_rgb(255, 0, 0),
                         )));
                     }
-                }
-                // Tool specific gizmos
-                if ui_state.tools_enabled {
+                } else {
+                    // Tool specific gizmos
                     match ui_state.current_tool {
                         ToolType::MoveSource => {
                             for (_, source) in source_set.p0().iter() {
@@ -907,22 +906,7 @@ pub fn draw_egui(
                         ToolType::DrawWall => {}
                         ToolType::PlaceMic => {
                             for (_, mic) in mic_set.p0().iter() {
-                                let gizmo_pos = pos2(
-                                    f32_map_range(
-                                        0.,
-                                        SIMULATION_WIDTH as f32,
-                                        image.rect.min.x,
-                                        image.rect.max.x,
-                                        mic.x as f32,
-                                    ),
-                                    f32_map_range(
-                                        0.,
-                                        SIMULATION_HEIGHT as f32,
-                                        image.rect.min.y,
-                                        image.rect.max.y,
-                                        mic.y as f32,
-                                    ),
-                                );
+                                let gizmo_pos = mic.get_gizmo_position(&image.rect);
 
                                 painter.add(egui::Shape::Circle(CircleShape::filled(
                                     gizmo_pos,
@@ -933,22 +917,7 @@ pub fn draw_egui(
                         }
                         ToolType::MoveMic => {
                             for (_, mic) in mic_set.p0().iter() {
-                                let gizmo_pos = pos2(
-                                    f32_map_range(
-                                        0.,
-                                        SIMULATION_WIDTH as f32,
-                                        image.rect.min.x,
-                                        image.rect.max.x,
-                                        mic.x as f32,
-                                    ),
-                                    f32_map_range(
-                                        0.,
-                                        SIMULATION_HEIGHT as f32,
-                                        image.rect.min.y,
-                                        image.rect.max.y,
-                                        mic.y as f32,
-                                    ),
-                                );
+                                let gizmo_pos = mic.get_gizmo_position(&image.rect);
 
                                 painter.add(egui::Shape::Circle(CircleShape::filled(
                                     gizmo_pos,
@@ -958,22 +927,7 @@ pub fn draw_egui(
                             }
                             // selected mics
                             for (_, mic) in mic_set.p1().iter() {
-                                let gizmo_pos = pos2(
-                                    f32_map_range(
-                                        0.,
-                                        SIMULATION_WIDTH as f32,
-                                        image.rect.min.x,
-                                        image.rect.max.x,
-                                        mic.x as f32,
-                                    ),
-                                    f32_map_range(
-                                        0.,
-                                        SIMULATION_HEIGHT as f32,
-                                        image.rect.min.y,
-                                        image.rect.max.y,
-                                        mic.y as f32,
-                                    ),
-                                );
+                                let gizmo_pos = mic.get_gizmo_position(&image.rect);
 
                                 painter.add(egui::Shape::Circle(CircleShape::filled(
                                     gizmo_pos,
