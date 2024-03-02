@@ -279,6 +279,20 @@ pub fn draw_egui(
                                 }
                             });
 
+                            ui.horizontal(|ui| {
+                                ui.label(format!(
+                                    "Width: {:.3} m",
+                                    (wb.rect.width() + 1.0) * ui_state.delta_l
+                                ));
+
+                                ui.add_space(10.);
+
+                                ui.label(format!(
+                                    "Height: {:.3} m",
+                                    (wb.rect.height() + 1.0) * ui_state.delta_l
+                                ));
+                            });
+
                             if ui.add(egui::Button::new("Delete")).clicked() {
                                 commands.entity(*entity).despawn();
                             }
