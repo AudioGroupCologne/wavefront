@@ -6,9 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy_pixel_buffer = { version = "0.6.0", features = ["egui"] }
+bevy_pixel_buffer = { version = "0.7.0", features = ["egui"] }
 colorgrad = "0.6.2"
-egui_plot = "0.23.0"
+egui_plot = "0.26.2"
 rand = "0.8.5"
 rayon = "1.8.0"
 serde = { version = "1.0.197", features = ["serde_derive"] }
@@ -21,7 +21,7 @@ version = "*"
 features = ["serde"]
 
 [dependencies.bevy]
-version = "0.12"
+version = "0.13"
 # Disable the default features if there are any that you do not want
 default-features = false
 features = [

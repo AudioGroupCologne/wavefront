@@ -2,7 +2,7 @@ use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::epaint::CircleShape;
 use bevy_pixel_buffer::bevy_egui::egui::{pos2, Color32, Frame, Margin, Vec2};
-use bevy_pixel_buffer::bevy_egui::{egui, EguiContexts};
+use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::prelude::*;
 use egui_plot::{Legend, Line, Plot, PlotPoints};
 
@@ -91,7 +91,7 @@ pub fn draw_egui(
 
             ui.heading("Settings");
             if let Some(value) = diagnostics
-                .get(FrameTimeDiagnosticsPlugin::FPS)
+                .get(&FrameTimeDiagnosticsPlugin::FPS)
                 .and_then(|fps| fps.smoothed())
             {
                 ui.label(format!("FPS: {:.1}", value));

@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_pixel_buffer::bevy_egui::egui::{self, Vec2};
+use bevy_pixel_buffer::bevy_egui::egui::Vec2;
 
 #[derive(Default, Resource)]
 pub struct GameTicks {
