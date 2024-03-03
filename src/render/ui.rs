@@ -28,16 +28,19 @@ pub fn draw_egui(
         Query<(Entity, &mut WallBlock), Without<Overlay>>,
         Query<(Entity, &mut WallBlock), (Without<Overlay>, With<Selected>)>,
         Query<(Entity, &mut WallBlock), (Without<Overlay>, With<MenuSelected>)>,
+        Query<&WallBlock>,
     )>,
     mut source_set: ParamSet<(
         Query<(Entity, &mut Source)>,
         Query<(Entity, &Source), With<Selected>>,
         Query<(Entity, &Source), With<MenuSelected>>,
+        Query<&Source>,
     )>,
     mut mic_set: ParamSet<(
         Query<(Entity, &mut Microphone)>,
         Query<(Entity, &Microphone), With<Selected>>,
         Query<(Entity, &Microphone), With<MenuSelected>>,
+        Query<&Microphone>,
     )>,
 ) {
     //Icons
@@ -95,6 +98,51 @@ pub fn draw_egui(
             }
 
             ui.separator();
+
+            ui.horizontal(|ui| {
+                if ui
+                    .button("save")
+                    .on_hover_text("Save the current state of the simulation")
+                    .clicked()
+                {
+                    let source_set = source_set.p3();
+                    let mic_set = mic_set.p3();
+                    let wallblock_set = wallblock_set.p3();
+                    let sources = source_set.iter().collect::<Vec<_>>();
+                    let mics = mic_set.iter().collect::<Vec<_>>();
+                    let wallblocks = wallblock_set.iter().collect::<Vec<_>>();
+                    crate::saving::save(&sources, &mics, &wallblocks).unwrap();
+                }
+                if ui
+                    .button("load")
+                    .on_hover_text("Load a previously saved state of the simulation")
+                    .clicked()
+                {
+                    let save_data = crate::loading::load("save.json");
+
+                    // Clear all entities
+                    for (entity, _) in source_set.p0().iter() {
+                        commands.entity(entity).despawn();
+                    }
+                    for (entity, _) in mic_set.p0().iter() {
+                        commands.entity(entity).despawn();
+                    }
+                    for (entity, _) in wallblock_set.p0().iter() {
+                        commands.entity(entity).despawn();
+                    }
+
+                    // Load entities
+                    for source in save_data.sources {
+                        commands.spawn(source);
+                    }
+                    for mic in save_data.mics {
+                        commands.spawn(mic);
+                    }
+                    for wallblock in save_data.wallblocks {
+                        commands.spawn(wallblock);
+                    }
+                }
+            });
 
             // Sources
             egui::ScrollArea::vertical()

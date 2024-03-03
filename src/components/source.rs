@@ -1,11 +1,12 @@
 use std::f32::consts::PI;
 
 use bevy::prelude::*;
+use serde::{Deserialize, Serialize};
 
 use crate::grid::plugin::ComponentIDs;
 use crate::math::constants::*;
 
-#[derive(Debug, Default, Component)]
+#[derive(Debug, Default, Component, Serialize, Deserialize, Clone)]
 /// A sound source on the grid
 pub struct Source {
     pub x: u32,
@@ -21,7 +22,7 @@ pub struct Source {
     pub id: usize,
 }
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Default, PartialEq, Serialize, Deserialize, Clone)]
 pub enum SourceType {
     #[default]
     Sin,

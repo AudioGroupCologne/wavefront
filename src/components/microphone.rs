@@ -1,12 +1,13 @@
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::emath::Pos2;
+use serde::{Deserialize, Serialize};
 
 use super::states::Gizmo;
 use crate::grid::plugin::ComponentIDs;
 use crate::math::constants::*;
 use crate::math::transformations::f32_map_range;
 
-#[derive(Debug, Default, Component)]
+#[derive(Debug, Default, Component, Serialize, Deserialize, Clone)]
 /// A microphone on the grid that records the pressure at its position
 pub struct Microphone {
     pub x: u32,

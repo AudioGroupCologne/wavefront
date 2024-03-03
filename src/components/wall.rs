@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::{Pos2, Rect};
+use serde::{Deserialize, Serialize};
 
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::transformations::true_rect_from_rect;
@@ -38,7 +39,7 @@ impl WallCell {
 
 impl Wall for WallCell {}
 
-#[derive(Debug, Component)]
+#[derive(Debug, Component, Serialize, Deserialize)]
 pub struct WallBlock {
     pub rect: Rect,
     pub center: Pos2,
