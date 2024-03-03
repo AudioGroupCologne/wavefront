@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use serde::Serialize;
 
 use crate::components::microphone::Microphone;
@@ -12,11 +14,12 @@ struct SaveData<'a> {
 }
 
 pub fn save(
+    path: &Path,
     sources: &Vec<&Source>,
     mics: &Vec<&Microphone>,
     wallblocks: &Vec<&WallBlock>,
 ) -> Result<(), std::io::Error> {
-    let file = std::fs::File::create("save.json")?;
+    let file = std::fs::File::create(path)?;
     let save_data = SaveData {
         sources,
         mics,

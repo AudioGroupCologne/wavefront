@@ -1,9 +1,13 @@
+use std::ffi::OsStr;
+use std::path::Path;
+
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::epaint::CircleShape;
 use bevy_pixel_buffer::bevy_egui::egui::{pos2, Color32, Frame, Margin, Vec2};
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::prelude::*;
+use egui_file::FileDialog;
 use egui_plot::{Legend, Line, Plot, PlotPoints};
 
 use crate::components::microphone::*;
@@ -105,41 +109,68 @@ pub fn draw_egui(
                     .on_hover_text("Save the current state of the simulation")
                     .clicked()
                 {
-                    let source_set = source_set.p3();
-                    let mic_set = mic_set.p3();
-                    let wallblock_set = wallblock_set.p3();
-                    let sources = source_set.iter().collect::<Vec<_>>();
-                    let mics = mic_set.iter().collect::<Vec<_>>();
-                    let wallblocks = wallblock_set.iter().collect::<Vec<_>>();
-                    crate::saving::save(&sources, &mics, &wallblocks).unwrap();
+                    // TODO: force saving as .json?
+                    let mut dialog = FileDialog::save_file(None);
+                    dialog.open();
+                    ui_state.save_file_dialog = Some(dialog);
                 }
+                if let Some(dialog) = &mut ui_state.save_file_dialog {
+                    if dialog.show(ctx).selected() {
+                        if let Some(path) = dialog.path() {
+                            let source_set = source_set.p3();
+                            let mic_set = mic_set.p3();
+                            let wallblock_set = wallblock_set.p3();
+
+                            let sources = source_set.iter().collect::<Vec<_>>();
+                            let mics = mic_set.iter().collect::<Vec<_>>();
+                            let wallblocks = wallblock_set.iter().collect::<Vec<_>>();
+
+                            crate::saving::save(path, &sources, &mics, &wallblocks).unwrap();
+                        }
+                    }
+                }
+
                 if ui
                     .button("load")
                     .on_hover_text("Load a previously saved state of the simulation")
                     .clicked()
                 {
-                    let save_data = crate::loading::load("save.json");
+                    let filter = Box::new({
+                        let ext = Some(OsStr::new("json"));
+                        move |path: &Path| -> bool { path.extension() == ext }
+                    });
+                    let mut dialog = FileDialog::open_file(None).show_files_filter(filter);
+                    dialog.open();
+                    ui_state.open_file_dialog = Some(dialog);
+                }
 
-                    // Clear all entities
-                    for (entity, _) in source_set.p0().iter() {
-                        commands.entity(entity).despawn();
-                    }
-                    for (entity, _) in mic_set.p0().iter() {
-                        commands.entity(entity).despawn();
-                    }
-                    for (entity, _) in wallblock_set.p0().iter() {
-                        commands.entity(entity).despawn();
-                    }
+                if let Some(dialog) = &mut ui_state.open_file_dialog {
+                    if dialog.show(ctx).selected() {
+                        if let Some(path) = dialog.path() {
+                            let save_data = crate::loading::load(path);
 
-                    // Load entities
-                    for source in save_data.sources {
-                        commands.spawn(source);
-                    }
-                    for mic in save_data.mics {
-                        commands.spawn(mic);
-                    }
-                    for wallblock in save_data.wallblocks {
-                        commands.spawn(wallblock);
+                            // Clear all entities
+                            for (entity, _) in source_set.p0().iter() {
+                                commands.entity(entity).despawn();
+                            }
+                            for (entity, _) in mic_set.p0().iter() {
+                                commands.entity(entity).despawn();
+                            }
+                            for (entity, _) in wallblock_set.p0().iter() {
+                                commands.entity(entity).despawn();
+                            }
+
+                            // Load entities
+                            for source in save_data.sources {
+                                commands.spawn(source);
+                            }
+                            for mic in save_data.mics {
+                                commands.spawn(mic);
+                            }
+                            for wallblock in save_data.wallblocks {
+                                commands.spawn(wallblock);
+                            }
+                        }
                     }
                 }
             });

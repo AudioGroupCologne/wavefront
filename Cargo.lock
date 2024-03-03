@@ -1462,6 +1462,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "egui_file"
+version = "0.16.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "02490192f6b5121cfc579c7007b73b748686fee1b35d2c1350706fbe87680123"
+dependencies = [
+ "egui",
+]
+
+[[package]]
 name = "egui_plot"
 version = "0.26.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3170,6 +3179,7 @@ dependencies = [
  "bevy_pixel_buffer",
  "colorgrad",
  "egui",
+ "egui_file",
  "egui_plot",
  "rand",
  "rayon",

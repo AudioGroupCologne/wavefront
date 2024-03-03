@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use serde::Deserialize;
 
 use crate::components::microphone::Microphone;
@@ -11,7 +13,7 @@ pub struct SaveData {
     pub wallblocks: Vec<WallBlock>,
 }
 
-pub fn load(file_path: &str) -> SaveData {
-    let file = std::fs::File::open(file_path).unwrap();
+pub fn load(path: &Path) -> SaveData {
+    let file = std::fs::File::open(path).unwrap();
     serde_json::from_reader(file).unwrap()
 }
