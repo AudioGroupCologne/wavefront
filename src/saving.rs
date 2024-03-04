@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use serde::Serialize;
 
 use crate::components::microphone::Microphone;
@@ -14,17 +12,15 @@ struct SaveData<'a> {
 }
 
 pub fn save(
-    path: &Path,
     sources: &Vec<&Source>,
     mics: &Vec<&Microphone>,
     wallblocks: &Vec<&WallBlock>,
-) -> Result<(), std::io::Error> {
-    let file = std::fs::File::create(path)?;
+) -> Result<Vec<u8>, serde_json::Error> {
     let save_data = SaveData {
         sources,
         mics,
         wallblocks,
     };
-    serde_json::to_writer(file, &save_data)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
+
+    serde_json::to_vec(&save_data)
 }
