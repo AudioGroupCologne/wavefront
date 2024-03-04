@@ -1,4 +1,7 @@
 use bevy::prelude::*;
+use rayon::iter::{
+    IndexedParallelIterator, IntoParallelIterator, IntoParallelRefMutIterator, ParallelIterator,
+};
 
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
@@ -80,10 +83,10 @@ impl Grid {
         ];
     }
 
-    pub fn update_cells(&mut self, e_al: u32) {
-        for i in 0..((SIMULATION_WIDTH + 2 * e_al) * (SIMULATION_HEIGHT + 2 * e_al)) as usize {
-            self.cells[i].update();
-        }
+    pub fn update_cells(&mut self) {
+        self.cells.par_iter_mut().for_each(|cell| {
+            cell.update();
+        });
     }
 
     pub fn calc_cells(&mut self, e_al: u32) {
@@ -111,6 +114,15 @@ impl Grid {
                         - right_cell.cur_left);
             }
         }
+
+        // index to coord, and back to index
+        // exclude boundary??
+        // self.cells
+        //     .par_iter_mut()
+        //     .enumerate()
+        //     .for_each(|(index, cell)| {
+        //         cell.update();
+        //     });
     }
 
     pub fn apply_sources(&mut self, ticks_since_start: u64, sources: &Query<&Source>, e_al: u32) {
