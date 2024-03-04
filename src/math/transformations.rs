@@ -5,14 +5,14 @@ use super::constants::*;
 use crate::render::state::UiState;
 
 /// Calculates 1D array index from x,y coordinates (and an offset `index`)
-pub fn coords_to_index(x: u32, y: u32, index: u32, e_al: u32) -> usize {
-    (y * (SIMULATION_WIDTH + 2 * e_al) * NUM_INDEX + x * NUM_INDEX + index) as usize
+pub fn coords_to_index(x: u32, y: u32, e_al: u32) -> usize {
+    (y * (SIMULATION_WIDTH + 2 * e_al) + x) as usize
 }
 
 /// Calculates x,y coordinates from 1D array index
 pub fn index_to_coords(i: u32, e_al: u32) -> (u32, u32) {
-    let x = (i / 9) % (SIMULATION_WIDTH + 2 * e_al);
-    let y = i / 9 / (SIMULATION_WIDTH + 2 * e_al);
+    let x = i % (SIMULATION_WIDTH + 2 * e_al);
+    let y = i / (SIMULATION_WIDTH + 2 * e_al);
     (x, y)
 }
 

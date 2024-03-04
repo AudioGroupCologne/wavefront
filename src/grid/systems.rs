@@ -9,7 +9,7 @@ use crate::render::state::{GameTicks, UiState};
 
 pub fn calc_system(mut grid: ResMut<Grid>, ui_state: Res<UiState>) {
     if ui_state.is_running {
-        grid.calc(ui_state.e_al);
+        grid.calc_cells(ui_state.e_al);
     }
 }
 
@@ -35,7 +35,7 @@ pub fn update_system(
     ui_state: Res<UiState>,
 ) {
     if ui_state.is_running {
-        grid.update(ui_state.e_al);
+        grid.update_cells(ui_state.e_al);
         grid.update_delta_t(&ui_state);
         game_ticks.ticks_since_start += 1;
     }

@@ -320,7 +320,7 @@ pub fn draw_egui(
                 }
 
                 if ui.button("Reset").clicked() {
-                    grid.update_cells(ui_state.e_al);
+                    grid.reset_cells(ui_state.e_al);
                     for (_, mut mic) in mic_set.p0().iter_mut() {
                         mic.clear();
                     }
@@ -367,7 +367,7 @@ pub fn draw_egui(
                         .add(egui::Slider::new(&mut ui_state.e_al, 2..=200).text("E_AL"))
                         .changed()
                     {
-                        grid.update_cells(ui_state.e_al);
+                        grid.reset_cells(ui_state.e_al);
                         let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
                         pb.pixel_buffer.size = PixelBufferSize {
                             size: if ui_state.render_abc_area {
