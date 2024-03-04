@@ -391,19 +391,21 @@ pub fn draw_egui(
                 ui.heading("General Settings");
                 ui.separator();
 
-                if ui
-                    .button(if ui_state.is_running { "Stop" } else { "Start" })
-                    .clicked()
-                {
-                    ui_state.is_running = !ui_state.is_running;
-                }
-
-                if ui.button("Reset").clicked() {
-                    grid.reset_cells(ui_state.e_al);
-                    for (_, mut mic) in mic_set.p0().iter_mut() {
-                        mic.clear();
+                ui.horizontal(|ui| {
+                    if ui
+                        .button(if ui_state.is_running { "Stop" } else { "Start" })
+                        .clicked()
+                    {
+                        ui_state.is_running = !ui_state.is_running;
                     }
-                }
+
+                    if ui.button("Reset").clicked() {
+                        grid.reset_cells(ui_state.e_al);
+                        for (_, mut mic) in mic_set.p0().iter_mut() {
+                            mic.clear();
+                        }
+                    }
+                });
 
                 ui.add(
                     egui::Slider::new(&mut ui_state.delta_l, 0.0..=10.0)
