@@ -4,7 +4,7 @@ use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
 
 use crate::components::microphone::Microphone;
 use crate::math::constants::*;
-use crate::render::state::UiState;
+use crate::ui::state::UiState;
 
 pub fn calc_mic_spectrum(
     microphone: &mut Microphone,

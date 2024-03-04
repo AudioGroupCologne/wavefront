@@ -6,6 +6,7 @@ use bevy_pixel_buffer::prelude::*;
 use tlm_rs::grid::plugin::GridPlugin;
 use tlm_rs::input::plugin::InputPlugin;
 use tlm_rs::render::plugin::RenderPlugin;
+use tlm_rs::ui::plugin::UiPlugin;
 
 fn main() {
     App::new()
@@ -25,6 +26,7 @@ fn main() {
             RenderPlugin,
             GridPlugin,
             InputPlugin,
+            UiPlugin,
         ))
         .run();
 }

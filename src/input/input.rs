@@ -9,7 +9,7 @@ use crate::components::wall::{WallBlock, WallCell, WallResize};
 use crate::grid::plugin::ComponentIDs;
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
-use crate::render::state::{ToolType, UiState, WallBrush};
+use crate::ui::state::{ToolType, UiState, WallBrush};
 
 pub fn button_input(
     mouse_buttons: Res<ButtonInput<MouseButton>>,

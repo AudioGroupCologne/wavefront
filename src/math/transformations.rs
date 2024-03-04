@@ -2,7 +2,7 @@ use bevy_pixel_buffer::bevy_egui::egui::emath::Rect;
 use bevy_pixel_buffer::bevy_egui::egui::Pos2;
 
 use super::constants::*;
-use crate::render::state::UiState;
+use crate::ui::state::UiState;
 
 /// Calculates 1D array index from x,y coordinates (and an offset `index`)
 pub fn coords_to_index(x: u32, y: u32, e_al: u32) -> usize {

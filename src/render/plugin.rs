@@ -1,16 +1,12 @@
 use bevy::prelude::*;
-use bevy_file_dialog::FileDialogPlugin;
 use bevy_pixel_buffer::builder::PixelBufferBuilder;
 use bevy_pixel_buffer::pixel_buffer::PixelBufferSize;
 
-use super::dialog::file_loaded;
 use super::draw::{draw_pixels, draw_wall_blocks, draw_wall_cells, GradientResource};
-use super::state::{GameTicks, UiState};
-use super::ui::draw_egui;
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::math::constants::*;
-use crate::render::dialog::SaveFileContents;
+use crate::ui::state::GameTicks;
 
 pub struct RenderPlugin;
 
@@ -22,12 +18,6 @@ impl Plugin for RenderPlugin {
 
         app.insert_resource(gradient)
             .insert_resource(game_ticks)
-            .init_resource::<UiState>()
-            .add_plugins(
-                FileDialogPlugin::new()
-                    .with_save_file::<SaveFileContents>()
-                    .with_load_file::<SaveFileContents>(),
-            )
             .add_systems(
                 Startup,
                 (
@@ -39,10 +29,7 @@ impl Plugin for RenderPlugin {
             )
             .add_systems(
                 Update,
-                (
-                    (draw_pixels, draw_wall_blocks, draw_wall_cells, draw_egui).chain(),
-                    file_loaded,
-                ),
+                (draw_pixels, draw_wall_blocks, draw_wall_cells).chain(),
             );
     }
 }

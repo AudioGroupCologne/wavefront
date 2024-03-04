@@ -1,7 +1,5 @@
 use bevy::prelude::*;
-use rayon::iter::{
-    IndexedParallelIterator, IntoParallelIterator, IntoParallelRefMutIterator, ParallelIterator,
-};
+use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
@@ -9,7 +7,7 @@ use crate::components::states::Overlay;
 use crate::components::wall::WallBlock;
 use crate::math::constants::*;
 use crate::math::transformations::coords_to_index;
-use crate::render::state::{AttenuationType, UiState};
+use crate::ui::state::{AttenuationType, UiState};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Cell {

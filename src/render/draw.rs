@@ -3,13 +3,13 @@ use bevy_pixel_buffer::frame::GetFrameFromImages;
 use bevy_pixel_buffer::pixel::Pixel;
 use bevy_pixel_buffer::query::QueryPixelBuffer;
 
-use super::state::{PlotType, UiState};
 use crate::components::microphone::Microphone;
 use crate::components::states::Overlay;
 use crate::components::wall::{WallBlock, WallCell};
 use crate::grid::grid::Grid;
 use crate::math::constants::SIMULATION_WIDTH;
 use crate::math::transformations::{coords_to_index, u32_map_range};
+use crate::ui::state::{PlotType, UiState};
 
 #[derive(Resource)]
 pub struct GradientResource(pub colorgrad::Gradient);
@@ -166,12 +166,7 @@ pub fn draw_wall_blocks(
                 let g = raw_pixles[index as usize].g;
                 let b = raw_pixles[index as usize].b;
 
-                raw_pixles[index as usize] = Pixel {
-                    r: r,
-                    g: g,
-                    b: b,
-                    a: 70,
-                };
+                raw_pixles[index as usize] = Pixel { r, g, b, a: 70 };
             }
         }
     }
