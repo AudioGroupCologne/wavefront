@@ -1,12 +1,12 @@
 use bevy::prelude::*;
-use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
+use rayon::iter::{IndexedParallelIterator, IntoParallelRefMutIterator, ParallelIterator};
 
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::components::states::Overlay;
 use crate::components::wall::WallBlock;
 use crate::math::constants::*;
-use crate::math::transformations::coords_to_index;
+use crate::math::transformations::{coords_to_index, index_to_coords};
 use crate::ui::state::{AttenuationType, UiState};
 
 #[derive(Clone, Copy, Debug)]
@@ -113,13 +113,36 @@ impl Grid {
             }
         }
 
-        // index to coord, and back to index
+        // this does not work, because we cant access the cells vec insinde the closure
         // exclude boundary??
         // self.cells
         //     .par_iter_mut()
         //     .enumerate()
         //     .for_each(|(index, cell)| {
-        //         cell.update();
+        //         let (x, y) = index_to_coords(index as u32, e_al);
+
+        //         // we cant access the same vec over which we are mutable iterating,
+        //         // maybe store the next values in a separate vec and then update the current values?
+        //         let bottom_cell = self.cells[coords_to_index(x, y + 1, e_al)].clone();
+        //         let left_cell = self.cells[coords_to_index(x - 1, y, e_al)];
+        //         let top_cell = self.cells[coords_to_index(x, y - 1, e_al)];
+        //         let right_cell = self.cells[coords_to_index(x + 1, y, e_al)];
+
+        //         cell.next_bottom = 0.5
+        //             * (-bottom_cell.cur_top
+        //                 + left_cell.cur_right
+        //                 + top_cell.cur_bottom
+        //                 + right_cell.cur_left);
+        //         cell.next_left = 0.5
+        //             * (bottom_cell.cur_top - left_cell.cur_right
+        //                 + top_cell.cur_bottom
+        //                 + right_cell.cur_left);
+        //         cell.next_top = 0.5
+        //             * (bottom_cell.cur_top + left_cell.cur_right - top_cell.cur_bottom
+        //                 + right_cell.cur_left);
+        //         cell.next_right = 0.5
+        //             * (bottom_cell.cur_top + left_cell.cur_right + top_cell.cur_bottom
+        //                 - right_cell.cur_left);
         //     });
     }
 
