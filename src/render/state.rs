@@ -1,5 +1,6 @@
 use bevy::prelude::*;
-use bevy_pixel_buffer::bevy_egui::egui::{self, Vec2};
+use bevy_pixel_buffer::bevy_egui::egui::Vec2;
+use egui_file::FileDialog;
 
 #[derive(Default, Resource)]
 pub struct GameTicks {
@@ -58,6 +59,8 @@ pub struct UiState {
     pub wall_brush: WallBrush,
     pub wall_brush_radius: u32,
     pub tools_enabled: bool,
+    pub open_file_dialog: Option<FileDialog>,
+    pub save_file_dialog: Option<FileDialog>,
 }
 
 impl Default for UiState {
@@ -80,6 +83,8 @@ impl Default for UiState {
             wall_brush: WallBrush::Rectangle,
             wall_brush_radius: 10,
             tools_enabled: true,
+            open_file_dialog: None,
+            save_file_dialog: None,
         }
     }
 }

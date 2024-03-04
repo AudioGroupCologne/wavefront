@@ -12,8 +12,8 @@ use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
 use crate::render::state::{ToolType, UiState, WallBrush};
 
 pub fn button_input(
-    mouse_buttons: Res<Input<MouseButton>>,
-    keys: Res<Input<KeyCode>>,
+    mouse_buttons: Res<ButtonInput<MouseButton>>,
+    keys: Res<ButtonInput<KeyCode>>,
     q_windows: Query<&Window, With<PrimaryWindow>>,
     sources: Query<(Entity, &Source), Without<Drag>>,
     mut drag_sources: Query<(Entity, &mut Source), With<Drag>>,
