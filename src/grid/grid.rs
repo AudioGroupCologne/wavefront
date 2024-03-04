@@ -144,8 +144,8 @@ impl Grid {
         for wall in wallblocks.iter() {
             let true_rect = wall.calc_rect_with_boundaries;
 
-            for x in true_rect.min.x as u32..true_rect.max.x as u32 {
-                for y in true_rect.min.y as u32..true_rect.max.y as u32 {
+            for x in true_rect.min.x as u32..=true_rect.max.x as u32 {
+                for y in true_rect.min.y as u32..=true_rect.max.y as u32 {
                     let wall_index = coords_to_index(x, y, e_al);
                     self.cells[wall_index].next_bottom = 0.;
                     self.cells[wall_index].next_left = 0.;
