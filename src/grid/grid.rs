@@ -90,24 +90,25 @@ impl Grid {
     pub fn calc_cells(&mut self, e_al: u32) {
         for x in e_al..(SIMULATION_WIDTH + e_al) {
             for y in e_al..(SIMULATION_HEIGHT + e_al) {
+                let current_cell_index = coords_to_index(x, y, e_al);
                 let bottom_cell = self.cells[coords_to_index(x, y + 1, e_al)];
                 let left_cell = self.cells[coords_to_index(x - 1, y, e_al)];
                 let top_cell = self.cells[coords_to_index(x, y - 1, e_al)];
                 let right_cell = self.cells[coords_to_index(x + 1, y, e_al)];
 
-                self.cells[coords_to_index(x, y, e_al)].next_bottom = 0.5
+                self.cells[current_cell_index].next_bottom = 0.5
                     * (-bottom_cell.cur_top
                         + left_cell.cur_right
                         + top_cell.cur_bottom
                         + right_cell.cur_left);
-                self.cells[coords_to_index(x, y, e_al)].next_left = 0.5
+                self.cells[current_cell_index].next_left = 0.5
                     * (bottom_cell.cur_top - left_cell.cur_right
                         + top_cell.cur_bottom
                         + right_cell.cur_left);
-                self.cells[coords_to_index(x, y, e_al)].next_top = 0.5
+                self.cells[current_cell_index].next_top = 0.5
                     * (bottom_cell.cur_top + left_cell.cur_right - top_cell.cur_bottom
                         + right_cell.cur_left);
-                self.cells[coords_to_index(x, y, e_al)].next_right = 0.5
+                self.cells[current_cell_index].next_right = 0.5
                     * (bottom_cell.cur_top + left_cell.cur_right + top_cell.cur_bottom
                         - right_cell.cur_left);
             }
@@ -213,142 +214,123 @@ impl Grid {
         }
     }
 
-    fn calc_cell_boundary(&mut self, x: u32, y: u32, e_al: u32, attenuation_factors: &[f32; 4]) {
-        let current_cell = coords_to_index(x, y, e_al);
-        let bottom_top = self.cells[coords_to_index(x, y + 1, e_al)].cur_top;
-        let left_right = self.cells[coords_to_index(x - 1, y, e_al)].cur_right;
-        let top_bottom = self.cells[coords_to_index(x, y - 1, e_al)].cur_bottom;
-        let right_left = self.cells[coords_to_index(x + 1, y, e_al)].cur_left;
-
-        self.cells[current_cell].next_bottom = 0.5
-            * (-bottom_top * attenuation_factors[0]
-                + left_right * attenuation_factors[1]
-                + top_bottom * attenuation_factors[2]
-                + right_left * attenuation_factors[3]);
-        self.cells[current_cell].next_left = 0.5
-            * (bottom_top * attenuation_factors[0] - left_right * attenuation_factors[1]
-                + top_bottom * attenuation_factors[2]
-                + right_left * attenuation_factors[3]);
-        self.cells[current_cell].next_top = 0.5
-            * (bottom_top * attenuation_factors[0] + left_right * attenuation_factors[1]
-                - top_bottom * attenuation_factors[2]
-                + right_left * attenuation_factors[3]);
-        self.cells[current_cell].next_right = 0.5
-            * (bottom_top * attenuation_factors[0]
-                + left_right * attenuation_factors[1]
-                + top_bottom * attenuation_factors[2]
-                - right_left * attenuation_factors[3]);
-    }
-
     pub fn apply_boundaries(&mut self, ui_state: &UiState) {
         let b = (ui_state.e_al * ui_state.e_al) as f32 / ui_state.epsilon.ln();
+        // going in 'rings' from outer to inner
+        // every ring shares an attenuation factor
+        for r in 1..ui_state.e_al {
+            // there was a '?' in front of ui_state, that's not needed right?
+            // also distance could be just r -> need to redo att_fac calcs
+            let attenuation_factor = Grid::attenuation_factor(ui_state, ui_state.e_al - r, b);
 
-        //Left
-        for x in 1..ui_state.e_al {
-            for y in ui_state.e_al..(SIMULATION_HEIGHT + ui_state.e_al) {
-                let attenuation_factor = Grid::attenuation_factor(&ui_state, ui_state.e_al - x, b);
+            // bottom
+            for x in r..(SIMULATION_WIDTH + 2 * ui_state.e_al - r) {
+                let y = SIMULATION_HEIGHT + 2 * ui_state.e_al - r - 1;
+                let current_cell_index = coords_to_index(x, y, ui_state.e_al);
+                let bottom_cell = self.cells[coords_to_index(x, y + 1, ui_state.e_al)];
+                let left_cell = self.cells[coords_to_index(x - 1, y, ui_state.e_al)];
+                let top_cell = self.cells[coords_to_index(x, y - 1, ui_state.e_al)];
+                let right_cell = self.cells[coords_to_index(x + 1, y, ui_state.e_al)];
 
-                self.calc_cell_boundary(x, y, ui_state.e_al, &[1., 1., 1., attenuation_factor]);
+                self.cells[current_cell_index].next_bottom = 0.5
+                    * (-bottom_cell.cur_top
+                        + left_cell.cur_right
+                        + attenuation_factor * top_cell.cur_bottom
+                        + right_cell.cur_left);
+                self.cells[current_cell_index].next_left = 0.5
+                    * (bottom_cell.cur_top - left_cell.cur_right
+                        + attenuation_factor * top_cell.cur_bottom
+                        + right_cell.cur_left);
+                self.cells[current_cell_index].next_top = 0.5
+                    * (bottom_cell.cur_top + left_cell.cur_right
+                        - attenuation_factor * top_cell.cur_bottom
+                        + right_cell.cur_left);
+                self.cells[current_cell_index].next_right = 0.5
+                    * (bottom_cell.cur_top
+                        + left_cell.cur_right
+                        + attenuation_factor * top_cell.cur_bottom
+                        - right_cell.cur_left);
             }
-        }
-        //Top
-        for x in ui_state.e_al..(SIMULATION_WIDTH + ui_state.e_al) {
-            for y in 1..ui_state.e_al {
-                let attenuation_factor = Grid::attenuation_factor(&ui_state, ui_state.e_al - y, b);
+            // left
+            for y in r..(SIMULATION_HEIGHT + 2 * ui_state.e_al - r) {
+                let x = r;
+                let current_cell_index = coords_to_index(x, y, ui_state.e_al);
+                let bottom_cell = self.cells[coords_to_index(x, y + 1, ui_state.e_al)];
+                let left_cell = self.cells[coords_to_index(x - 1, y, ui_state.e_al)];
+                let top_cell = self.cells[coords_to_index(x, y - 1, ui_state.e_al)];
+                let right_cell = self.cells[coords_to_index(x + 1, y, ui_state.e_al)];
 
-                self.calc_cell_boundary(x, y, ui_state.e_al, &[attenuation_factor, 1., 1., 1.]);
+                self.cells[current_cell_index].next_bottom = 0.5
+                    * (-bottom_cell.cur_top
+                        + left_cell.cur_right
+                        + top_cell.cur_bottom
+                        + attenuation_factor * right_cell.cur_left);
+                self.cells[current_cell_index].next_left = 0.5
+                    * (bottom_cell.cur_top - left_cell.cur_right
+                        + top_cell.cur_bottom
+                        + attenuation_factor * right_cell.cur_left);
+                self.cells[current_cell_index].next_top = 0.5
+                    * (bottom_cell.cur_top + left_cell.cur_right - top_cell.cur_bottom
+                        + attenuation_factor * right_cell.cur_left);
+                self.cells[current_cell_index].next_right = 0.5
+                    * (bottom_cell.cur_top + left_cell.cur_right + top_cell.cur_bottom
+                        - attenuation_factor * right_cell.cur_left);
             }
-        }
-        //Right
-        for x in (SIMULATION_WIDTH + ui_state.e_al)..(SIMULATION_WIDTH + 2 * ui_state.e_al - 1) {
-            for y in ui_state.e_al..(SIMULATION_HEIGHT + ui_state.e_al) {
-                let attenuation_factor =
-                    Grid::attenuation_factor(&ui_state, x - (SIMULATION_WIDTH + ui_state.e_al), b);
+            // top
+            for x in r..(SIMULATION_WIDTH + 2 * ui_state.e_al - r) {
+                let y = r;
+                let current_cell_index = coords_to_index(x, y, ui_state.e_al);
+                let bottom_cell = self.cells[coords_to_index(x, y + 1, ui_state.e_al)];
+                let left_cell = self.cells[coords_to_index(x - 1, y, ui_state.e_al)];
+                let top_cell = self.cells[coords_to_index(x, y - 1, ui_state.e_al)];
+                let right_cell = self.cells[coords_to_index(x + 1, y, ui_state.e_al)];
 
-                self.calc_cell_boundary(x, y, ui_state.e_al, &[1., attenuation_factor, 1., 1.]);
+                self.cells[current_cell_index].next_bottom = 0.5
+                    * (attenuation_factor * -bottom_cell.cur_top
+                        + left_cell.cur_right
+                        + top_cell.cur_bottom
+                        + right_cell.cur_left);
+                self.cells[current_cell_index].next_left = 0.5
+                    * (attenuation_factor * bottom_cell.cur_top - left_cell.cur_right
+                        + top_cell.cur_bottom
+                        + right_cell.cur_left);
+                self.cells[current_cell_index].next_top = 0.5
+                    * (attenuation_factor * bottom_cell.cur_top + left_cell.cur_right
+                        - top_cell.cur_bottom
+                        + right_cell.cur_left);
+                self.cells[current_cell_index].next_right = 0.5
+                    * (attenuation_factor * bottom_cell.cur_top
+                        + left_cell.cur_right
+                        + top_cell.cur_bottom
+                        - right_cell.cur_left);
             }
-        }
-        //Bottom
-        for x in ui_state.e_al..(SIMULATION_WIDTH + ui_state.e_al) {
-            for y in
-                (SIMULATION_HEIGHT + ui_state.e_al)..(SIMULATION_HEIGHT + 2 * ui_state.e_al - 1)
-            {
-                let attenuation_factor =
-                    Grid::attenuation_factor(&ui_state, y - (SIMULATION_HEIGHT + ui_state.e_al), b);
+            // right
+            for y in r..(SIMULATION_HEIGHT + 2 * ui_state.e_al - r) {
+                let x = SIMULATION_WIDTH + 2 * ui_state.e_al - r - 1;
+                let current_cell_index = coords_to_index(x, y, ui_state.e_al);
+                let bottom_cell = self.cells[coords_to_index(x, y + 1, ui_state.e_al)];
+                let left_cell = self.cells[coords_to_index(x - 1, y, ui_state.e_al)];
+                let top_cell = self.cells[coords_to_index(x, y - 1, ui_state.e_al)];
+                let right_cell = self.cells[coords_to_index(x + 1, y, ui_state.e_al)];
 
-                self.calc_cell_boundary(x, y, ui_state.e_al, &[1., 1., attenuation_factor, 1.]);
-            }
-        }
-        //LeftTop
-        for x in 1..ui_state.e_al {
-            for y in 1..ui_state.e_al {
-                let attenuation_factor_left =
-                    Grid::attenuation_factor(&ui_state, ui_state.e_al - x, b);
-
-                let attenuation_factor_top =
-                    Grid::attenuation_factor(&ui_state, ui_state.e_al - y, b);
-
-                self.calc_cell_boundary(
-                    x,
-                    y,
-                    ui_state.e_al,
-                    &[attenuation_factor_top, 1., 1., attenuation_factor_left],
-                );
-            }
-        }
-        //RightTop
-        for x in (SIMULATION_WIDTH + ui_state.e_al)..(SIMULATION_WIDTH + 2 * ui_state.e_al - 1) {
-            for y in 1..ui_state.e_al {
-                let attenuation_factor_right =
-                    Grid::attenuation_factor(&ui_state, x - (SIMULATION_WIDTH + ui_state.e_al), b);
-
-                let attenuation_factor_top =
-                    Grid::attenuation_factor(&ui_state, ui_state.e_al - y, b);
-
-                self.calc_cell_boundary(
-                    x,
-                    y,
-                    ui_state.e_al,
-                    &[attenuation_factor_top, attenuation_factor_right, 1., 1.],
-                );
-            }
-        }
-        //RightBottom
-        for x in (SIMULATION_WIDTH + ui_state.e_al)..(SIMULATION_WIDTH + 2 * ui_state.e_al - 1) {
-            for y in
-                (SIMULATION_HEIGHT + ui_state.e_al)..(SIMULATION_HEIGHT + 2 * ui_state.e_al - 1)
-            {
-                let attenuation_factor_right =
-                    Grid::attenuation_factor(&ui_state, x - (SIMULATION_WIDTH + ui_state.e_al), b);
-
-                let attenuation_factor_bottom =
-                    Grid::attenuation_factor(&ui_state, y - (SIMULATION_HEIGHT + ui_state.e_al), b);
-
-                self.calc_cell_boundary(
-                    x,
-                    y,
-                    ui_state.e_al,
-                    &[1., attenuation_factor_right, attenuation_factor_bottom, 1.],
-                );
-            }
-        }
-        //LeftBottom
-        for x in 1..ui_state.e_al {
-            for y in
-                (SIMULATION_HEIGHT + ui_state.e_al)..(SIMULATION_HEIGHT + 2 * ui_state.e_al - 1)
-            {
-                let attenuation_factor_left =
-                    Grid::attenuation_factor(&ui_state, ui_state.e_al - x, b);
-
-                let attenuation_factor_bottom =
-                    Grid::attenuation_factor(&ui_state, y - (SIMULATION_HEIGHT + ui_state.e_al), b);
-
-                self.calc_cell_boundary(
-                    x,
-                    y,
-                    ui_state.e_al,
-                    &[1., 1., attenuation_factor_bottom, attenuation_factor_left],
-                );
+                self.cells[current_cell_index].next_bottom = 0.5
+                    * (-bottom_cell.cur_top
+                        + attenuation_factor * left_cell.cur_right
+                        + top_cell.cur_bottom
+                        + right_cell.cur_left);
+                self.cells[current_cell_index].next_left = 0.5
+                    * (bottom_cell.cur_top - attenuation_factor * left_cell.cur_right
+                        + top_cell.cur_bottom
+                        + right_cell.cur_left);
+                self.cells[current_cell_index].next_top = 0.5
+                    * (bottom_cell.cur_top + attenuation_factor * left_cell.cur_right
+                        - top_cell.cur_bottom
+                        + right_cell.cur_left);
+                self.cells[current_cell_index].next_right = 0.5
+                    * (bottom_cell.cur_top
+                        + attenuation_factor * left_cell.cur_right
+                        + top_cell.cur_bottom
+                        - right_cell.cur_left);
             }
         }
     }
@@ -358,7 +340,7 @@ impl Grid {
             AttenuationType::OriginalOneWay => {
                 1.0 - ((1. + ui_state.epsilon) - ((distance * distance) as f32 / b).exp())
             }
-            AttenuationType::Linear => 1.0 - ((distance) as f32 / ui_state.e_al as f32).powi(1),
+            AttenuationType::Linear => 1.0 - (distance as f32 / ui_state.e_al as f32).powi(1),
             AttenuationType::Power => {
                 1.0 - (distance as f32 / ui_state.e_al as f32).powi(ui_state.power_order as i32)
             }
