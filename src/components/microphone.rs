@@ -13,7 +13,9 @@ pub struct Microphone {
     pub x: u32,
     pub y: u32,
     pub id: usize,
+    #[serde(skip_serializing, skip_deserializing)]
     pub record: Vec<[f64; 2]>,
+    #[serde(skip_serializing, skip_deserializing)]
     pub spectrum: Vec<Vec<[f64; 2]>>,
 }
 
