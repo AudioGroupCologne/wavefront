@@ -4,7 +4,7 @@ use serde::Deserialize;
 
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
-use crate::components::wall::WallBlock;
+use crate::components::wall::Wall;
 
 pub struct SaveFileContents;
 
@@ -12,7 +12,7 @@ pub struct SaveFileContents;
 pub struct SaveData {
     pub sources: Vec<Source>,
     pub mics: Vec<Microphone>,
-    pub wallblocks: Vec<WallBlock>,
+    pub walls: Vec<Wall>,
 }
 
 pub fn file_loaded(
@@ -20,7 +20,7 @@ pub fn file_loaded(
     mut commands: Commands,
     sources: Query<(Entity, &Source)>,
     mics: Query<(Entity, &Microphone)>,
-    wallblocks: Query<(Entity, &WallBlock)>,
+    walls: Query<(Entity, &Wall)>,
 ) {
     if let Some(data) = ev_loaded.read().next() {
         let save_data = serde_json::from_slice::<SaveData>(&data.contents).unwrap();
@@ -32,7 +32,7 @@ pub fn file_loaded(
         for (entity, _) in mics.iter() {
             commands.entity(entity).despawn();
         }
-        for (entity, _) in wallblocks.iter() {
+        for (entity, _) in walls.iter() {
             commands.entity(entity).despawn();
         }
 
@@ -43,8 +43,8 @@ pub fn file_loaded(
         for mic in save_data.mics {
             commands.spawn(mic);
         }
-        for wallblock in save_data.wallblocks {
-            commands.spawn(wallblock);
+        for wall in save_data.walls {
+            commands.spawn(wall);
         }
     }
 }

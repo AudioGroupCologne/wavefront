@@ -4,7 +4,7 @@ use super::grid::Grid;
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::components::states::Overlay;
-use crate::components::wall::WallBlock;
+use crate::components::wall::Wall;
 use crate::ui::state::{GameTicks, UiState};
 
 pub fn calc_system(mut grid: ResMut<Grid>, ui_state: Res<UiState>) {
@@ -17,14 +17,14 @@ pub fn apply_system(
     mut grid: ResMut<Grid>,
     sources: Query<&Source>,
     microphones: Query<&mut Microphone>,
-    wallblocks: Query<&WallBlock, Without<Overlay>>,
+    walls: Query<&Wall, Without<Overlay>>,
     game_ticks: Res<GameTicks>,
     ui_state: Res<UiState>,
 ) {
     if ui_state.is_running {
         grid.apply_sources(game_ticks.ticks_since_start, &sources, ui_state.e_al);
         grid.apply_boundaries(&ui_state);
-        grid.apply_walls(&wallblocks, ui_state.e_al);
+        grid.apply_walls(&walls, ui_state.e_al);
         grid.apply_microphones(microphones, &ui_state);
     }
 }

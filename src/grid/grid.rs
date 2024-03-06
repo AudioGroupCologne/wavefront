@@ -4,7 +4,7 @@ use rayon::iter::{IndexedParallelIterator, IntoParallelRefMutIterator, ParallelI
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::components::states::Overlay;
-use crate::components::wall::WallBlock;
+use crate::components::wall::{Wall, WallType};
 use crate::math::constants::*;
 use crate::math::transformations::{coords_to_index, index_to_coords};
 use crate::ui::state::{AttenuationType, UiState};
@@ -174,42 +174,71 @@ impl Grid {
         }
     }
 
-    pub fn apply_walls(&mut self, wallblocks: &Query<&WallBlock, Without<Overlay>>, e_al: u32) {
-        for wall in wallblocks.iter() {
-            let true_rect = wall.calc_rect_with_boundaries;
+    pub fn apply_walls(&mut self, walls: &Query<&Wall, Without<Overlay>>, e_al: u32) {
+        for wall in walls.iter() {
+            match &wall.wall_type {
+                WallType::Rectangle => {
+                    if !wall.hollow {
+                        for x in wall.calc_rect.min.x..=wall.calc_rect.max.x {
+                            for y in wall.calc_rect.min.y..=wall.calc_rect.max.y {
+                                let wall_index = coords_to_index(x, y, e_al);
+                                self.cells[wall_index].next_bottom = 0.;
+                                self.cells[wall_index].next_left = 0.;
+                                self.cells[wall_index].next_top = 0.;
+                                self.cells[wall_index].next_right = 0.;
+                            }
+                        }
+                    }
 
-            for x in true_rect.min.x as u32..=true_rect.max.x as u32 {
-                for y in true_rect.min.y as u32..=true_rect.max.y as u32 {
-                    let wall_index = coords_to_index(x, y, e_al);
-                    self.cells[wall_index].next_bottom = 0.;
-                    self.cells[wall_index].next_left = 0.;
-                    self.cells[wall_index].next_top = 0.;
-                    self.cells[wall_index].next_right = 0.;
+                    for x in wall.calc_rect.min.x..=wall.calc_rect.max.x {
+                        //bottom row
+                        let wall_index = coords_to_index(x, wall.calc_rect.max.y, e_al);
+                        //outer reflection
+                        self.cells[wall_index].next_bottom = wall.reflection_factor
+                            * self.cells[coords_to_index(x, wall.calc_rect.max.y + 1, e_al)]
+                                .cur_top;
+                        // inner reflection
+                        self.cells[wall_index].next_top = wall.reflection_factor
+                            * self.cells[coords_to_index(x, wall.calc_rect.max.y - 1, e_al)]
+                                .cur_bottom;
+
+                        //top row
+                        let wall_index = coords_to_index(x, wall.calc_rect.min.y as u32, e_al);
+                        //outer reflection
+                        self.cells[wall_index].next_top = wall.reflection_factor
+                            * self.cells[coords_to_index(x, wall.calc_rect.min.y - 1, e_al)]
+                                .cur_bottom;
+                        // inner reflection
+                        self.cells[wall_index].next_bottom = wall.reflection_factor
+                            * self.cells[coords_to_index(x, wall.calc_rect.min.y + 1, e_al)]
+                                .cur_top;
+                    }
+
+                    for y in wall.calc_rect.min.y as u32..=wall.calc_rect.max.y as u32 {
+                        //left row
+                        let wall_index = coords_to_index(wall.calc_rect.min.x as u32, y, e_al);
+                        //outer reflection
+                        self.cells[wall_index].next_left = wall.reflection_factor
+                            * self.cells[coords_to_index(wall.calc_rect.min.x - 1, y, e_al)]
+                                .cur_right;
+                        // inner reflection
+                        self.cells[wall_index].next_right = wall.reflection_factor
+                            * self.cells[coords_to_index(wall.calc_rect.min.x + 1, y, e_al)]
+                                .cur_left;
+
+                        //right row
+                        let wall_index = coords_to_index(wall.calc_rect.max.x as u32, y, e_al);
+                        //outer reflection
+                        self.cells[wall_index].next_right = wall.reflection_factor
+                            * self.cells[coords_to_index(wall.calc_rect.max.x + 1, y, e_al)]
+                                .cur_left;
+                        // inner reflection
+                        self.cells[wall_index].next_left = wall.reflection_factor
+                            * self.cells[coords_to_index(wall.calc_rect.max.x - 1, y, e_al)]
+                                .cur_right;
+                    }
                 }
-            }
-
-            for x in true_rect.min.x as u32..=true_rect.max.x as u32 {
-                //bottom row
-                let wall_index = coords_to_index(x, true_rect.max.y as u32, e_al);
-                self.cells[wall_index].next_bottom = wall.reflection_factor
-                    * self.cells[coords_to_index(x, true_rect.max.y as u32 + 1, e_al)].cur_top;
-
-                //top row
-                let wall_index = coords_to_index(x, true_rect.min.y as u32, e_al);
-                self.cells[wall_index].next_top = wall.reflection_factor
-                    * self.cells[coords_to_index(x, true_rect.min.y as u32 - 1, e_al)].cur_bottom;
-            }
-
-            for y in true_rect.min.y as u32..=true_rect.max.y as u32 {
-                //left row
-                let wall_index = coords_to_index(true_rect.min.x as u32, y, e_al);
-                self.cells[wall_index].next_left = wall.reflection_factor
-                    * self.cells[coords_to_index(true_rect.min.x as u32 - 1, y, e_al)].cur_right;
-
-                //right row
-                let wall_index = coords_to_index(true_rect.max.x as u32, y, e_al);
-                self.cells[wall_index].next_right = wall.reflection_factor
-                    * self.cells[coords_to_index(true_rect.max.x as u32 + 1, y, e_al)].cur_left;
+                WallType::Circle => todo!(),
             }
         }
     }

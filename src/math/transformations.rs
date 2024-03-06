@@ -1,5 +1,4 @@
 use bevy_pixel_buffer::bevy_egui::egui::emath::Rect;
-use bevy_pixel_buffer::bevy_egui::egui::Pos2;
 
 use super::constants::*;
 use crate::ui::state::UiState;
@@ -61,111 +60,27 @@ pub fn screen_to_grid(x: f32, y: f32, image_rect: Rect, ui_state: &UiState) -> O
     ))
 }
 
-pub fn true_rect_from_rect(rect: Rect) -> Rect {
-    //Q1
-    if rect.min.x < rect.max.x && rect.min.y > rect.max.y {
-        return Rect {
-            min: Pos2::new(rect.min.x, rect.max.y),
-            max: Pos2::new(rect.max.x, rect.min.y),
-        };
-    }
-    //Q2
-    if rect.min.x > rect.max.x && rect.min.y > rect.max.y {
-        return Rect {
-            min: Pos2::new(rect.max.x, rect.max.y),
-            max: Pos2::new(rect.min.x, rect.min.y),
-        };
-    }
-    //Q3
-    if rect.min.x > rect.max.x && rect.min.y < rect.max.y {
-        return Rect {
-            min: Pos2::new(rect.max.x, rect.min.y),
-            max: Pos2::new(rect.min.x, rect.max.y),
-        };
-    }
-    //Q4
-    rect
-}
+/// grid position in 0..SIMULATION_WIDTH and 0..SIMULATION_HEIGHT
+pub fn screen_to_nearest_grid(x: f32, y: f32, image_rect: Rect) -> Option<(u32, u32)> {
+    let width = image_rect.width() as u32;
+    let height = image_rect.height() as u32;
 
-pub fn screen_to_nearest_grid(
-    x: f32,
-    y: f32,
-    image_rect: Rect,
-    ui_state: &UiState,
-) -> Option<(u32, u32)> {
-    let boundary_width = if ui_state.render_abc_area {
-        ui_state.e_al
-    } else {
+    let mut x = if (x as u32) < image_rect.min.x as u32 {
         0
+    } else {
+        x as u32 - image_rect.min.x as u32
+    };
+    let mut y = if (y as u32) < image_rect.min.y as u32 {
+        0
+    } else {
+        y as u32 - image_rect.min.y as u32
     };
 
-    let width = image_rect.width();
-    let height = image_rect.height();
-    let x = x - image_rect.min.x;
-    let y = y - image_rect.min.y;
-
-    if y >= height && x <= width && x > 0. {
-        return Some((
-            u32_map_range(
-                0,
-                width as u32,
-                0,
-                SIMULATION_WIDTH + 2 * boundary_width,
-                x as u32,
-            ) - boundary_width,
-            SIMULATION_HEIGHT - 1,
-        ));
-    } else if x >= width && y <= height && y > 0. {
-        return Some((
-            SIMULATION_WIDTH - 1,
-            u32_map_range(
-                0,
-                height as u32,
-                0,
-                SIMULATION_HEIGHT + 2 * boundary_width,
-                y as u32,
-            ) - boundary_width,
-        ));
-    } else if x < 0. && y <= height && y > 0. {
-        return Some((
-            0,
-            u32_map_range(
-                0,
-                height as u32,
-                0,
-                SIMULATION_HEIGHT + 2 * boundary_width,
-                y as u32,
-            ) - boundary_width,
-        ));
-    } else if y < 0. && x <= width && x > 0. {
-        return Some((
-            u32_map_range(
-                0,
-                width as u32,
-                0,
-                SIMULATION_WIDTH + 2 * boundary_width,
-                x as u32,
-            ) - boundary_width,
-            0,
-        ));
-    }
+    x = if x > width { width } else { x };
+    y = if y > height { height } else { y };
 
     Some((
-        (u32_map_range(
-            0,
-            width as u32,
-            0,
-            SIMULATION_WIDTH + 2 * boundary_width,
-            x as u32,
-        ) - boundary_width)
-            .clamp(0, SIMULATION_WIDTH - 1),
-        (u32_map_range(
-            0,
-            height as u32,
-            0,
-            SIMULATION_HEIGHT + 2 * boundary_width,
-            y as u32,
-        ) - boundary_width)
-            .clamp(0, SIMULATION_HEIGHT - 1),
+        u32_map_range(0, width, 0, SIMULATION_WIDTH - 1, x),
+        u32_map_range(0, height, 0, SIMULATION_HEIGHT - 1, y),
     ))
 }

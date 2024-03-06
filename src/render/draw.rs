@@ -5,7 +5,7 @@ use bevy_pixel_buffer::query::QueryPixelBuffer;
 
 use crate::components::microphone::Microphone;
 use crate::components::states::Overlay;
-use crate::components::wall::{WallBlock, WallCell};
+use crate::components::wall::{Wall, WallType};
 use crate::grid::grid::Grid;
 use crate::math::constants::SIMULATION_WIDTH;
 use crate::math::transformations::{coords_to_index, u32_map_range};
@@ -104,98 +104,125 @@ pub fn draw_pixels(
     }
 }
 
-pub fn draw_wall_blocks(
+pub fn draw_walls(
     pixel_buffers: QueryPixelBuffer,
-    walls: Query<&WallBlock, Without<Overlay>>,
-    walls_overlay: Query<&WallBlock, With<Overlay>>,
+    walls: Query<&Wall, Without<Overlay>>,
+    walls_overlay: Query<&Wall, With<Overlay>>,
     ui_state: Res<UiState>,
 ) {
     let (query, mut images) = pixel_buffers.split();
     let mut frame = images.frame(query.iter().next().expect("one pixel buffer"));
+    let boundary_width = if ui_state.render_abc_area {
+        ui_state.e_al
+    } else {
+        0
+    };
     for wall in walls.iter() {
-        let min = wall.calc_rect.min;
-        let x_sign = wall.calc_rect.width().signum();
-        let y_sign = wall.calc_rect.height().signum();
-
-        let offset = if ui_state.render_abc_area {
-            ui_state.e_al
-        } else {
-            0
-        };
-
-        for x in 0..=wall.calc_rect.width().abs() as u32 {
-            for y in 0..=wall.calc_rect.height().abs() as u32 {
-                frame
-                    .set(
-                        UVec2::new(
-                            (min.x + x as f32 * x_sign) as u32 + offset,
-                            (min.y + y as f32 * y_sign) as u32 + offset,
-                        ),
-                        Pixel {
-                            r: (255. * wall.reflection_factor) as u8,
-                            g: (255. * wall.reflection_factor) as u8,
-                            b: (255. * wall.reflection_factor) as u8,
-                            a: 255,
-                        },
-                    )
-                    .expect("Wall pixel out of bounds");
+        match &wall.wall_type {
+            WallType::Rectangle => {
+                // this feels a bit sloppy
+                if !wall.hollow {
+                    for x in wall.draw_rect.min.x..=wall.draw_rect.max.x {
+                        for y in wall.draw_rect.min.y..=wall.draw_rect.max.y {
+                            frame
+                                .set(
+                                    UVec2::new(x + boundary_width, y + boundary_width),
+                                    Pixel {
+                                        r: (255. * wall.reflection_factor) as u8,
+                                        g: (255. * wall.reflection_factor) as u8,
+                                        b: (255. * wall.reflection_factor) as u8,
+                                        a: 255,
+                                    },
+                                )
+                                .expect("Wall pixel out of bounds");
+                        }
+                    }
+                } else {
+                    for x in wall.draw_rect.min.x..=wall.draw_rect.max.x {
+                        frame
+                            .set(
+                                UVec2::new(
+                                    x + boundary_width,
+                                    wall.draw_rect.min.y + boundary_width,
+                                ),
+                                Pixel {
+                                    r: (255. * wall.reflection_factor) as u8,
+                                    g: (255. * wall.reflection_factor) as u8,
+                                    b: (255. * wall.reflection_factor) as u8,
+                                    a: 255,
+                                },
+                            )
+                            .expect("Wall pixel out of bounds");
+                        frame
+                            .set(
+                                UVec2::new(
+                                    x + boundary_width,
+                                    wall.draw_rect.max.y + boundary_width,
+                                ),
+                                Pixel {
+                                    r: (255. * wall.reflection_factor) as u8,
+                                    g: (255. * wall.reflection_factor) as u8,
+                                    b: (255. * wall.reflection_factor) as u8,
+                                    a: 255,
+                                },
+                            )
+                            .expect("Wall pixel out of bounds");
+                    }
+                    for y in wall.draw_rect.min.y..=wall.draw_rect.max.y {
+                        frame
+                            .set(
+                                UVec2::new(
+                                    wall.draw_rect.min.x + boundary_width,
+                                    y + boundary_width,
+                                ),
+                                Pixel {
+                                    r: (255. * wall.reflection_factor) as u8,
+                                    g: (255. * wall.reflection_factor) as u8,
+                                    b: (255. * wall.reflection_factor) as u8,
+                                    a: 255,
+                                },
+                            )
+                            .expect("Wall pixel out of bounds");
+                        frame
+                            .set(
+                                UVec2::new(
+                                    wall.draw_rect.max.x + boundary_width,
+                                    y + boundary_width,
+                                ),
+                                Pixel {
+                                    r: (255. * wall.reflection_factor) as u8,
+                                    g: (255. * wall.reflection_factor) as u8,
+                                    b: (255. * wall.reflection_factor) as u8,
+                                    a: 255,
+                                },
+                            )
+                            .expect("Wall pixel out of bounds");
+                    }
+                }
             }
+            WallType::Circle => todo!(),
         }
     }
 
     let raw_pixles = frame.raw_mut();
 
     for wall in walls_overlay.iter() {
-        let min = wall.calc_rect.min;
-        let x_sign = wall.calc_rect.width().signum();
-        let y_sign = wall.calc_rect.height().signum();
+        match &wall.wall_type {
+            WallType::Rectangle => {
+                for x in wall.draw_rect.min.x..=wall.draw_rect.max.x {
+                    for y in wall.draw_rect.min.y..=wall.draw_rect.max.y {
+                        // no out of bounds check
+                        let index = x + y * SIMULATION_WIDTH;
 
-        let offset = if ui_state.render_abc_area {
-            ui_state.e_al
-        } else {
-            0
-        };
+                        let r = raw_pixles[index as usize].r;
+                        let g = raw_pixles[index as usize].g;
+                        let b = raw_pixles[index as usize].b;
 
-        for x in 0..=wall.calc_rect.width().abs() as u32 {
-            for y in 0..=wall.calc_rect.height().abs() as u32 {
-                // no out of bounds check
-                let index = ((min.x + x as f32 * x_sign) as u32 + offset)
-                    + ((min.y + y as f32 * y_sign) as u32 + offset) * SIMULATION_WIDTH;
-
-                let r = raw_pixles[index as usize].r;
-                let g = raw_pixles[index as usize].g;
-                let b = raw_pixles[index as usize].b;
-
-                raw_pixles[index as usize] = Pixel { r, g, b, a: 70 };
+                        raw_pixles[index as usize] = Pixel { r, g, b, a: 70 };
+                    }
+                }
             }
+            WallType::Circle => todo!(),
         }
-    }
-}
-
-pub fn draw_wall_cells(
-    pixel_buffers: QueryPixelBuffer,
-    walls: Query<&WallCell>,
-    ui_state: Res<UiState>,
-) {
-    let (query, mut images) = pixel_buffers.split();
-    let mut frame = images.frame(query.iter().next().expect("one pixel buffer"));
-    for wall in walls.iter() {
-        let offset = if ui_state.render_abc_area {
-            ui_state.e_al
-        } else {
-            0
-        };
-
-        frame
-            .set(
-                UVec2::new(wall.x + offset, wall.y + offset),
-                Pixel {
-                    r: (255. * wall.reflection_factor) as u8,
-                    g: (255. * wall.reflection_factor) as u8,
-                    b: (255. * wall.reflection_factor) as u8,
-                    a: 255,
-                },
-            )
-            .expect("Wall pixel out of bounds");
     }
 }
