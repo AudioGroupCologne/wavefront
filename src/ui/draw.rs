@@ -15,7 +15,8 @@ use crate::components::wall::WallBlock;
 use crate::grid::grid::Grid;
 use crate::math::constants::*;
 use crate::math::fft::calc_mic_spectrum;
-use crate::math::transformations::f32_map_range;
+use crate::math::transformations::{coords_to_index, f32_map_range};
+use crate::render::draw::GradientResource;
 use crate::ui::state::*;
 
 pub fn draw_egui(
@@ -26,6 +27,7 @@ pub fn draw_egui(
     mut egui_context: EguiContexts,
     mut ui_state: ResMut<UiState>,
     mut grid: ResMut<Grid>,
+    gradient: Res<GradientResource>,
     mut wallblock_set: ParamSet<(
         Query<(Entity, &mut WallBlock), Without<Overlay>>,
         Query<(Entity, &mut WallBlock), (Without<Overlay>, With<Selected>)>,
@@ -138,6 +140,46 @@ pub fn draw_egui(
                         .set_directory("./")
                         .set_title("Select a file to load")
                         .load_file::<SaveFileContents>();
+                }
+
+                if ui
+                    .button("Save Image")
+                    .on_hover_text("Save the current iamge of the simulation")
+                    .clicked()
+                {
+                    let mut pixels: Vec<[u8; 3]> = Vec::new();
+
+                    for y in ui_state.e_al..(SIMULATION_WIDTH + ui_state.e_al) {
+                        for x in ui_state.e_al..(SIMULATION_HEIGHT + ui_state.e_al) {
+                            let pressure =
+                                grid.cells[coords_to_index(x, y, ui_state.e_al)].pressure;
+
+                            let color = gradient.0.at((pressure) as f64);
+
+                            pixels.push([
+                                (color.r * 255.) as u8,
+                                (color.g * 255.) as u8,
+                                (color.b * 255.) as u8,
+                            ]);
+                        }
+                    }
+
+                    let data = lodepng::encode_memory(
+                        &pixels,
+                        SIMULATION_WIDTH as usize,
+                        SIMULATION_HEIGHT as usize,
+                        lodepng::ColorType::RGB,
+                        8,
+                    )
+                    .expect("");
+
+                    commands
+                        .dialog()
+                        .add_filter("Jpeg", &["jpeg"])
+                        .set_file_name("save.jpg")
+                        .set_directory("./")
+                        .set_title("Select a file to save to")
+                        .save_file::<SaveFileContents>(data);
                 }
             });
 

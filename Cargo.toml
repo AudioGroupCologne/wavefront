@@ -10,6 +10,7 @@ bevy_file_dialog = "0.4.0"
 bevy_pixel_buffer = { version = "0.7.0", features = ["egui"] }
 colorgrad = "0.6.2"
 egui_plot = "0.26.2"
+lodepng = "3.10.1"
 rand = "0.8.5"
 rayon = "1.8.0"
 serde = { version = "1.0.197", features = ["serde_derive"] }
