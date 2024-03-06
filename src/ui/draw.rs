@@ -144,7 +144,7 @@ pub fn draw_egui(
 
                 if ui
                     .button("Save Image")
-                    .on_hover_text("Save the current iamge of the simulation")
+                    .on_hover_text("Save the current image of the simulation")
                     .clicked()
                 {
                     let mut pixels: Vec<[u8; 3]> = Vec::new();
