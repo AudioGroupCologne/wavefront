@@ -73,33 +73,23 @@ pub fn draw_pixels(
         let spectrum = &mic.spectrum;
         let len_y = spectrum.len();
 
-        frame.per_pixel_par(|coords, _| Pixel {
-            //TODO: is 120 hardcoded <- doesn't work when frequency range changes and linear
-            r: (if len_y > 1 && coords.y < len_y as u32 {
+        frame.per_pixel_par(|coords, _| {
+            let gray = if len_y > 1 && coords.y < len_y as u32 {
                 spectrum[coords.y as usize]
+                    //TODO: is 120 hardcoded <- doesn't work when frequency range changes and linear
                     [u32_map_range(0, (ui_state.spectrum_size.x) as u32, 0, 120, coords.x) as usize]
                     [1]
                     * 255.
             } else {
                 0.
-            }) as u8,
-            g: (if len_y > 1 && coords.y < len_y as u32 {
-                spectrum[coords.y as usize]
-                    [u32_map_range(0, (ui_state.spectrum_size.x) as u32, 0, 120, coords.x) as usize]
-                    [1]
-                    * 255.
-            } else {
-                0.
-            }) as u8,
-            b: (if len_y > 1 && coords.y < len_y as u32 {
-                spectrum[coords.y as usize]
-                    [u32_map_range(0, (ui_state.spectrum_size.x) as u32, 0, 120, coords.x) as usize]
-                    [1]
-                    * 255.
-            } else {
-                0.
-            }) as u8,
-            a: 255,
+            } as u8;
+
+            Pixel {
+                r: gray,
+                g: gray,
+                b: gray,
+                a: 255,
+            }
         });
     }
 }
