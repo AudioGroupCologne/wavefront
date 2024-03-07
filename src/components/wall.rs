@@ -98,42 +98,45 @@ impl Wall {
     pub fn translate_center_to(&mut self, x: u32, y: u32, e_al: u32) {
         let current_center = self.draw_rect.center();
 
-        let width = self.draw_rect.width();
-        let height = self.draw_rect.height();
+        let mut x_offset = x as i32 - current_center.x as i32;
+        let mut y_offset = y as i32 - current_center.y as i32;
 
-        let x_offset = x as i32 - current_center.x as i32;
-        let y_offset = y as i32 - current_center.y as i32;
-
-        let new_min_x = self.rect.min.x as i32 + x_offset;
-        let new_min_y = self.rect.min.y as i32 + y_offset;
-        let new_max_x = self.rect.max.x as i32 + x_offset;
-        let new_max_y = self.rect.max.y as i32 + y_offset;
-
-        if new_min_x >= 0 && new_max_x <= (SIMULATION_WIDTH - 1) as i32 {
-            self.rect.min.x = new_min_x as u32;
-            self.rect.max.x = new_max_x as u32;
-        } else {
-            if new_min_x < 0 {
-                self.rect.min.x = 0;
-                self.rect.max.x = width - 1;
-            }
-            if new_max_x > (SIMULATION_WIDTH - 1) as i32 {
-                self.rect.min.x = SIMULATION_WIDTH - width;
-                self.rect.max.x = SIMULATION_WIDTH - 1;
-            }
+        if x_offset < 0 {
+            x_offset = if x_offset.abs() > self.draw_rect.min.x as i32 {
+                self.draw_rect.min.x as i32
+            } else {
+                x_offset
+            };
+            self.rect.min.x -= x_offset.abs() as u32;
+            self.rect.max.x -= x_offset.abs() as u32;
+        } else if x_offset > 0 {
+            // minus 1 because wall-bounds are inclusive
+            x_offset = if x_offset > SIMULATION_WIDTH as i32 - self.draw_rect.max.x as i32 - 1 {
+                SIMULATION_WIDTH as i32 - self.draw_rect.max.x as i32 - 1
+            } else {
+                x_offset
+            };
+            self.rect.min.x += x_offset as u32;
+            self.rect.max.x += x_offset as u32;
         }
-        if new_min_y >= 0 && new_max_y <= (SIMULATION_HEIGHT - 1) as i32 {
-            self.rect.min.y = new_min_y as u32;
-            self.rect.max.y = new_max_y as u32;
-        } else {
-            if new_min_y < 0 {
-                self.rect.min.y = 0;
-                self.rect.max.y = height - 1;
-            }
-            if new_max_y > (SIMULATION_HEIGHT - 1) as i32 {
-                self.rect.min.y = SIMULATION_HEIGHT - height;
-                self.rect.max.y = SIMULATION_HEIGHT - 1;
-            }
+
+        if y_offset < 0 {
+            y_offset = if y_offset.abs() > self.draw_rect.min.y as i32 {
+                self.draw_rect.min.y as i32
+            } else {
+                y_offset
+            };
+            self.rect.min.y -= y_offset.abs() as u32;
+            self.rect.max.y -= y_offset.abs() as u32;
+        } else if y_offset > 0 {
+            // minus 1 because wall-bounds are inclusive
+            y_offset = if y_offset > SIMULATION_HEIGHT as i32 - self.draw_rect.max.y as i32 - 1 {
+                SIMULATION_HEIGHT as i32 - self.draw_rect.max.y as i32 - 1
+            } else {
+                y_offset
+            };
+            self.rect.min.y += y_offset as u32;
+            self.rect.max.y += y_offset as u32;
         }
 
         self.update_calc_rect(e_al);
