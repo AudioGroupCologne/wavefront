@@ -245,12 +245,12 @@ pub fn draw_egui(
                                 commands.entity(*entity).despawn();
                             }
                         });
-                        if collapse.header_response.clicked() {
-                            if collapse.openness < 0.5 {
-                                commands.entity(*entity).insert(MenuSelected);
-                            } else {
-                                commands.entity(*entity).remove::<MenuSelected>();
-                            }
+                        if collapse.header_response.contains_pointer()
+                            || collapse.body_response.is_some()
+                        {
+                            commands.entity(*entity).try_insert(MenuSelected);
+                        } else {
+                            commands.entity(*entity).remove::<MenuSelected>();
                         }
                     });
                 });
@@ -289,12 +289,12 @@ pub fn draw_egui(
                                 commands.entity(*entity).despawn();
                             }
                         });
-                        if collapse.header_response.clicked() {
-                            if collapse.openness < 0.5 {
-                                commands.entity(*entity).insert(MenuSelected);
-                            } else {
-                                commands.entity(*entity).remove::<MenuSelected>();
-                            }
+                        if collapse.header_response.contains_pointer()
+                            || collapse.body_response.is_some()
+                        {
+                            commands.entity(*entity).try_insert(MenuSelected);
+                        } else {
+                            commands.entity(*entity).remove::<MenuSelected>();
                         }
                     });
                 });
@@ -380,16 +380,24 @@ pub fn draw_egui(
                                 ));
                             });
 
+                            ui.add(
+                                egui::Slider::new(&mut wall.reflection_factor, 0.0..=1.0)
+                                    .text("Wall Reflection Factor"),
+                            );
+
+                            ui.checkbox(&mut wall.hollow, "Hollow Wall");
+
                             if ui.add(egui::Button::new("Delete")).clicked() {
                                 commands.entity(*entity).despawn();
                             }
                         });
-                        if collapse.header_response.clicked() {
-                            if collapse.openness < 0.5 {
-                                commands.entity(*entity).insert(MenuSelected);
-                            } else {
-                                commands.entity(*entity).remove::<MenuSelected>();
-                            }
+
+                        if collapse.header_response.contains_pointer()
+                            || collapse.body_response.is_some()
+                        {
+                            commands.entity(*entity).try_insert(MenuSelected);
+                        } else {
+                            commands.entity(*entity).remove::<MenuSelected>();
                         }
                     });
                 });
@@ -547,7 +555,7 @@ pub fn draw_egui(
                                 ui.selectable_value(
                                     &mut ui_state.wall_type,
                                     WallType::Circle,
-                                    "Brush",
+                                    "Circle",
                                 );
                             });
                         if ui_state.wall_type == WallType::Circle {
