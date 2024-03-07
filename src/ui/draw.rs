@@ -676,7 +676,7 @@ pub fn draw_egui(
                             .allow_drag(false)
                             .allow_boxed_zoom(false)
                             .x_axis_label("Frequency (Hz)")
-                            .y_axis_label("Intensity")
+                            .y_axis_label("Intensity (dB?)")
                             .show(ui, |plot_ui| {
                                 if ui_state.current_fft_microphone.is_none() {
                                     return;
