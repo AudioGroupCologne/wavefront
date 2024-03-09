@@ -91,7 +91,14 @@ impl Wall {
         }
     }
 
-    // test fn for rect walls
+    pub fn get_center(&self) -> WallPos2 {
+        self.draw_rect.center()
+    }
+
+    pub fn get_resize_point(&self) -> WallPos2 {
+        self.draw_rect.max
+    }
+
     pub fn contains(&self, x: u32, y: u32) -> bool {
         x >= self.calc_rect.min.x
             && x <= self.calc_rect.max.x

@@ -131,26 +131,21 @@ impl Grid {
                         * (bottom_cell.top + left_cell.right + top_cell.bottom - right_cell.left);
 
                     for wall in walls.iter() {
-                        match &wall.wall_type {
-                            WallType::Rectangle => {
-                                if wall.contains(x, y) && !wall.hollow {
-                                    next_cell.bottom = 0.;
-                                    next_cell.left = 0.;
-                                    next_cell.top = 0.;
-                                    next_cell.right = 0.;
-                                }
-                                if wall.edge_contains(x, y) {
-                                    next_cell.bottom = wall.reflection_factor
-                                        * self.cur_cells[coords_to_index(x, y + 1, e_al)].top;
-                                    next_cell.left = wall.reflection_factor
-                                        * self.cur_cells[coords_to_index(x - 1, y, e_al)].right;
-                                    next_cell.top = wall.reflection_factor
-                                        * self.cur_cells[coords_to_index(x, y - 1, e_al)].bottom;
-                                    next_cell.right = wall.reflection_factor
-                                        * self.cur_cells[coords_to_index(x + 1, y, e_al)].left;
-                                }
-                            }
-                            WallType::Circle => todo!(),
+                        if wall.contains(x, y) && !wall.hollow {
+                            next_cell.bottom = 0.;
+                            next_cell.left = 0.;
+                            next_cell.top = 0.;
+                            next_cell.right = 0.;
+                        }
+                        if wall.edge_contains(x, y) {
+                            next_cell.bottom = wall.reflection_factor
+                                * self.cur_cells[coords_to_index(x, y + 1, e_al)].top;
+                            next_cell.left = wall.reflection_factor
+                                * self.cur_cells[coords_to_index(x - 1, y, e_al)].right;
+                            next_cell.top = wall.reflection_factor
+                                * self.cur_cells[coords_to_index(x, y - 1, e_al)].bottom;
+                            next_cell.right = wall.reflection_factor
+                                * self.cur_cells[coords_to_index(x + 1, y, e_al)].left;
                         }
                     }
                 }

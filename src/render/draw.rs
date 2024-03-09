@@ -36,11 +36,18 @@ pub fn draw_pixels(
     gradient: Res<GradientResource>,
     ui_state: Res<UiState>,
     microphones: Query<&Microphone>,
+    walls: Query<&Wall, Without<Overlay>>,
 ) {
     let (query, mut images) = pixel_buffers.split();
     let mut items = query.iter();
 
-    // draw TLM
+    let boundary_width = if ui_state.render_abc_area {
+        0
+    } else {
+        ui_state.e_al
+    };
+
+    // draw TLM and walls
     let mut frame = images.frame(items.next().expect("one pixel buffer"));
     frame.per_pixel_par(|coords, _| {
         let p = if ui_state.render_abc_area {
@@ -52,7 +59,14 @@ pub fn draw_pixels(
                 ui_state.e_al,
             )]
         };
-        let color = gradient.0.at((p) as f64);
+        let mut color = gradient.0.at((p) as f64);
+        for wall in walls.iter() {
+            if wall.contains(coords.x + boundary_width, coords.y + boundary_width) {
+                color.r = wall.reflection_factor as f64;
+                color.g = wall.reflection_factor as f64;
+                color.b = wall.reflection_factor as f64;
+            }
+        }
         Pixel {
             r: (color.r * 255.) as u8,
             g: (color.g * 255.) as u8,
@@ -93,105 +107,9 @@ pub fn draw_pixels(
     }
 }
 
-pub fn draw_walls(
-    pixel_buffers: QueryPixelBuffer,
-    walls: Query<&Wall, Without<Overlay>>,
-    walls_overlay: Query<&Wall, With<Overlay>>,
-    ui_state: Res<UiState>,
-) {
+pub fn draw_walls(pixel_buffers: QueryPixelBuffer, walls_overlay: Query<&Wall, With<Overlay>>) {
     let (query, mut images) = pixel_buffers.split();
     let mut frame = images.frame(query.iter().next().expect("one pixel buffer"));
-    let boundary_width = if ui_state.render_abc_area {
-        ui_state.e_al
-    } else {
-        0
-    };
-    for wall in walls.iter() {
-        match &wall.wall_type {
-            WallType::Rectangle => {
-                // this feels a bit sloppy
-                if !wall.hollow {
-                    for x in wall.draw_rect.min.x..=wall.draw_rect.max.x {
-                        for y in wall.draw_rect.min.y..=wall.draw_rect.max.y {
-                            frame
-                                .set(
-                                    UVec2::new(x + boundary_width, y + boundary_width),
-                                    Pixel {
-                                        r: (255. * wall.reflection_factor) as u8,
-                                        g: (255. * wall.reflection_factor) as u8,
-                                        b: (255. * wall.reflection_factor) as u8,
-                                        a: 255,
-                                    },
-                                )
-                                .expect("Wall pixel out of bounds");
-                        }
-                    }
-                } else {
-                    for x in wall.draw_rect.min.x..=wall.draw_rect.max.x {
-                        frame
-                            .set(
-                                UVec2::new(
-                                    x + boundary_width,
-                                    wall.draw_rect.min.y + boundary_width,
-                                ),
-                                Pixel {
-                                    r: (255. * wall.reflection_factor) as u8,
-                                    g: (255. * wall.reflection_factor) as u8,
-                                    b: (255. * wall.reflection_factor) as u8,
-                                    a: 255,
-                                },
-                            )
-                            .expect("Wall pixel out of bounds");
-                        frame
-                            .set(
-                                UVec2::new(
-                                    x + boundary_width,
-                                    wall.draw_rect.max.y + boundary_width,
-                                ),
-                                Pixel {
-                                    r: (255. * wall.reflection_factor) as u8,
-                                    g: (255. * wall.reflection_factor) as u8,
-                                    b: (255. * wall.reflection_factor) as u8,
-                                    a: 255,
-                                },
-                            )
-                            .expect("Wall pixel out of bounds");
-                    }
-                    for y in wall.draw_rect.min.y..=wall.draw_rect.max.y {
-                        frame
-                            .set(
-                                UVec2::new(
-                                    wall.draw_rect.min.x + boundary_width,
-                                    y + boundary_width,
-                                ),
-                                Pixel {
-                                    r: (255. * wall.reflection_factor) as u8,
-                                    g: (255. * wall.reflection_factor) as u8,
-                                    b: (255. * wall.reflection_factor) as u8,
-                                    a: 255,
-                                },
-                            )
-                            .expect("Wall pixel out of bounds");
-                        frame
-                            .set(
-                                UVec2::new(
-                                    wall.draw_rect.max.x + boundary_width,
-                                    y + boundary_width,
-                                ),
-                                Pixel {
-                                    r: (255. * wall.reflection_factor) as u8,
-                                    g: (255. * wall.reflection_factor) as u8,
-                                    b: (255. * wall.reflection_factor) as u8,
-                                    a: 255,
-                                },
-                            )
-                            .expect("Wall pixel out of bounds");
-                    }
-                }
-            }
-            WallType::Circle => todo!(),
-        }
-    }
 
     let raw_pixles = frame.raw_mut();
 

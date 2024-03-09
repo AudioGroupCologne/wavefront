@@ -121,7 +121,7 @@ pub fn button_input(
                         screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
                     {
                         for (entity, wall) in walls.iter() {
-                            let center = wall.draw_rect.center();
+                            let center = wall.get_center();
                             if (center.x).abs_diff(x) <= 10 && (center.y).abs_diff(y) <= 10 {
                                 commands.entity(entity).insert((Drag, Selected));
                                 break;
@@ -136,8 +136,10 @@ pub fn button_input(
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                     {
                         for (entity, wall) in walls.iter() {
-                            let max = wall.rect.max;
-                            if (max.x).abs_diff(x) <= 10 && (max.y).abs_diff(y) <= 10 {
+                            let resize_point = wall.get_resize_point();
+                            if (resize_point.x).abs_diff(x) <= 10
+                                && (resize_point.y).abs_diff(y) <= 10
+                            {
                                 commands
                                     .entity(entity)
                                     .insert((WallResize::BottomRight, Overlay));

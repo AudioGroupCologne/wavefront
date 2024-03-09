@@ -75,7 +75,7 @@ impl Default for UiState {
             wall_reflection_factor: 1.,
             wall_type: WallType::Rectangle,
             wall_radius: 10,
-            wall_hollowed: true,
+            wall_hollowed: false,
             tools_enabled: true,
         }
     }
