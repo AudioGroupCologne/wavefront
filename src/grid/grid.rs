@@ -4,7 +4,7 @@ use rayon::iter::{IndexedParallelIterator, IntoParallelRefMutIterator, ParallelI
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::components::states::Overlay;
-use crate::components::wall::{Wall, WallType};
+use crate::components::wall::Wall;
 use crate::math::constants::*;
 use crate::math::transformations::{coords_to_index, index_to_coords};
 use crate::ui::state::{AttenuationType, UiState};

@@ -19,7 +19,11 @@ pub fn copy_paste_system(
     walls: Query<(Entity, &Wall), With<Selected>>,
     mics: Query<(Entity, &Microphone), With<Selected>>,
 ) {
+    #[cfg(not(target_os = "macos"))]
     let ctrl = keys.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
+
+    #[cfg(target_os = "macos")]
+    let ctrl = keys.any_pressed([KeyCode::SuperLeft, KeyCode::SuperRight]);
 
     if ctrl && keys.just_pressed(KeyCode::KeyC) {
         if let Some(entity) = selected.iter().next() {
