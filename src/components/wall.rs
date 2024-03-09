@@ -102,6 +102,9 @@ impl Wall {
     }
 
     pub fn contains(&self, x: u32, y: u32) -> bool {
+        if self.hollow {
+            return self.edge_contains(x, y);
+        }
         x >= self.calc_rect.min.x
             && x <= self.calc_rect.max.x
             && y >= self.calc_rect.min.y
