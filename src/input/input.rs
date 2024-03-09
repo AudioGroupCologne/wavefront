@@ -306,7 +306,7 @@ pub fn button_input(
         ui_state.is_running = !ui_state.is_running;
     }
 
-    if keys.just_pressed(KeyCode::Delete) {
+    if keys.just_pressed(KeyCode::Delete) || keys.just_pressed(KeyCode::Backspace) {
         selected.iter_mut().for_each(|entity| {
             commands.entity(entity).despawn();
         });
