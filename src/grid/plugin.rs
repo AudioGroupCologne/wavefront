@@ -19,7 +19,7 @@ impl Plugin for GridPlugin {
     }
 }
 
-#[derive(Resource)]
+#[derive(Resource, Default)]
 pub struct ComponentIDs {
     microphone_id: usize,
     source_id: usize,
@@ -28,11 +28,7 @@ pub struct ComponentIDs {
 
 impl ComponentIDs {
     pub fn new() -> Self {
-        Self {
-            microphone_id: 0,
-            source_id: 0,
-            wall_id: 0,
-        }
+        Self::default()
     }
     pub fn get_current_mic_id(&mut self) -> usize {
         let current = self.microphone_id;
@@ -48,11 +44,5 @@ impl ComponentIDs {
         let current = self.wall_id;
         self.wall_id += 1;
         current
-    }
-}
-
-impl Default for ComponentIDs {
-    fn default() -> Self {
-        Self::new()
     }
 }

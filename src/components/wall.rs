@@ -53,13 +53,13 @@ impl WallRect {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum WallType {
     Rectangle,
     Circle,
 }
 
-#[derive(Debug, Component, Serialize, Deserialize)]
+#[derive(Debug, Component, Serialize, Deserialize, Clone)]
 pub struct Wall {
     pub wall_type: WallType,
     pub hollow: bool,

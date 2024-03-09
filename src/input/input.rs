@@ -7,7 +7,44 @@ use crate::components::states::{Drag, Overlay, Selected};
 use crate::components::wall::{Wall, WallPos2, WallRect, WallResize, WallType};
 use crate::grid::plugin::ComponentIDs;
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
-use crate::ui::state::{ToolType, UiState};
+use crate::ui::state::{ClipboardBuffer, ToolType, UiState};
+
+pub fn copy_paste_system(
+    keys: Res<ButtonInput<KeyCode>>,
+    selected: Query<Entity, With<Selected>>,
+    mut clipboard: ResMut<ClipboardBuffer>,
+    mut ids: ResMut<ComponentIDs>,
+    mut commands: Commands,
+    sources: Query<(Entity, &Source), With<Selected>>,
+    walls: Query<(Entity, &Wall), With<Selected>>,
+    mics: Query<(Entity, &Microphone), With<Selected>>,
+) {
+    let ctrl = keys.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
+
+    if ctrl && keys.just_pressed(KeyCode::KeyC) {
+        if let Some(entity) = selected.iter().next() {
+            clipboard.copy(entity);
+        }
+    }
+
+    if ctrl && keys.just_pressed(KeyCode::KeyV) {
+        if let Some(entity) = clipboard.get() {
+            if let Ok((_, source)) = sources.get(entity) {
+                let mut source = source.clone();
+                source.id = ids.get_current_source_id();
+                commands.spawn(source);
+            } else if let Ok((_, wall)) = walls.get(entity) {
+                let mut wall = wall.clone();
+                wall.id = ids.get_current_wall_id();
+                commands.spawn(wall);
+            } else if let Ok((_, mic)) = mics.get(entity) {
+                let mut mic = mic.clone();
+                mic.id = ids.get_current_mic_id();
+                commands.spawn(mic);
+            }
+        }
+    }
+}
 
 pub fn button_input(
     mouse_buttons: Res<ButtonInput<MouseButton>>,
