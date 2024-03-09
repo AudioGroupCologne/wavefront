@@ -37,17 +37,17 @@ impl Microphone {
         commands.spawn(Microphone::new(
             250,
             250,
-            component_ids.get_current_mic_id(),
+            component_ids.get_new_mic_id(),
         ));
         commands.spawn(Microphone::new(
             100,
             100,
-            component_ids.get_current_mic_id(),
+            component_ids.get_new_mic_id(),
         ));
         commands.spawn(Microphone::new(
             650,
             650,
-            component_ids.get_current_mic_id(),
+            component_ids.get_new_mic_id(),
         ));
     }
 

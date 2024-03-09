@@ -31,15 +31,15 @@ pub fn copy_paste_system(
         if let Some(entity) = clipboard.get() {
             if let Ok((_, source)) = sources.get(entity) {
                 let mut source = source.clone();
-                source.id = ids.get_current_source_id();
+                source.id = ids.get_new_source_id();
                 commands.spawn(source);
             } else if let Ok((_, wall)) = walls.get(entity) {
                 let mut wall = wall.clone();
-                wall.id = ids.get_current_wall_id();
+                wall.id = ids.get_new_wall_id();
                 commands.spawn(wall);
             } else if let Ok((_, mic)) = mics.get(entity) {
                 let mut mic = mic.clone();
-                mic.id = ids.get_current_mic_id();
+                mic.id = ids.get_new_mic_id();
                 commands.spawn(mic);
             }
         }
@@ -97,7 +97,7 @@ pub fn button_input(
                             0.0,
                             10_000.0,
                             SourceType::Sin,
-                            component_ids.get_current_source_id(),
+                            component_ids.get_new_source_id(),
                         ));
                     }
                 }
@@ -121,7 +121,7 @@ pub fn button_input(
                                         max: WallPos2 { x, y },
                                     },
                                     ui_state.wall_reflection_factor,
-                                    component_ids.get_current_wall_id(),
+                                    component_ids.get_new_wall_id(),
                                 ),
                                 WallResize::BottomRight,
                                 Overlay,
@@ -143,7 +143,7 @@ pub fn button_input(
                                         max: WallPos2 { x, y },
                                     },
                                     ui_state.wall_reflection_factor,
-                                    component_ids.get_current_wall_id(),
+                                    component_ids.get_new_wall_id(),
                                 ),
                                 WallResize::Radius,
                                 Overlay,
@@ -189,7 +189,7 @@ pub fn button_input(
                     if let Some((x, y)) =
                         screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
                     {
-                        commands.spawn(Microphone::new(x, y, component_ids.get_current_mic_id()));
+                        commands.spawn(Microphone::new(x, y, component_ids.get_new_mic_id()));
                     }
                 }
             }
