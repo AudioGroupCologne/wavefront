@@ -151,8 +151,7 @@ pub fn draw_egui(
 
                     for y in ui_state.e_al..(SIMULATION_WIDTH + ui_state.e_al) {
                         for x in ui_state.e_al..(SIMULATION_HEIGHT + ui_state.e_al) {
-                            let pressure =
-                                grid.cells[coords_to_index(x, y, ui_state.e_al)].pressure;
+                            let pressure = grid.pressure[coords_to_index(x, y, ui_state.e_al)];
 
                             let color = gradient.0.at((pressure) as f64);
 
