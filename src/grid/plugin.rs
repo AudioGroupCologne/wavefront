@@ -41,7 +41,6 @@ impl ComponentIDs {
     /// Get a new **valid** id for a wall
     pub fn get_new_wall_id(&mut self) -> usize {
         let current = self.current_wall_id;
-        println!("current wall id: {}", current);
         self.current_wall_id += 1;
         current
     }
