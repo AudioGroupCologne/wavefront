@@ -843,7 +843,7 @@ pub fn draw_egui(
                                 image.rect.min.x,
                                 image.rect.max.x,
                                 wall.draw_rect.center().x as f32,
-                            ) as f32,
+                            ),
                             f32_map_range(
                                 0.,
                                 SIMULATION_HEIGHT as f32,
