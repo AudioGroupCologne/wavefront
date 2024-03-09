@@ -24,7 +24,6 @@ pub struct ComponentIDs {
 }
 
 impl ComponentIDs {
-
     /// Get a new **valid** id for a microphone
     pub fn get_new_mic_id(&mut self) -> usize {
         let current = self.current_mic_id;

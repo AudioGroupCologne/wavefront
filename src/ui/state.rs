@@ -82,15 +82,15 @@ impl Default for UiState {
 }
 
 #[derive(Resource, Default)]
-pub struct ClipboardBuffer{
+pub struct ClipboardBuffer {
     buffer: Option<Entity>,
 }
 
 impl ClipboardBuffer {
     pub fn clear(&mut self) {
         self.buffer = None;
-    }    
-    
+    }
+
     pub fn get(&mut self) -> Option<Entity> {
         self.buffer
     }
