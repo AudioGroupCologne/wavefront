@@ -91,6 +91,21 @@ impl Wall {
         }
     }
 
+    // test fn for rect walls
+    pub fn contains(&self, x: u32, y: u32) -> bool {
+        x >= self.calc_rect.min.x
+            && x <= self.calc_rect.max.x
+            && y >= self.calc_rect.min.y
+            && y <= self.calc_rect.max.y
+    }
+
+    pub fn edge_contains(&self, x: u32, y: u32) -> bool {
+        ((x == self.calc_rect.min.x || x == self.calc_rect.max.x)
+            && (y >= self.calc_rect.min.y && y <= self.calc_rect.max.y))
+            || ((y == self.calc_rect.min.y || y == self.calc_rect.max.y)
+                && (x >= self.calc_rect.min.x && x <= self.calc_rect.max.x))
+    }
+
     pub fn is_empty(&self) -> bool {
         self.draw_rect.width() == 1 || self.draw_rect.height() == 1
     }
