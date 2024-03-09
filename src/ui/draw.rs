@@ -210,17 +210,23 @@ pub fn draw_egui(
                                         .clamp_range(0.0..=SIMULATION_HEIGHT as f32 - 1.),
                                 );
                             });
-                            ui.add(
-                                egui::Slider::new(&mut source.frequency, 0.0..=20000.0)
-                                    .text("Frequency (Hz)"),
-                            );
+                            if source.source_type != SourceType::WhiteNoise {
+                                ui.add(
+                                    egui::Slider::new(&mut source.frequency, 0.0..=20000.0)
+                                        .text("Frequency (Hz)"),
+                                );
+                            }
                             ui.add(
                                 egui::Slider::new(&mut source.amplitude, 0.0..=25.0)
                                     .text("Amplitude"),
                             );
-                            ui.add(
-                                egui::Slider::new(&mut source.phase, 0.0..=360.0).text("Phase (°)"),
-                            );
+                            if source.source_type == SourceType::Sin {
+                                ui.add(
+                                    egui::Slider::new(&mut source.phase, 0.0..=360.0)
+                                        .text("Phase (°)"),
+                                );
+                            }
+
                             egui::ComboBox::from_label("Waveform")
                                 .selected_text(format!("{:?}", source.source_type))
                                 .show_ui(ui, |ui| {
