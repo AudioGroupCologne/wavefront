@@ -81,6 +81,25 @@ impl Default for UiState {
     }
 }
 
+#[derive(Resource, Default)]
+pub struct ClipboardBuffer {
+    buffer: Option<Entity>,
+}
+
+impl ClipboardBuffer {
+    pub fn clear(&mut self) {
+        self.buffer = None;
+    }
+
+    pub fn get(&mut self) -> Option<Entity> {
+        self.buffer
+    }
+
+    pub fn copy(&mut self, entity: Entity) {
+        self.buffer = Some(entity);
+    }
+}
+
 pub struct Images {
     pub cursor_icon: Handle<Image>,
     pub place_source_icon: Handle<Image>,

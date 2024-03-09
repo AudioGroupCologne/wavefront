@@ -7,7 +7,44 @@ use crate::components::states::{Drag, Overlay, Selected};
 use crate::components::wall::{Wall, WallPos2, WallRect, WallResize, WallType};
 use crate::grid::plugin::ComponentIDs;
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
-use crate::ui::state::{ToolType, UiState};
+use crate::ui::state::{ClipboardBuffer, ToolType, UiState};
+
+pub fn copy_paste_system(
+    keys: Res<ButtonInput<KeyCode>>,
+    selected: Query<Entity, With<Selected>>,
+    mut clipboard: ResMut<ClipboardBuffer>,
+    mut ids: ResMut<ComponentIDs>,
+    mut commands: Commands,
+    sources: Query<(Entity, &Source), With<Selected>>,
+    walls: Query<(Entity, &Wall), With<Selected>>,
+    mics: Query<(Entity, &Microphone), With<Selected>>,
+) {
+    let ctrl = keys.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
+
+    if ctrl && keys.just_pressed(KeyCode::KeyC) {
+        if let Some(entity) = selected.iter().next() {
+            clipboard.copy(entity);
+        }
+    }
+
+    if ctrl && keys.just_pressed(KeyCode::KeyV) {
+        if let Some(entity) = clipboard.get() {
+            if let Ok((_, source)) = sources.get(entity) {
+                let mut source = source.clone();
+                source.id = ids.get_new_source_id();
+                commands.spawn(source);
+            } else if let Ok((_, wall)) = walls.get(entity) {
+                let mut wall = wall.clone();
+                wall.id = ids.get_new_wall_id();
+                commands.spawn(wall);
+            } else if let Ok((_, mic)) = mics.get(entity) {
+                let mut mic = mic.clone();
+                mic.id = ids.get_new_mic_id();
+                commands.spawn(mic);
+            }
+        }
+    }
+}
 
 pub fn button_input(
     mouse_buttons: Res<ButtonInput<MouseButton>>,
@@ -60,7 +97,7 @@ pub fn button_input(
                             0.0,
                             10_000.0,
                             SourceType::Sin,
-                            component_ids.get_current_source_id(),
+                            component_ids.get_new_source_id(),
                         ));
                     }
                 }
@@ -84,7 +121,7 @@ pub fn button_input(
                                         max: WallPos2 { x, y },
                                     },
                                     ui_state.wall_reflection_factor,
-                                    component_ids.get_current_wall_id(),
+                                    component_ids.get_new_wall_id(),
                                 ),
                                 WallResize::BottomRight,
                                 Overlay,
@@ -106,7 +143,7 @@ pub fn button_input(
                                         max: WallPos2 { x, y },
                                     },
                                     ui_state.wall_reflection_factor,
-                                    component_ids.get_current_wall_id(),
+                                    component_ids.get_new_wall_id(),
                                 ),
                                 WallResize::Radius,
                                 Overlay,
@@ -154,7 +191,7 @@ pub fn button_input(
                     if let Some((x, y)) =
                         screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
                     {
-                        commands.spawn(Microphone::new(x, y, component_ids.get_current_mic_id()));
+                        commands.spawn(Microphone::new(x, y, component_ids.get_new_mic_id()));
                     }
                 }
             }
@@ -271,7 +308,7 @@ pub fn button_input(
         ui_state.is_running = !ui_state.is_running;
     }
 
-    if keys.just_pressed(KeyCode::Delete) {
+    if keys.just_pressed(KeyCode::Delete) || keys.just_pressed(KeyCode::Backspace) {
         selected.iter_mut().for_each(|entity| {
             commands.entity(entity).despawn();
         });

@@ -85,7 +85,7 @@ impl Source {
             0.0,
             10000.0,
             SourceType::Sin,
-            component_ids.get_current_source_id(),
+            component_ids.get_new_source_id(),
         ));
         commands.spawn(Source::new(
             (SIMULATION_WIDTH + 2 * E_AL) / 3,
@@ -94,7 +94,7 @@ impl Source {
             0.0,
             10000.0,
             SourceType::Sin,
-            component_ids.get_current_source_id(),
+            component_ids.get_new_source_id(),
         ));
     }
 }

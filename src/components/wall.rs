@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -53,13 +55,13 @@ impl WallRect {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum WallType {
     Rectangle,
     Circle,
 }
 
-#[derive(Debug, Component, Serialize, Deserialize)]
+#[derive(Debug, Component, Serialize, Deserialize, Clone)]
 pub struct Wall {
     pub wall_type: WallType,
     pub hollow: bool,
@@ -123,42 +125,51 @@ impl Wall {
         let mut x_offset = x as i32 - current_center.x as i32;
         let mut y_offset = y as i32 - current_center.y as i32;
 
-        if x_offset < 0 {
-            x_offset = if x_offset.abs() > self.draw_rect.min.x as i32 {
-                self.draw_rect.min.x as i32
-            } else {
-                x_offset
-            };
-            self.rect.min.x -= x_offset.abs() as u32;
-            self.rect.max.x -= x_offset.abs() as u32;
-        } else if x_offset > 0 {
-            // minus 1 because wall-bounds are inclusive
-            x_offset = if x_offset > SIMULATION_WIDTH as i32 - self.draw_rect.max.x as i32 - 1 {
-                SIMULATION_WIDTH as i32 - self.draw_rect.max.x as i32 - 1
-            } else {
-                x_offset
-            };
-            self.rect.min.x += x_offset as u32;
-            self.rect.max.x += x_offset as u32;
+        match x_offset.cmp(&0) {
+            Ordering::Less => {
+                x_offset = if x_offset.abs() > self.draw_rect.min.x as i32 {
+                    self.draw_rect.min.x as i32
+                } else {
+                    x_offset
+                };
+                self.rect.min.x -= x_offset.unsigned_abs();
+                self.rect.max.x -= x_offset.unsigned_abs();
+            }
+            Ordering::Greater => {
+                // minus 1 because wall-bounds are inclusive
+                x_offset = if x_offset > SIMULATION_WIDTH as i32 - self.draw_rect.max.x as i32 - 1 {
+                    SIMULATION_WIDTH as i32 - self.draw_rect.max.x as i32 - 1
+                } else {
+                    x_offset
+                };
+                self.rect.min.x += x_offset as u32;
+                self.rect.max.x += x_offset as u32;
+            }
+            _ => {}
         }
 
-        if y_offset < 0 {
-            y_offset = if y_offset.abs() > self.draw_rect.min.y as i32 {
-                self.draw_rect.min.y as i32
-            } else {
-                y_offset
-            };
-            self.rect.min.y -= y_offset.abs() as u32;
-            self.rect.max.y -= y_offset.abs() as u32;
-        } else if y_offset > 0 {
-            // minus 1 because wall-bounds are inclusive
-            y_offset = if y_offset > SIMULATION_HEIGHT as i32 - self.draw_rect.max.y as i32 - 1 {
-                SIMULATION_HEIGHT as i32 - self.draw_rect.max.y as i32 - 1
-            } else {
-                y_offset
-            };
-            self.rect.min.y += y_offset as u32;
-            self.rect.max.y += y_offset as u32;
+        match y_offset.cmp(&0) {
+            Ordering::Less => {
+                y_offset = if y_offset.abs() > self.draw_rect.min.y as i32 {
+                    self.draw_rect.min.y as i32
+                } else {
+                    y_offset
+                };
+                self.rect.min.y -= y_offset.unsigned_abs();
+                self.rect.max.y -= y_offset.unsigned_abs();
+            }
+            Ordering::Greater => {
+                // minus 1 because wall-bounds are inclusive
+                y_offset = if y_offset > SIMULATION_HEIGHT as i32 - self.draw_rect.max.y as i32 - 1
+                {
+                    SIMULATION_HEIGHT as i32 - self.draw_rect.max.y as i32 - 1
+                } else {
+                    y_offset
+                };
+                self.rect.min.y += y_offset as u32;
+                self.rect.max.y += y_offset as u32;
+            }
+            _ => {}
         }
 
         self.update_calc_rect(e_al);

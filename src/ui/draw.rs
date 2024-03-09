@@ -93,94 +93,103 @@ pub fn draw_egui(
 
             ui.spacing_mut().slider_width = 200.0;
 
-            ui.heading("Settings");
-            if let Some(value) = diagnostics
-                .get(&FrameTimeDiagnosticsPlugin::FPS)
-                .and_then(|fps| fps.smoothed())
-            {
-                ui.label(format!("FPS: {:.1}", value));
-            }
+            ui.add_space(5.);
+            egui::Grid::new("header_grid")
+                .min_col_width(450./2.)
+                .show(ui, |ui| {
+                    ui.vertical(|ui| {
+                        ui.heading("Settings");
+                        if let Some(value) = diagnostics
+                            .get(&FrameTimeDiagnosticsPlugin::FPS)
+                            .and_then(|fps| fps.smoothed())
+                        {
+                            ui.label(format!("FPS: {:.1}", value));
+                        }
+                    });
+                    ui.with_layout(egui::Layout::top_down(egui::Align::RIGHT), |ui| {
+                        ui.horizontal(|ui| {
+                            if ui
+                                .button("Save")
+                                .on_hover_text("Save the current state of the simulation")
+                                .clicked()
+                            {
+                                // TODO: not super happy with this, would like to move it to the dialog system
+                                let source_set = source_set.p3();
+                                let mic_set = mic_set.p3();
+                                let wall_set = wall_set.p3();
+
+                                let sources = source_set.iter().collect::<Vec<_>>();
+                                let mics = mic_set.iter().collect::<Vec<_>>();
+                                let walls = wall_set.iter().collect::<Vec<_>>();
+
+                                let data =
+                                    crate::ui::saving::save(&sources, &mics, &walls).unwrap();
+
+                                commands
+                                    .dialog()
+                                    .add_filter("Json", &["json"])
+                                    .set_file_name("save.json")
+                                    .set_directory("./")
+                                    .set_title("Select a file to save to")
+                                    .save_file::<SaveFileContents>(data);
+                            }
+
+                            if ui
+                                .button("Load")
+                                .on_hover_text("Load a previously saved state of the simulation")
+                                .clicked()
+                            {
+                                commands
+                                    .dialog()
+                                    .add_filter("Json", &["json"])
+                                    .set_directory("./")
+                                    .set_title("Select a file to load")
+                                    .load_file::<SaveFileContents>();
+                            }
+                        });
+                        if ui
+                            .button("Screenshot")
+                            .on_hover_text("Save a screenshot of the simulation")
+                            .clicked()
+                        {
+                            let mut pixels: Vec<[u8; 3]> = Vec::new();
+
+                            for y in ui_state.e_al..(SIMULATION_WIDTH + ui_state.e_al) {
+                                for x in ui_state.e_al..(SIMULATION_HEIGHT + ui_state.e_al) {
+                                    let pressure =
+                                        grid.pressure[coords_to_index(x, y, ui_state.e_al)];
+
+                                    let color = gradient.0.at(pressure as f64);
+
+                                    pixels.push([
+                                        (color.r * 255.) as u8,
+                                        (color.g * 255.) as u8,
+                                        (color.b * 255.) as u8,
+                                    ]);
+                                }
+                            }
+
+                            let data = lodepng::encode_memory(
+                                &pixels,
+                                SIMULATION_WIDTH as usize,
+                                SIMULATION_HEIGHT as usize,
+                                lodepng::ColorType::RGB,
+                                8,
+                            )
+                            .expect("");
+
+                            commands
+                                .dialog()
+                                .add_filter("Jpeg", &["jpeg"])
+                                .set_file_name("save.jpg")
+                                .set_directory("./")
+                                .set_title("Select a file to save to")
+                                .save_file::<SaveFileContents>(data);
+                        }
+                    })
+                });
 
             ui.separator();
-
-            ui.horizontal(|ui| {
-                if ui
-                    .button("Save")
-                    .on_hover_text("Save the current state of the simulation")
-                    .clicked()
-                {
-                    // TODO: not super happy with this, would like to move it to the dialog system
-                    let source_set = source_set.p3();
-                    let mic_set = mic_set.p3();
-                    let wall_set = wall_set.p3();
-
-                    let sources = source_set.iter().collect::<Vec<_>>();
-                    let mics = mic_set.iter().collect::<Vec<_>>();
-                    let walls = wall_set.iter().collect::<Vec<_>>();
-
-                    let data = crate::ui::saving::save(&sources, &mics, &walls).unwrap();
-
-                    commands
-                        .dialog()
-                        .add_filter("Json", &["json"])
-                        .set_file_name("save.json")
-                        .set_directory("./")
-                        .set_title("Select a file to save to")
-                        .save_file::<SaveFileContents>(data);
-                }
-
-                if ui
-                    .button("Load")
-                    .on_hover_text("Load a previously saved state of the simulation")
-                    .clicked()
-                {
-                    commands
-                        .dialog()
-                        .add_filter("Json", &["json"])
-                        .set_directory("./")
-                        .set_title("Select a file to load")
-                        .load_file::<SaveFileContents>();
-                }
-
-                if ui
-                    .button("Save Image")
-                    .on_hover_text("Save the current image of the simulation")
-                    .clicked()
-                {
-                    let mut pixels: Vec<[u8; 3]> = Vec::new();
-
-                    for y in ui_state.e_al..(SIMULATION_WIDTH + ui_state.e_al) {
-                        for x in ui_state.e_al..(SIMULATION_HEIGHT + ui_state.e_al) {
-                            let pressure = grid.pressure[coords_to_index(x, y, ui_state.e_al)];
-
-                            let color = gradient.0.at((pressure) as f64);
-
-                            pixels.push([
-                                (color.r * 255.) as u8,
-                                (color.g * 255.) as u8,
-                                (color.b * 255.) as u8,
-                            ]);
-                        }
-                    }
-
-                    let data = lodepng::encode_memory(
-                        &pixels,
-                        SIMULATION_WIDTH as usize,
-                        SIMULATION_HEIGHT as usize,
-                        lodepng::ColorType::RGB,
-                        8,
-                    )
-                    .expect("");
-
-                    commands
-                        .dialog()
-                        .add_filter("Jpeg", &["jpeg"])
-                        .set_file_name("save.jpg")
-                        .set_directory("./")
-                        .set_title("Select a file to save to")
-                        .save_file::<SaveFileContents>(data);
-                }
-            });
 
             // Sources
             egui::ScrollArea::vertical()
@@ -210,17 +219,23 @@ pub fn draw_egui(
                                         .clamp_range(0.0..=SIMULATION_HEIGHT as f32 - 1.),
                                 );
                             });
-                            ui.add(
-                                egui::Slider::new(&mut source.frequency, 0.0..=20000.0)
-                                    .text("Frequency (Hz)"),
-                            );
+                            if source.source_type != SourceType::WhiteNoise {
+                                ui.add(
+                                    egui::Slider::new(&mut source.frequency, 0.0..=20000.0)
+                                        .text("Frequency (Hz)"),
+                                );
+                            }
                             ui.add(
                                 egui::Slider::new(&mut source.amplitude, 0.0..=25.0)
                                     .text("Amplitude"),
                             );
-                            ui.add(
-                                egui::Slider::new(&mut source.phase, 0.0..=360.0).text("Phase (°)"),
-                            );
+                            if source.source_type == SourceType::Sin {
+                                ui.add(
+                                    egui::Slider::new(&mut source.phase, 0.0..=360.0)
+                                        .text("Phase (°)"),
+                                );
+                            }
+
                             egui::ComboBox::from_label("Waveform")
                                 .selected_text(format!("{:?}", source.source_type))
                                 .show_ui(ui, |ui| {
@@ -843,7 +858,7 @@ pub fn draw_egui(
                                 image.rect.min.x,
                                 image.rect.max.x,
                                 wall.draw_rect.center().x as f32,
-                            ) as f32,
+                            ),
                             f32_map_range(
                                 0.,
                                 SIMULATION_HEIGHT as f32,
