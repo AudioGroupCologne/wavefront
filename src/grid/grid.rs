@@ -116,11 +116,11 @@ impl Grid {
         circ_walls: &Query<&CircWall, Without<Overlay>>,
         boundary_width: u32,
     ) {
-        let walls = rect_walls
-            .iter()
-            .map(|x| Box::new(x as &dyn Wall))
-            .chain(circ_walls.iter().map(|x| Box::new(x as &dyn Wall)))
-            .collect::<Vec<_>>();
+        // let walls = rect_walls
+        //     .iter()
+        //     .map(|x| Box::new(x as &dyn Wall))
+        //     .chain(circ_walls.iter().map(|x| Box::new(x as &dyn Wall)))
+        //     .collect::<Vec<_>>();
 
         self.next_cells
             .par_iter_mut()
@@ -148,7 +148,26 @@ impl Grid {
                     next_cell.right = 0.5
                         * (bottom_cell.top + left_cell.right + top_cell.bottom - right_cell.left);
 
-                    for wall in &walls {
+                    for wall in rect_walls {
+                        if wall.contains(x - boundary_width, y - boundary_width) {
+                            next_cell.bottom = 0.;
+                            next_cell.left = 0.;
+                            next_cell.top = 0.;
+                            next_cell.right = 0.;
+                        }
+                        if wall.edge_contains(x - boundary_width, y - boundary_width) {
+                            next_cell.bottom = wall.get_reflection_factor()
+                                * self.cur_cells[coords_to_index(x, y + 1, boundary_width)].top;
+                            next_cell.left = wall.get_reflection_factor()
+                                * self.cur_cells[coords_to_index(x - 1, y, boundary_width)].right;
+                            next_cell.top = wall.get_reflection_factor()
+                                * self.cur_cells[coords_to_index(x, y - 1, boundary_width)].bottom;
+                            next_cell.right = wall.get_reflection_factor()
+                                * self.cur_cells[coords_to_index(x + 1, y, boundary_width)].left;
+                        }
+                    }
+
+                    for wall in circ_walls {
                         if wall.contains(x - boundary_width, y - boundary_width) {
                             next_cell.bottom = 0.;
                             next_cell.left = 0.;
