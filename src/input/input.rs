@@ -71,9 +71,9 @@ pub fn button_input(
         selected.iter_mut().for_each(|entity| {
             commands.entity(entity).remove::<Selected>();
         });
-        match ui_state.current_tool {
-            ToolType::MoveSource => {
-                if let Some(position) = window.cursor_position() {
+        if let Some(position) = window.cursor_position() {
+            match ui_state.current_tool {
+                ToolType::MoveSource => {
                     if let Some((x, y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                     {
@@ -87,9 +87,7 @@ pub fn button_input(
                         }
                     }
                 }
-            }
-            ToolType::PlaceSource => {
-                if let Some(position) = window.cursor_position() {
+                ToolType::PlaceSource => {
                     if let Some((x, y)) =
                         screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
                     {
@@ -105,10 +103,8 @@ pub fn button_input(
                         ));
                     }
                 }
-            }
-            ToolType::DrawWall => match ui_state.wall_type {
-                WallType::Rectangle => {
-                    if let Some(position) = window.cursor_position() {
+                ToolType::DrawWall => match ui_state.wall_type {
+                    WallType::Rectangle => {
                         if let Some((mut x, mut y)) =
                             screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                         {
@@ -132,9 +128,7 @@ pub fn button_input(
                             ));
                         }
                     }
-                }
-                WallType::Circle => {
-                    if let Some(position) = window.cursor_position() {
+                    WallType::Circle => {
                         if let Some((x, y)) =
                             screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
                         {
@@ -154,10 +148,8 @@ pub fn button_input(
                             ));
                         }
                     }
-                }
-            },
-            ToolType::MoveWall => {
-                if let Some(position) = window.cursor_position() {
+                },
+                ToolType::MoveWall => {
                     if let Some((x, y)) =
                         screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
                     {
@@ -170,9 +162,7 @@ pub fn button_input(
                         }
                     }
                 }
-            }
-            ToolType::ResizeWall => {
-                if let Some(position) = window.cursor_position() {
+                ToolType::ResizeWall => {
                     if let Some((x, y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                     {
@@ -189,18 +179,14 @@ pub fn button_input(
                         }
                     }
                 }
-            }
-            ToolType::PlaceMic => {
-                if let Some(position) = window.cursor_position() {
+                ToolType::PlaceMic => {
                     if let Some((x, y)) =
                         screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
                     {
                         commands.spawn(Microphone::new(x, y, component_ids.get_new_mic_id()));
                     }
                 }
-            }
-            ToolType::MoveMic => {
-                if let Some(position) = window.cursor_position() {
+                ToolType::MoveMic => {
                     if let Some((x, y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                     {
@@ -239,9 +225,9 @@ pub fn button_input(
     if mouse_buttons.pressed(MouseButton::Left) && ui_state.tools_enabled {
         let window = q_windows.single();
 
-        match ui_state.current_tool {
-            ToolType::MoveSource => {
-                if let Some(position) = window.cursor_position() {
+        if let Some(position) = window.cursor_position() {
+            match ui_state.current_tool {
+                ToolType::MoveSource => {
                     if let Some((x, y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                     {
@@ -251,9 +237,7 @@ pub fn button_input(
                         });
                     }
                 }
-            }
-            ToolType::DrawWall | ToolType::ResizeWall => {
-                if let Some(position) = window.cursor_position() {
+                ToolType::DrawWall | ToolType::ResizeWall => {
                     if let Some((mut x, mut y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                     {
@@ -275,9 +259,7 @@ pub fn button_input(
                             });
                     }
                 }
-            }
-            ToolType::MoveWall => {
-                if let Some(position) = window.cursor_position() {
+                ToolType::MoveWall => {
                     if let Some((mut x, mut y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                     {
@@ -290,9 +272,7 @@ pub fn button_input(
                         });
                     }
                 }
-            }
-            ToolType::MoveMic => {
-                if let Some(position) = window.cursor_position() {
+                ToolType::MoveMic => {
                     if let Some((x, y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                     {
@@ -302,9 +282,8 @@ pub fn button_input(
                         });
                     }
                 }
+                _ => {}
             }
-            ToolType::PlaceSource => {}
-            ToolType::PlaceMic => {}
         }
     }
 
