@@ -1,4 +1,4 @@
-use spectrum_analyzer::scaling::scale_20_times_log10;
+use spectrum_analyzer::scaling::{scale_20_times_log10, scale_to_zero_to_one};
 use spectrum_analyzer::windows::hann_window;
 use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
 
@@ -25,15 +25,14 @@ pub fn calc_mic_spectrum(
         &hann_window,
         (1. / delta_t) as u32,
         FrequencyLimit::Range(0., 20_000.),
-        Some(&scale_20_times_log10),
+        Some(&scale_to_zero_to_one),
     )
     .unwrap();
 
     let mapped_spectrum = spectrum_hann_window
         .data()
         .iter()
-        // .map(|x| [x.0.val().log10() as f64, x.1.val() as f64])
-        .map(|(x, y)| [x.val() as f64, y.val() as f64])
+        .map(|(x, y)| [x.val().log10() as f64, y.val() as f64])
         .collect::<Vec<_>>();
 
     microphone.spectrum.push(mapped_spectrum.clone());

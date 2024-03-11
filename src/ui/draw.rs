@@ -5,7 +5,7 @@ use bevy_pixel_buffer::bevy_egui::egui::epaint::CircleShape;
 use bevy_pixel_buffer::bevy_egui::egui::{pos2, Color32, Frame, Margin, Vec2};
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::prelude::*;
-use egui_plot::{Legend, Line, Plot, PlotPoints};
+use egui_plot::{GridMark, Legend, Line, Plot, PlotPoints};
 
 use super::dialog::SaveFileContents;
 use crate::components::microphone::*;
@@ -95,7 +95,7 @@ pub fn draw_egui(
 
             ui.add_space(5.);
             egui::Grid::new("header_grid")
-                .min_col_width(450./2.)
+                .min_col_width(450. / 2.)
                 .show(ui, |ui| {
                     ui.vertical(|ui| {
                         ui.heading("Settings");
@@ -692,13 +692,48 @@ pub fn draw_egui(
                                 }
                             });
                         ui.separator();
-                        Plot::new("mic_plot")
-                            .allow_zoom([true, false])
+                        Plot::new("fft_plot")
+                            .allow_zoom([false, false])
                             .allow_scroll(false)
                             .allow_drag(false)
                             .allow_boxed_zoom(false)
                             .x_axis_label("Frequency (Hz)")
-                            .y_axis_label("Intensity (dB?)")
+                            .y_axis_label("Intensity (dB)")
+                            .x_grid_spacer(|input| {
+                                println!(
+                                    "bounds: {:?}, base: {:?}",
+                                    input.bounds, input.base_step_size
+                                );
+                                
+                                // all of this is just to get the grid marks to be at 10^x
+                                let mut marks = Vec::new();
+                                
+                                for i in input.bounds.0 as u32..=input.bounds.1 as u32{
+                                    marks.push(GridMark {
+                                        value: i as f64,
+                                        step_size: 1.,
+                                    });
+                                    // for j in 1..9 {
+                                    //     let value = i as f64 + j as f64;
+                                    //     marks.push(GridMark {
+                                    //         value: value.log(10.0),
+                                    //         step_size: 0.5,
+                                    //     });
+                                    // }                            
+                                }
+                                marks
+
+                            })
+                            .x_axis_formatter(|mark, _, _| {
+                                format!("{:.0}", 10_f64.powf(mark.value))
+                            })
+                            .label_formatter(|_, value| {
+                                format!(
+                                    "Intensity: {:.2} dB\nFrequency: {:.2} Hz",
+                                    value.y,
+                                    10_f64.powf(value.x)
+                                )
+                            })
                             .show(ui, |plot_ui| {
                                 if ui_state.current_fft_microphone.is_none() {
                                     return;
@@ -719,8 +754,10 @@ pub fn draw_egui(
 
                                 let mapped_spectrum =
                                     calc_mic_spectrum(&mut mic, grid.delta_t, &ui_state);
+                                // remove the first element, because of log it is at x=-inf
+                                let mapped_spectrum = &mapped_spectrum[1..];
 
-                                let points = PlotPoints::new(mapped_spectrum);
+                                let points = PlotPoints::new(mapped_spectrum.to_vec());
                                 let line = Line::new(points);
                                 plot_ui.line(line);
                             });
