@@ -27,7 +27,7 @@ pub fn draw_egui(
     mut egui_context: EguiContexts,
     mut ui_state: ResMut<UiState>,
     mut grid: ResMut<Grid>,
-    gradient: Res<GradientResource>,
+    mut gradient: ResMut<GradientResource>,
     mut rect_wall_set: ParamSet<(
         Query<(Entity, &mut RectWall)>,
         Query<(Entity, &mut RectWall), (Without<Overlay>, With<Selected>)>,
@@ -176,13 +176,9 @@ pub fn draw_egui(
                                     let pressure = grid.pressure
                                         [coords_to_index(x, y, ui_state.boundary_width)];
 
-                                    let color = gradient.0.at(pressure as f64);
+                                    let color = gradient.at(pressure);
 
-                                    pixels.push([
-                                        (color.r * 255.) as u8,
-                                        (color.g * 255.) as u8,
-                                        (color.b * 255.) as u8,
-                                    ]);
+                                    pixels.push([color.r(), color.g(), color.b()]);
                                 }
                             }
 
@@ -439,6 +435,9 @@ pub fn draw_egui(
             egui::TopBottomPanel::bottom("general_settings_bottom_panel").show_inside(ui, |ui| {
                 ui.heading("General Settings");
                 ui.separator();
+
+                ui.color_edit_button_srgba(&mut gradient.0);
+                ui.color_edit_button_srgba(&mut gradient.1);
 
                 ui.horizontal(|ui| {
                     if ui

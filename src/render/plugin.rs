@@ -14,7 +14,7 @@ impl Plugin for RenderPlugin {
     fn build(&self, app: &mut App) {
         let game_ticks = GameTicks::default();
 
-        let gradient = GradientResource::with_custom();
+        let gradient = GradientResource::new();
 
         app.insert_resource(gradient)
             .insert_resource(game_ticks)

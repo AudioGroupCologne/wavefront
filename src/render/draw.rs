@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_pixel_buffer::frame::GetFrameFromImages;
 use bevy_pixel_buffer::pixel::Pixel;
 use bevy_pixel_buffer::query::QueryPixelBuffer;
+use egui::Color32;
 
 use crate::components::microphone::Microphone;
 use crate::components::states::Overlay;
@@ -12,21 +13,18 @@ use crate::math::transformations::{coords_to_index, u32_map_range};
 use crate::ui::state::{PlotType, UiState};
 
 #[derive(Resource)]
-pub struct GradientResource(pub colorgrad::Gradient);
+pub struct GradientResource(pub Color32, pub Color32);
 
 impl GradientResource {
-    pub fn with_custom() -> Self {
-        Self(
-            colorgrad::CustomGradient::new()
-                .colors(&[
-                    colorgrad::Color::from_rgba8(80, 80, 80, 255),
-                    colorgrad::Color::from_rgba8(0, 0, 0, 255),
-                    colorgrad::Color::from_rgba8(255, 255, 255, 255),
-                ])
-                .domain(&[-2.0, 2.0])
-                .build()
-                .unwrap(),
-        )
+    pub fn new() -> Self {
+        Self(Color32::from_rgb(0, 0, 0), Color32::from_rgb(255, 255, 255))
+    }
+
+    pub fn at(&self, percent: f32) -> Color32 {
+        let result_red = self.0.r() as f32 + percent * (self.1.r() - self.0.r()) as f32;
+        let result_green = self.0.g() as f32 + percent * (self.1.g() - self.0.g()) as f32;
+        let result_blue = self.0.b() as f32 + percent * (self.1.b() - self.0.b()) as f32;
+        Color32::from_rgb(result_red as u8, result_green as u8, result_blue as u8)
     }
 }
 
@@ -51,6 +49,27 @@ pub fn draw_pixels(
     // draw TLM and walls
     let mut frame = images.frame(items.next().expect("one pixel buffer"));
     frame.per_pixel_par(|coords, _| {
+        for wall in rect_walls.iter() {
+            if wall.contains(coords.x - boundary_width, coords.y - boundary_width) {
+                return Pixel {
+                    r: (wall.reflection_factor * 255.) as u8,
+                    g: (wall.reflection_factor * 255.) as u8,
+                    b: (wall.reflection_factor * 255.) as u8,
+                    a: 255,
+                };
+            }
+        }
+        for wall in circ_walls.iter() {
+            if wall.contains(coords.x - boundary_width, coords.y - boundary_width) {
+                return Pixel {
+                    r: (wall.reflection_factor * 255.) as u8,
+                    g: (wall.reflection_factor * 255.) as u8,
+                    b: (wall.reflection_factor * 255.) as u8,
+                    a: 255,
+                };
+            }
+        }
+
         let p = if ui_state.render_abc_area {
             grid.pressure[coords_to_index(coords.x, coords.y, ui_state.boundary_width)]
         } else {
@@ -60,25 +79,11 @@ pub fn draw_pixels(
                 ui_state.boundary_width,
             )]
         };
-        let mut color = gradient.0.at((p) as f64);
-        for wall in rect_walls.iter() {
-            if wall.contains(coords.x - boundary_width, coords.y - boundary_width) {
-                color.r = wall.reflection_factor as f64;
-                color.g = wall.reflection_factor as f64;
-                color.b = wall.reflection_factor as f64;
-            }
-        }
-        for wall in circ_walls.iter() {
-            if wall.contains(coords.x - boundary_width, coords.y - boundary_width) {
-                color.r = wall.reflection_factor as f64;
-                color.g = wall.reflection_factor as f64;
-                color.b = wall.reflection_factor as f64;
-            }
-        }
+        let color = gradient.at(p);
         Pixel {
-            r: (color.r * 255.) as u8,
-            g: (color.g * 255.) as u8,
-            b: (color.b * 255.) as u8,
+            r: color.r(),
+            g: color.g(),
+            b: color.b(),
             a: 255,
         }
     });

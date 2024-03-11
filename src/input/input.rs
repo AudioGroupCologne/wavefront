@@ -38,14 +38,16 @@ pub fn copy_paste_system(
                 let mut source = source.clone();
                 source.id = ids.get_new_source_id();
                 commands.spawn(source);
-            } else if let Ok((_, wall)) = rect_walls.get(entity) {
-                let mut wall = wall.clone();
-                wall.id = ids.get_new_wall_id();
-                commands.spawn(wall);
-            } else if let Ok((_, wall)) = circ_walls.get(entity) {
-                let mut wall = wall.clone();
-                wall.id = ids.get_new_wall_id();
-                commands.spawn(wall);
+            } else if let Ok((_, rect_wall)) = rect_walls.get(entity) {
+                let mut rect_wall = rect_wall.clone();
+                rect_wall.id = ids.get_new_wall_id();
+                rect_wall.set_center(rect_wall.get_center().x + 5, rect_wall.get_center().y + 5);
+                commands.spawn(rect_wall);
+            } else if let Ok((_, circ_wall)) = circ_walls.get(entity) {
+                let mut circ_wall = circ_wall.clone();
+                circ_wall.id = ids.get_new_wall_id();
+                circ_wall.set_center(circ_wall.get_center().x + 5, circ_wall.get_center().y + 5);
+                commands.spawn(circ_wall);
             } else if let Ok((_, mic)) = mics.get(entity) {
                 let mut mic = mic.clone();
                 mic.id = ids.get_new_mic_id();
