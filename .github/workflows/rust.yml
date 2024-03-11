@@ -37,11 +37,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install dependencies
+        if: runner.os == 'Linux'
         run: |
-          if [[ "${{ matrix.platform.os }}" == "ubuntu-20.04" ]]; then
-            sudo apt update
-            sudo apt install pkg-config libx11-dev libasound2-dev libudev-dev libxkbcommon-x11-0 libwayland-dev libxkbcommon-dev
-          fi
+          sudo apt update
+          sudo apt install pkg-config libx11-dev libasound2-dev libudev-dev libxkbcommon-x11-0 libwayland-dev libxkbcommon-dev
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v0
         with:
