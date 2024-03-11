@@ -116,6 +116,11 @@ impl Grid {
         circ_walls: &Query<&CircWall, Without<Overlay>>,
         boundary_width: u32,
     ) {
+        let walls = rect_walls
+            .iter()
+            .map(|x| x as &dyn Wall)
+            .chain(rect_walls.iter().map(|x| x as &dyn Wall));
+
         self.next_cells
             .par_iter_mut()
             .enumerate()
@@ -142,7 +147,7 @@ impl Grid {
                     next_cell.right = 0.5
                         * (bottom_cell.top + left_cell.right + top_cell.bottom - right_cell.left);
 
-                    for wall in rect_walls.iter() {
+                    for wall in walls.iter() {
                         if wall.contains(x, y) {
                             next_cell.bottom = 0.;
                             next_cell.left = 0.;
