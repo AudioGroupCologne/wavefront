@@ -1,5 +1,7 @@
 use bevy::math::UVec2;
+use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize)]
 pub struct WRect {
     pub min: UVec2,
     pub max: UVec2,

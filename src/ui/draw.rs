@@ -11,7 +11,7 @@ use super::dialog::SaveFileContents;
 use crate::components::microphone::*;
 use crate::components::source::*;
 use crate::components::states::{Gizmo, MenuSelected, Overlay, Selected};
-use crate::components::wall::{Wall, WallType};
+use crate::components::wall::{CircWall, RectWall, WResize, Wall};
 use crate::grid::grid::Grid;
 use crate::math::constants::*;
 use crate::math::fft::calc_mic_spectrum;
@@ -28,11 +28,17 @@ pub fn draw_egui(
     mut ui_state: ResMut<UiState>,
     mut grid: ResMut<Grid>,
     gradient: Res<GradientResource>,
-    mut wall_set: ParamSet<(
-        Query<(Entity, &mut Wall), Without<Overlay>>,
-        Query<(Entity, &mut Wall), (Without<Overlay>, With<Selected>)>,
-        Query<(Entity, &mut Wall), (Without<Overlay>, With<MenuSelected>)>,
-        Query<&Wall>,
+    mut rect_wall_set: ParamSet<(
+        Query<(Entity, &mut RectWall), Without<Overlay>>,
+        Query<(Entity, &mut RectWall), (Without<Overlay>, With<Selected>)>,
+        Query<(Entity, &mut RectWall), (Without<Overlay>, With<MenuSelected>)>,
+        Query<&RectWall>,
+    )>,
+    mut circ_wall_set: ParamSet<(
+        Query<(Entity, &mut CircWall), Without<Overlay>>,
+        Query<(Entity, &mut CircWall), (Without<Overlay>, With<Selected>)>,
+        Query<(Entity, &mut CircWall), (Without<Overlay>, With<MenuSelected>)>,
+        Query<&CircWall>,
     )>,
     mut source_set: ParamSet<(
         Query<(Entity, &mut Source)>,
@@ -116,14 +122,21 @@ pub fn draw_egui(
                                 // TODO: not super happy with this, would like to move it to the dialog system
                                 let source_set = source_set.p3();
                                 let mic_set = mic_set.p3();
-                                let wall_set = wall_set.p3();
+                                let rect_wall_set = rect_wall_set.p3();
+                                let circ_wall_set = circ_wall_set.p3();
 
                                 let sources = source_set.iter().collect::<Vec<_>>();
                                 let mics = mic_set.iter().collect::<Vec<_>>();
-                                let walls = wall_set.iter().collect::<Vec<_>>();
+                                let rect_walls = rect_wall_set.iter().collect::<Vec<_>>();
+                                let circ_walls = circ_wall_set.iter().collect::<Vec<_>>();
 
-                                let data =
-                                    crate::ui::saving::save(&sources, &mics, &walls).unwrap();
+                                let data = crate::ui::saving::save(
+                                    &sources,
+                                    &mics,
+                                    &rect_walls,
+                                    &circ_walls,
+                                )
+                                .unwrap();
 
                                 commands
                                     .dialog()
@@ -326,8 +339,8 @@ pub fn draw_egui(
                 .show(ui, |ui| {
                     ui.set_min_width(ui.available_width());
 
-                    let mut binding = wall_set.p0();
-                    let mut wall_vec = binding.iter_mut().collect::<Vec<_>>();
+                    let mut rect_binding = rect_wall_set.p0();
+                    let mut wall_vec = rect_binding.iter_mut().collect::<Vec<_>>();
                     wall_vec.sort_by_cached_key(|(_, wall)| wall.id);
 
                     wall_vec.iter_mut().for_each(|(entity, ref mut wall)| {
@@ -342,7 +355,9 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    wall.update_calc_rect(ui_state.boundary_width);
+                                    if wall.rect.min.x > wall.rect.max.x {
+                                        wall.rect.min.x = wall.rect.max.x;
+                                    }
                                 }
                                 ui.add_space(10.);
                                 ui.label("Top Corner x:");
@@ -354,7 +369,7 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    wall.update_calc_rect(ui_state.boundary_width);
+                                    // wall.update_calc_rect(ui_state.boundary_width);
                                 }
                             });
 
@@ -368,7 +383,7 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    wall.update_calc_rect(ui_state.boundary_width);
+                                    // wall.update_calc_rect(ui_state.boundary_width);
                                 }
                                 ui.add_space(10.);
                                 ui.label("Bottom Corner y:");
@@ -380,21 +395,21 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    wall.update_calc_rect(ui_state.boundary_width);
+                                    // wall.update_calc_rect(ui_state.boundary_width);
                                 }
                             });
 
                             ui.horizontal(|ui| {
                                 ui.label(format!(
                                     "Width: {:.3} m",
-                                    wall.draw_rect.width() as f32 * ui_state.delta_l
+                                    wall.rect.width() as f32 * ui_state.delta_l
                                 ));
 
                                 ui.add_space(10.);
 
                                 ui.label(format!(
                                     "Height: {:.3} m",
-                                    wall.draw_rect.height() as f32 * ui_state.delta_l
+                                    wall.rect.height() as f32 * ui_state.delta_l
                                 ));
                             });
 
@@ -403,7 +418,7 @@ pub fn draw_egui(
                                     .text("Wall Reflection Factor"),
                             );
 
-                            ui.checkbox(&mut wall.hollow, "Hollow Wall");
+                            ui.checkbox(&mut wall.is_hollow, "Hollow Wall");
 
                             if ui.add(egui::Button::new("Delete")).clicked() {
                                 commands.entity(*entity).despawn();
@@ -473,7 +488,7 @@ pub fn draw_egui(
                         } else {
                             UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
                         },
-                        pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
+                        pixel_size: UVec2::new(1, 1),
                     };
                 }
                 ui.collapsing("ABC", |ui| {
@@ -496,12 +511,8 @@ pub fn draw_egui(
                             } else {
                                 UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
                             },
-                            pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
+                            pixel_size: UVec2::new(1, 1),
                         };
-
-                        for (_, mut wall) in wall_set.p0().iter_mut() {
-                            wall.update_calc_rect(ui_state.boundary_width);
-                        }
                     }
 
                     egui::ComboBox::from_label("Attenuation Type")
@@ -579,17 +590,11 @@ pub fn draw_egui(
                                     "Circle",
                                 );
                             });
-                        if ui_state.wall_type == WallType::Circle {
-                            ui.add(
-                                egui::Slider::new(&mut ui_state.wall_radius, 1..=100)
-                                    .text("Brush Radius"),
-                            );
-                        }
                         ui.add(
                             egui::Slider::new(&mut ui_state.wall_reflection_factor, 0.0..=1.0)
                                 .text("Wall Reflection Factor"),
                         );
-                        ui.checkbox(&mut ui_state.wall_hollowed, "Hollow Wall");
+                        ui.checkbox(&mut ui_state.wall_is_hollow, "Hollow Wall");
                     }
                     ToolType::ResizeWall => {}
                     ToolType::MoveMic => {}
@@ -893,21 +898,21 @@ pub fn draw_egui(
                             Color32::from_rgb(0, 255, 0),
                         )));
                     }
-                    for (_, wall) in wall_set.p2().iter() {
+                    for (_, wall) in rect_wall_set.p2().iter() {
                         let gizmo_pos = pos2(
                             f32_map_range(
                                 0.,
                                 SIMULATION_WIDTH as f32,
                                 image.rect.min.x,
                                 image.rect.max.x,
-                                wall.draw_rect.center().x as f32,
+                                wall.get_center().x as f32,
                             ),
                             f32_map_range(
                                 0.,
                                 SIMULATION_HEIGHT as f32,
                                 image.rect.min.y,
                                 image.rect.max.y,
-                                wall.draw_rect.center().y as f32,
+                                wall.get_center().y as f32,
                             ),
                         );
 
@@ -971,21 +976,21 @@ pub fn draw_egui(
                             }
                         }
                         ToolType::MoveWall => {
-                            for (_, wall) in wall_set.p0().iter() {
+                            for (_, wall) in rect_wall_set.p0().iter() {
                                 let gizmo_pos = pos2(
                                     f32_map_range(
                                         0.,
                                         SIMULATION_WIDTH as f32,
                                         image.rect.min.x,
                                         image.rect.max.x,
-                                        wall.draw_rect.center().x as f32,
+                                        wall.get_center().x as f32,
                                     ),
                                     f32_map_range(
                                         0.,
                                         SIMULATION_HEIGHT as f32,
                                         image.rect.min.y,
                                         image.rect.max.y,
-                                        wall.draw_rect.center().y as f32,
+                                        wall.get_center().y as f32,
                                     ),
                                 );
 
@@ -995,21 +1000,21 @@ pub fn draw_egui(
                                     Color32::from_rgb(255, 100, 0),
                                 )));
                             }
-                            for (_, wall) in wall_set.p1().iter() {
+                            for (_, wall) in rect_wall_set.p1().iter() {
                                 let gizmo_pos = pos2(
                                     f32_map_range(
                                         0.,
                                         SIMULATION_WIDTH as f32,
                                         image.rect.min.x,
                                         image.rect.max.x,
-                                        wall.draw_rect.center().x as f32,
+                                        wall.get_center().x as f32,
                                     ),
                                     f32_map_range(
                                         0.,
                                         SIMULATION_HEIGHT as f32,
                                         image.rect.min.y,
                                         image.rect.max.y,
-                                        wall.draw_rect.center().y as f32,
+                                        wall.get_center().y as f32,
                                     ),
                                 );
 
@@ -1021,21 +1026,21 @@ pub fn draw_egui(
                             }
                         }
                         ToolType::ResizeWall => {
-                            for (_, wall) in wall_set.p0().iter() {
+                            for (_, wall) in rect_wall_set.p0().iter() {
                                 let gizmo_pos = pos2(
                                     f32_map_range(
                                         0.,
                                         SIMULATION_WIDTH as f32,
                                         image.rect.min.x,
                                         image.rect.max.x,
-                                        wall.rect.max.x as f32,
+                                        wall.get_resize_point(WResize::BottomRight).x as f32,
                                     ),
                                     f32_map_range(
                                         0.,
                                         SIMULATION_HEIGHT as f32,
                                         image.rect.min.y,
                                         image.rect.max.y,
-                                        wall.rect.max.y as f32,
+                                        wall.get_resize_point(WResize::BottomRight).y as f32,
                                     ),
                                 );
 

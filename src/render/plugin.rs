@@ -34,11 +34,11 @@ impl Plugin for RenderPlugin {
 pub fn setup_buffers(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     let main_size: PixelBufferSize = PixelBufferSize {
         size: UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT),
-        pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
+        pixel_size: UVec2::new(1, 1),
     };
     let spectrum_size: PixelBufferSize = PixelBufferSize {
         size: UVec2::new(250, 500), // random init values
-        pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
+        pixel_size: UVec2::new(1, 1),
     };
     insert_pixel_buffer(&mut commands, &mut images, main_size); //main
     insert_pixel_buffer(&mut commands, &mut images, spectrum_size); //spectrum

@@ -19,9 +19,7 @@ pub enum WResize {
     Radius,
 }
 
-pub trait Wall {
-    fn get_center(&self) -> UVec2;
-
+pub trait Wall: Sync + Send {
     fn get_resize_point(&self, resize_type: WResize) -> UVec2;
 
     fn contains(&self, x: u32, y: u32) -> bool;
@@ -32,11 +30,16 @@ pub trait Wall {
     fn is_deletable(&self) -> bool;
 
     fn set_center(&mut self, x: u32, y: u32);
+
+    fn get_center(&self) -> UVec2;
+
+    fn get_reflection_factor(&self) -> f32;
 }
 
-#[derive(Component)]
+#[derive(Component, Serialize, Deserialize)]
 pub struct RectWall {
-    // between 0 and SIM_WIDTH + 2 * boundary_width
+    // between 0 and SIM_WIDTH
+    // between 0 and SIM_HEIGHT
     pub rect: WRect,
     pub is_hollow: bool,
     pub reflection_factor: f32,
@@ -66,6 +69,10 @@ impl Wall for RectWall {
 
     fn set_center(&mut self, x: u32, y: u32) {
         todo!()
+    }
+
+    fn get_reflection_factor(&self) -> f32 {
+        self.reflection_factor
     }
 }
 
@@ -98,7 +105,7 @@ impl RectWall {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Serialize, Deserialize)]
 pub struct CircWall {
     pub center: UVec2,
     /// Radius excludes center point
@@ -131,6 +138,10 @@ impl Wall for CircWall {
 
     fn set_center(&mut self, x: u32, y: u32) {
         todo!()
+    }
+
+    fn get_reflection_factor(&self) -> f32 {
+        self.reflection_factor
     }
 }
 

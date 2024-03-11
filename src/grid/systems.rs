@@ -4,16 +4,17 @@ use super::grid::Grid;
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::components::states::Overlay;
-use crate::components::wall::Wall;
+use crate::components::wall::{CircWall, RectWall};
 use crate::ui::state::{GameTicks, UiState};
 
 pub fn calc_system(
     mut grid: ResMut<Grid>,
-    walls: Query<&Wall, Without<Overlay>>,
+    rect_walls: Query<&RectWall, Without<Overlay>>,
+    circ_walls: Query<&CircWall, Without<Overlay>>,
     ui_state: Res<UiState>,
 ) {
     if ui_state.is_running {
-        grid.calc_cells(&walls, ui_state.boundary_width);
+        grid.calc_cells(&rect_walls, &circ_walls, ui_state.boundary_width);
     }
 }
 

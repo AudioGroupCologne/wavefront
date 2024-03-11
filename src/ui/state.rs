@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::Vec2;
 
+#[derive(Debug, PartialEq)]
 pub enum WallType {
     Rectangle,
     Circle,
@@ -54,7 +55,6 @@ pub struct UiState {
     pub current_tool: ToolType,
     pub wall_reflection_factor: f32,
     pub wall_type: WallType,
-    pub wall_radius: u32,
     pub wall_is_hollow: bool,
     pub tools_enabled: bool,
 }
@@ -77,7 +77,6 @@ impl Default for UiState {
             current_tool: ToolType::MoveSource,
             wall_reflection_factor: 1.,
             wall_type: WallType::Rectangle,
-            wall_radius: 10,
             wall_is_hollow: false,
             tools_enabled: true,
         }

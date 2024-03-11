@@ -118,8 +118,9 @@ impl Grid {
     ) {
         let walls = rect_walls
             .iter()
-            .map(|x| x as &dyn Wall)
-            .chain(rect_walls.iter().map(|x| x as &dyn Wall));
+            .map(|x| Box::new(x as &dyn Wall))
+            .chain(circ_walls.iter().map(|x| Box::new(x as &dyn Wall)))
+            .collect::<Vec<_>>();
 
         self.next_cells
             .par_iter_mut()
@@ -147,7 +148,7 @@ impl Grid {
                     next_cell.right = 0.5
                         * (bottom_cell.top + left_cell.right + top_cell.bottom - right_cell.left);
 
-                    for wall in walls.iter() {
+                    for wall in &walls {
                         if wall.contains(x, y) {
                             next_cell.bottom = 0.;
                             next_cell.left = 0.;
@@ -155,13 +156,13 @@ impl Grid {
                             next_cell.right = 0.;
                         }
                         if wall.edge_contains(x, y) {
-                            next_cell.bottom = wall.reflection_factor
+                            next_cell.bottom = wall.get_reflection_factor()
                                 * self.cur_cells[coords_to_index(x, y + 1, boundary_width)].top;
-                            next_cell.left = wall.reflection_factor
+                            next_cell.left = wall.get_reflection_factor()
                                 * self.cur_cells[coords_to_index(x - 1, y, boundary_width)].right;
-                            next_cell.top = wall.reflection_factor
+                            next_cell.top = wall.get_reflection_factor()
                                 * self.cur_cells[coords_to_index(x, y - 1, boundary_width)].bottom;
-                            next_cell.right = wall.reflection_factor
+                            next_cell.right = wall.get_reflection_factor()
                                 * self.cur_cells[coords_to_index(x + 1, y, boundary_width)].left;
                         }
                     }

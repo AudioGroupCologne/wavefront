@@ -5,7 +5,7 @@ use bevy_pixel_buffer::query::QueryPixelBuffer;
 
 use crate::components::microphone::Microphone;
 use crate::components::states::Overlay;
-use crate::components::wall::{Wall, WallType};
+use crate::components::wall::{CircWall, RectWall, Wall};
 use crate::grid::grid::Grid;
 use crate::math::constants::SIMULATION_WIDTH;
 use crate::math::transformations::{coords_to_index, u32_map_range};
@@ -36,15 +36,16 @@ pub fn draw_pixels(
     gradient: Res<GradientResource>,
     ui_state: Res<UiState>,
     microphones: Query<&Microphone>,
-    walls: Query<&Wall, Without<Overlay>>,
+    rect_walls: Query<&RectWall, Without<Overlay>>,
+    circ_walls: Query<&CircWall, Without<Overlay>>,
 ) {
     let (query, mut images) = pixel_buffers.split();
     let mut items = query.iter();
 
     let boundary_width = if ui_state.render_abc_area {
-        0
-    } else {
         ui_state.boundary_width
+    } else {
+        0
     };
 
     // draw TLM and walls
@@ -60,8 +61,15 @@ pub fn draw_pixels(
             )]
         };
         let mut color = gradient.0.at((p) as f64);
-        for wall in walls.iter() {
-            if wall.contains(coords.x + boundary_width, coords.y + boundary_width) {
+        for wall in rect_walls.iter() {
+            if wall.contains(coords.x - boundary_width, coords.y - boundary_width) {
+                color.r = wall.reflection_factor as f64;
+                color.g = wall.reflection_factor as f64;
+                color.b = wall.reflection_factor as f64;
+            }
+        }
+        for wall in circ_walls.iter() {
+            if wall.contains(coords.x - boundary_width, coords.y - boundary_width) {
                 color.r = wall.reflection_factor as f64;
                 color.g = wall.reflection_factor as f64;
                 color.b = wall.reflection_factor as f64;
@@ -107,29 +115,28 @@ pub fn draw_pixels(
     }
 }
 
-pub fn draw_walls(pixel_buffers: QueryPixelBuffer, walls_overlay: Query<&Wall, With<Overlay>>) {
+pub fn draw_walls(
+    pixel_buffers: QueryPixelBuffer,
+    rect_walls_overlay: Query<&RectWall, With<Overlay>>,
+    circ_walls_overlay: Query<&CircWall, With<Overlay>>,
+) {
     let (query, mut images) = pixel_buffers.split();
     let mut frame = images.frame(query.iter().next().expect("one pixel buffer"));
 
     let raw_pixles = frame.raw_mut();
 
-    for wall in walls_overlay.iter() {
-        match &wall.wall_type {
-            WallType::Rectangle => {
-                for x in wall.draw_rect.min.x..=wall.draw_rect.max.x {
-                    for y in wall.draw_rect.min.y..=wall.draw_rect.max.y {
-                        // no out of bounds check
-                        let index = x + y * SIMULATION_WIDTH;
+    for wall in rect_walls_overlay.iter() {
+        // for x in wall.draw_rect.min.x..=wall.draw_rect.max.x {
+        //     for y in wall.draw_rect.min.y..=wall.draw_rect.max.y {
+        //         // no out of bounds check
+        //         let index = x + y * SIMULATION_WIDTH;
 
-                        let r = raw_pixles[index as usize].r;
-                        let g = raw_pixles[index as usize].g;
-                        let b = raw_pixles[index as usize].b;
+        //         let r = raw_pixles[index as usize].r;
+        //         let g = raw_pixles[index as usize].g;
+        //         let b = raw_pixles[index as usize].b;
 
-                        raw_pixles[index as usize] = Pixel { r, g, b, a: 70 };
-                    }
-                }
-            }
-            WallType::Circle => todo!(),
-        }
+        //         raw_pixles[index as usize] = Pixel { r, g, b, a: 70 };
+        //     }
+        // }
     }
 }
