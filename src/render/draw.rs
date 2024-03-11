@@ -21,9 +21,9 @@ impl GradientResource {
     }
 
     pub fn at(&self, percent: f32) -> Color32 {
-        let result_red = self.0.r() as f32 + percent * (self.1.r() - self.0.r()) as f32;
-        let result_green = self.0.g() as f32 + percent * (self.1.g() - self.0.g()) as f32;
-        let result_blue = self.0.b() as f32 + percent * (self.1.b() - self.0.b()) as f32;
+        let result_red = self.0.r() as f32 + percent * (self.1.r() as f32 - self.0.r() as f32);
+        let result_green = self.0.g() as f32 + percent * (self.1.g() as f32 - self.0.g() as f32);
+        let result_blue = self.0.b() as f32 + percent * (self.1.b() as f32 - self.0.b() as f32);
         Color32::from_rgb(result_red as u8, result_green as u8, result_blue as u8)
     }
 }

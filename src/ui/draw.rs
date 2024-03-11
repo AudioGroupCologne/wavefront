@@ -436,8 +436,11 @@ pub fn draw_egui(
                 ui.heading("General Settings");
                 ui.separator();
 
+               ui.horizontal(|ui| {
                 ui.color_edit_button_srgba(&mut gradient.0);
                 ui.color_edit_button_srgba(&mut gradient.1);
+               });
+               ui.separator();
 
                 ui.horizontal(|ui| {
                     if ui
@@ -711,12 +714,11 @@ pub fn draw_egui(
                             .x_axis_label("Frequency (Hz)")
                             .y_axis_label("Intensity (dB)")
                             .x_grid_spacer(|input| {
-                                println!(
-                                    "bounds: {:?}, base: {:?}",
-                                    input.bounds, input.base_step_size
-                                );
+                                // println!(
+                                //     "bounds: {:?}, base: {:?}",
+                                //     input.bounds, input.base_step_size
+                                // );
 
-                                // all of this is just to get the grid marks to be at 10^x
                                 let mut marks = Vec::new();
 
                                 for i in input.bounds.0 as u32..=input.bounds.1 as u32 {
@@ -745,6 +747,7 @@ pub fn draw_egui(
                                 )
                             })
                             .show(ui, |plot_ui| {
+                                println!("{:?}", ui_state.current_fft_microphone);
                                 if ui_state.current_fft_microphone.is_none() {
                                     return;
                                 }
