@@ -237,13 +237,16 @@ pub fn button_input(
         drag_microphones.iter_mut().for_each(|(entity, _)| {
             commands.entity(entity).remove::<Drag>();
         });
-        rect_wall_set.p2().iter_mut().for_each(|(entity, _, wall)| {
-            if wall.is_deletable() {
-                commands.entity(entity).despawn();
-                component_ids.decrement_wall_ids();
-            }
-            commands.entity(entity).remove::<(WResize, Overlay)>();
-        });
+        rect_wall_set
+            .p2()
+            .iter_mut()
+            .for_each(|(entity, _, rect_wall)| {
+                if rect_wall.is_deletable() {
+                    commands.entity(entity).despawn();
+                    component_ids.decrement_wall_ids();
+                }
+                commands.entity(entity).remove::<(WResize, Overlay)>();
+            });
         rect_wall_set.p1().iter_mut().for_each(|(entity, _)| {
             commands.entity(entity).remove::<Drag>();
         });
@@ -277,7 +280,7 @@ pub fn button_input(
                             .p2()
                             .iter_mut()
                             .for_each(|(_, wall_resize, mut wall)| match wall_resize {
-                                WResize::BottomRight => wall.set_bottom_right(x, y),
+                                WResize::BottomRight => wall.resize(wall_resize, x, y),
                                 WResize::Radius => todo!(),
                                 _ => {}
                             });

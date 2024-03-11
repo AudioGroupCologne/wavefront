@@ -126,17 +126,17 @@ pub fn draw_walls(
     let raw_pixles = frame.raw_mut();
 
     for wall in rect_walls_overlay.iter() {
-        // for x in wall.draw_rect.min.x..=wall.draw_rect.max.x {
-        //     for y in wall.draw_rect.min.y..=wall.draw_rect.max.y {
-        //         // no out of bounds check
-        //         let index = x + y * SIMULATION_WIDTH;
+        for x in wall.rect.min.x..=wall.rect.max.x {
+            for y in wall.rect.min.y..=wall.rect.max.y {
+                // no out of bounds check
+                let index = x + y * SIMULATION_WIDTH;
 
-        //         let r = raw_pixles[index as usize].r;
-        //         let g = raw_pixles[index as usize].g;
-        //         let b = raw_pixles[index as usize].b;
+                let r = raw_pixles[index as usize].r;
+                let g = raw_pixles[index as usize].g;
+                let b = raw_pixles[index as usize].b;
 
-        //         raw_pixles[index as usize] = Pixel { r, g, b, a: 70 };
-        //     }
-        // }
+                raw_pixles[index as usize] = Pixel { r, g, b, a: 70 };
+            }
+        }
     }
 }

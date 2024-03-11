@@ -149,13 +149,13 @@ impl Grid {
                         * (bottom_cell.top + left_cell.right + top_cell.bottom - right_cell.left);
 
                     for wall in &walls {
-                        if wall.contains(x, y) {
+                        if wall.contains(x - boundary_width, y - boundary_width) {
                             next_cell.bottom = 0.;
                             next_cell.left = 0.;
                             next_cell.top = 0.;
                             next_cell.right = 0.;
                         }
-                        if wall.edge_contains(x, y) {
+                        if wall.edge_contains(x - boundary_width, y - boundary_width) {
                             next_cell.bottom = wall.get_reflection_factor()
                                 * self.cur_cells[coords_to_index(x, y + 1, boundary_width)].top;
                             next_cell.left = wall.get_reflection_factor()

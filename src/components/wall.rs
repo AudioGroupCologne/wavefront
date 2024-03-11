@@ -1,10 +1,12 @@
+use std::cmp::Ordering;
+
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::rect::WRect;
 
-#[derive(Component)]
+#[derive(Component, PartialEq)]
 pub enum WResize {
     TopLeft,
     TopRight,
@@ -32,6 +34,8 @@ pub trait Wall: Sync + Send {
     fn get_center(&self) -> UVec2;
 
     fn get_reflection_factor(&self) -> f32;
+
+    fn resize(&mut self, resize_type: &WResize, x: u32, y: u32);
 }
 
 #[derive(Component, Serialize, Deserialize, Clone)]
@@ -50,12 +54,16 @@ impl Wall for RectWall {
     }
 
     fn get_resize_point(&self, resize_type: WResize) -> UVec2 {
+        debug_assert!(
+            resize_type != WResize::Radius,
+            "RectWall cannot be resized with WResize::Radius"
+        );
         match resize_type {
-            WResize::TopLeft => UVec2::new(self.rect.min.x, self.rect.min.y),
+            WResize::TopLeft => self.rect.min,
             WResize::TopRight => UVec2::new(self.rect.max.x, self.rect.min.y),
-            WResize::BottomRight => UVec2::new(self.rect.max.x, self.rect.max.y),
+            WResize::BottomRight => self.rect.max,
             WResize::BottomLeft => UVec2::new(self.rect.min.x, self.rect.max.y),
-            WResize::Radius => todo!(),
+            WResize::Radius => unreachable!(),
         }
     }
 
@@ -78,33 +86,84 @@ impl Wall for RectWall {
     }
 
     fn set_center(&mut self, x: u32, y: u32) {
-        //TODO: out of bounds check
-        let x = x as i32;
-        let y = y as i32;
+        let current_center = self.rect.center();
 
-        let width = self.rect.width() as i32;
-        let height = self.rect.height() as i32;
-        let x0 = x - width / 2;
-        let y0 = y - height / 2;
-        let x1 = x0 + width - 1;
-        let y1 = y0 + height - 1;
+        let mut x_offset = x as i32 - current_center.x as i32;
+        let mut y_offset = y as i32 - current_center.y as i32;
 
-        if x0 < 0 {
-            self.rect.min.x = 0;
-            self.rect.max.x = width as u32 - 1;
-        } else if x1 > SIMULATION_WIDTH as i32 {
-            self.rect.max.x = SIMULATION_WIDTH - 1;
-            self.rect.min.x = SIMULATION_WIDTH - width as u32;
-        } else {
-            self.rect.min.x = x0 as u32;
-            self.rect.max.x = x1 as u32;
+        match x_offset.cmp(&0) {
+            Ordering::Less => {
+                x_offset = if x_offset.abs() > self.rect.min.x as i32 {
+                    self.rect.min.x as i32
+                } else {
+                    x_offset
+                };
+                self.rect.min.x -= x_offset.unsigned_abs();
+                self.rect.max.x -= x_offset.unsigned_abs();
+            }
+            Ordering::Greater => {
+                // minus 1 because wall-bounds are inclusive
+                x_offset = if x_offset > SIMULATION_WIDTH as i32 - self.rect.max.x as i32 - 1 {
+                    SIMULATION_WIDTH as i32 - self.rect.max.x as i32 - 1
+                } else {
+                    x_offset
+                };
+                self.rect.min.x += x_offset as u32;
+                self.rect.max.x += x_offset as u32;
+            }
+            _ => {}
         }
 
-        self.rect = WRect::new(x0 as u32, y0 as u32, x1 as u32, y1 as u32);
+        match y_offset.cmp(&0) {
+            Ordering::Less => {
+                y_offset = if y_offset.abs() > self.rect.min.y as i32 {
+                    self.rect.min.y as i32
+                } else {
+                    y_offset
+                };
+                self.rect.min.y -= y_offset.unsigned_abs();
+                self.rect.max.y -= y_offset.unsigned_abs();
+            }
+            Ordering::Greater => {
+                // minus 1 because wall-bounds are inclusive
+                y_offset = if y_offset > SIMULATION_HEIGHT as i32 - self.rect.max.y as i32 - 1 {
+                    SIMULATION_HEIGHT as i32 - self.rect.max.y as i32 - 1
+                } else {
+                    y_offset
+                };
+                self.rect.min.y += y_offset as u32;
+                self.rect.max.y += y_offset as u32;
+            }
+            _ => {}
+        }
     }
 
     fn get_reflection_factor(&self) -> f32 {
         self.reflection_factor
+    }
+
+    fn resize(&mut self, resize_type: &WResize, mut x: u32, mut y: u32) {
+        debug_assert!(
+            *resize_type != WResize::Radius,
+            "RectWall cannot be resized with WResize::Radius"
+        );
+        match resize_type {
+            WResize::TopLeft => todo!(),
+            WResize::TopRight => todo!(),
+            WResize::BottomRight => {
+                // make sure x and y are never less than min
+                if x < self.rect.min.x {
+                    x = self.rect.min.x;
+                }
+                if y < self.rect.min.y {
+                    y = self.rect.min.y;
+                }
+
+                self.rect.max = UVec2::new(x, y);
+            }
+            WResize::BottomLeft => todo!(),
+            WResize::Radius => unreachable!(),
+        }
     }
 }
 
@@ -124,30 +183,6 @@ impl RectWall {
             reflection_factor,
             id,
         }
-    }
-
-    pub fn set_top_left(&mut self, x: u32, y: u32) {
-        
-    }
-
-    pub fn set_top_right(&mut self, x: u32, y: u32) {
-        
-    }
-
-    pub fn set_bottom_left(&mut self, x: u32, y: u32) {
-        
-    }
-
-    pub fn set_bottom_right(&mut self, mut x: u32, mut y: u32) {
-        // make sure x and y are never less than min
-        if x < self.rect.min.x {
-            x = self.rect.min.x;
-        }
-        if y < self.rect.min.y {
-            y = self.rect.min.y;
-        }
-
-        self.rect.max = UVec2::new(x, y);
     }
 }
 
@@ -189,6 +224,15 @@ impl Wall for CircWall {
     fn get_reflection_factor(&self) -> f32 {
         self.reflection_factor
     }
+
+    fn resize(&mut self, resize_type: &WResize, x: u32, y: u32) {
+        match resize_type {
+            WResize::Radius => {}
+            _ => {
+                panic!("Circular walls cannot be resized by radius.");
+            }
+        }
+    }
 }
 
 impl CircWall {
@@ -202,6 +246,4 @@ impl CircWall {
     ) -> Self {
         todo!()
     }
-
-    pub fn set_radius() {}
 }

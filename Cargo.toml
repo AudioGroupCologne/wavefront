@@ -75,7 +75,7 @@ features = [
     #   "tga",  # Truevision Targa image format
     #   "exr",  # OpenEXR advanced image format
     #   "pnm",  # PNM (pam, pbm, pgm, ppm) image format
-    "basis-universal", # Basis Universal GPU texture compression format
+    # "basis-universal", # Basis Universal GPU texture compression format
     #   "zlib", # zlib compression support in KTX2 files
     #   "flac", # Audio: FLAC lossless format
     #   "mp3",  # Audio: MP3 format (not recommended)
@@ -91,7 +91,7 @@ features = [
 
     # Development/Debug features:
     #   "dynamic_linking", # Dynamic linking for faster compile-times
-    "trace", # Enable tracing for performance measurement
+    # "trace", # Enable tracing for performance measurement
     #   "detailed_trace",  # Make traces more verbose
     #   "trace_tracy",     # Tracing using `tracy`
     #   "trace_tracy_memory", # + memory profiling

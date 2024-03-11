@@ -29,7 +29,7 @@ pub fn draw_egui(
     mut grid: ResMut<Grid>,
     gradient: Res<GradientResource>,
     mut rect_wall_set: ParamSet<(
-        Query<(Entity, &mut RectWall), Without<Overlay>>,
+        Query<(Entity, &mut RectWall)>,
         Query<(Entity, &mut RectWall), (Without<Overlay>, With<Selected>)>,
         Query<(Entity, &mut RectWall), (Without<Overlay>, With<MenuSelected>)>,
         Query<&RectWall>,
