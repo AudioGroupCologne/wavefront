@@ -436,11 +436,11 @@ pub fn draw_egui(
                 ui.heading("General Settings");
                 ui.separator();
 
-               ui.horizontal(|ui| {
-                ui.color_edit_button_srgba(&mut gradient.0);
-                ui.color_edit_button_srgba(&mut gradient.1);
-               });
-               ui.separator();
+                ui.horizontal(|ui| {
+                    ui.color_edit_button_srgba(&mut gradient.0);
+                    ui.color_edit_button_srgba(&mut gradient.1);
+                });
+                ui.separator();
 
                 ui.horizontal(|ui| {
                     if ui
