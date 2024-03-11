@@ -36,12 +36,12 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Checkout
         uses: actions/checkout@v3
-       - name: Install dependencies
-              run: |
-                  if [[ "${{ matrix.platform.os }}" == "ubuntu-20.04" ]]; then
-                    sudo apt update
-                    sudo apt install pkg-config libx11-dev libasound2-dev libudev-dev libxkbcommon-x11-0 libwayland-dev libxkbcommon-dev
-                  fi
+      - name: Install dependencies
+        run: |
+          if [[ "${{ matrix.platform.os }}" == "ubuntu-20.04" ]]; then
+            sudo apt update
+            sudo apt install pkg-config libx11-dev libasound2-dev libudev-dev libxkbcommon-x11-0 libwayland-dev libxkbcommon-dev
+          fi
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v0
         with:
