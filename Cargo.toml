@@ -8,7 +8,6 @@ edition = "2021"
 [dependencies]
 bevy_file_dialog = "0.4.0"
 bevy_pixel_buffer = { version = "0.7.0", features = ["egui"] }
-colorgrad = "0.6.2"
 egui_extras = { version = "0.26.2", features = ["image"] }
 image = { version = "0.25.0", features = ["png"] }
 egui_plot = "0.26.2"
