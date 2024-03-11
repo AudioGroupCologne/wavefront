@@ -13,7 +13,7 @@ pub fn calc_system(
     ui_state: Res<UiState>,
 ) {
     if ui_state.is_running {
-        grid.calc_cells(&walls, ui_state.e_al);
+        grid.calc_cells(&walls, ui_state.boundary_width);
     }
 }
 
@@ -25,7 +25,11 @@ pub fn apply_system(
     ui_state: Res<UiState>,
 ) {
     if ui_state.is_running {
-        grid.apply_sources(game_ticks.ticks_since_start, &sources, ui_state.e_al);
+        grid.apply_sources(
+            game_ticks.ticks_since_start,
+            &sources,
+            ui_state.boundary_width,
+        );
         grid.apply_boundaries(&ui_state);
         grid.apply_microphones(microphones, &ui_state);
     }

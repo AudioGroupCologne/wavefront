@@ -79,8 +79,8 @@ impl Source {
 
     pub fn spawn_initial_sources(mut commands: Commands, mut component_ids: ResMut<ComponentIDs>) {
         commands.spawn(Source::new(
-            (SIMULATION_WIDTH + 2 * E_AL) / 2,
-            (SIMULATION_HEIGHT + 2 * E_AL) / 2,
+            (SIMULATION_WIDTH + 2 * INIT_BOUNDARY_WIDTH) / 2,
+            (SIMULATION_HEIGHT + 2 * INIT_BOUNDARY_WIDTH) / 2,
             10.,
             0.0,
             10000.0,
@@ -88,8 +88,8 @@ impl Source {
             component_ids.get_new_source_id(),
         ));
         commands.spawn(Source::new(
-            (SIMULATION_WIDTH + 2 * E_AL) / 3,
-            (SIMULATION_HEIGHT + 2 * E_AL) / 3,
+            (SIMULATION_WIDTH + 2 * INIT_BOUNDARY_WIDTH) / 3,
+            (SIMULATION_HEIGHT + 2 * INIT_BOUNDARY_WIDTH) / 3,
             10.,
             0.0,
             10000.0,

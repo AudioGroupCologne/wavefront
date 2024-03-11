@@ -44,19 +44,19 @@ pub fn draw_pixels(
     let boundary_width = if ui_state.render_abc_area {
         0
     } else {
-        ui_state.e_al
+        ui_state.boundary_width
     };
 
     // draw TLM and walls
     let mut frame = images.frame(items.next().expect("one pixel buffer"));
     frame.per_pixel_par(|coords, _| {
         let p = if ui_state.render_abc_area {
-            grid.pressure[coords_to_index(coords.x, coords.y, ui_state.e_al)]
+            grid.pressure[coords_to_index(coords.x, coords.y, ui_state.boundary_width)]
         } else {
             grid.pressure[coords_to_index(
-                coords.x + ui_state.e_al,
-                coords.y + ui_state.e_al,
-                ui_state.e_al,
+                coords.x + ui_state.boundary_width,
+                coords.y + ui_state.boundary_width,
+                ui_state.boundary_width,
             )]
         };
         let mut color = gradient.0.at((p) as f64);

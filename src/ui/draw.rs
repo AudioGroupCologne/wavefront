@@ -154,10 +154,14 @@ pub fn draw_egui(
                         {
                             let mut pixels: Vec<[u8; 3]> = Vec::new();
 
-                            for y in ui_state.e_al..(SIMULATION_WIDTH + ui_state.e_al) {
-                                for x in ui_state.e_al..(SIMULATION_HEIGHT + ui_state.e_al) {
-                                    let pressure =
-                                        grid.pressure[coords_to_index(x, y, ui_state.e_al)];
+                            for y in ui_state.boundary_width
+                                ..(SIMULATION_WIDTH + ui_state.boundary_width)
+                            {
+                                for x in ui_state.boundary_width
+                                    ..(SIMULATION_HEIGHT + ui_state.boundary_width)
+                                {
+                                    let pressure = grid.pressure
+                                        [coords_to_index(x, y, ui_state.boundary_width)];
 
                                     let color = gradient.0.at(pressure as f64);
 
@@ -338,7 +342,7 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    wall.update_calc_rect(ui_state.e_al);
+                                    wall.update_calc_rect(ui_state.boundary_width);
                                 }
                                 ui.add_space(10.);
                                 ui.label("Top Corner x:");
@@ -350,7 +354,7 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    wall.update_calc_rect(ui_state.e_al);
+                                    wall.update_calc_rect(ui_state.boundary_width);
                                 }
                             });
 
@@ -364,7 +368,7 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    wall.update_calc_rect(ui_state.e_al);
+                                    wall.update_calc_rect(ui_state.boundary_width);
                                 }
                                 ui.add_space(10.);
                                 ui.label("Bottom Corner y:");
@@ -376,7 +380,7 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    wall.update_calc_rect(ui_state.e_al);
+                                    wall.update_calc_rect(ui_state.boundary_width);
                                 }
                             });
 
@@ -430,7 +434,7 @@ pub fn draw_egui(
                     }
 
                     if ui.button("Reset").clicked() {
-                        grid.reset_cells(ui_state.e_al);
+                        grid.reset_cells(ui_state.boundary_width);
                         for (_, mut mic) in mic_set.p0().iter_mut() {
                             mic.clear();
                         }
@@ -463,8 +467,8 @@ pub fn draw_egui(
                     pb.pixel_buffer.size = PixelBufferSize {
                         size: if ui_state.render_abc_area {
                             UVec2::new(
-                                SIMULATION_WIDTH + 2 * ui_state.e_al,
-                                SIMULATION_HEIGHT + 2 * ui_state.e_al,
+                                SIMULATION_WIDTH + 2 * ui_state.boundary_width,
+                                SIMULATION_HEIGHT + 2 * ui_state.boundary_width,
                             )
                         } else {
                             UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
@@ -475,16 +479,19 @@ pub fn draw_egui(
                 ui.collapsing("ABC", |ui| {
                     ui.set_enabled(ui_state.render_abc_area);
                     if ui
-                        .add(egui::Slider::new(&mut ui_state.e_al, 2..=200).text("E_AL"))
+                        .add(
+                            egui::Slider::new(&mut ui_state.boundary_width, 2..=200)
+                                .text("boundary_width"),
+                        )
                         .changed()
                     {
-                        grid.reset_cells(ui_state.e_al);
+                        grid.reset_cells(ui_state.boundary_width);
                         let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
                         pb.pixel_buffer.size = PixelBufferSize {
                             size: if ui_state.render_abc_area {
                                 UVec2::new(
-                                    SIMULATION_WIDTH + 2 * ui_state.e_al,
-                                    SIMULATION_HEIGHT + 2 * ui_state.e_al,
+                                    SIMULATION_WIDTH + 2 * ui_state.boundary_width,
+                                    SIMULATION_HEIGHT + 2 * ui_state.boundary_width,
                                 )
                             } else {
                                 UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
@@ -493,7 +500,7 @@ pub fn draw_egui(
                         };
 
                         for (_, mut wall) in wall_set.p0().iter_mut() {
-                            wall.update_calc_rect(ui_state.e_al);
+                            wall.update_calc_rect(ui_state.boundary_width);
                         }
                     }
 
@@ -704,11 +711,11 @@ pub fn draw_egui(
                                     "bounds: {:?}, base: {:?}",
                                     input.bounds, input.base_step_size
                                 );
-                                
+
                                 // all of this is just to get the grid marks to be at 10^x
                                 let mut marks = Vec::new();
-                                
-                                for i in input.bounds.0 as u32..=input.bounds.1 as u32{
+
+                                for i in input.bounds.0 as u32..=input.bounds.1 as u32 {
                                     marks.push(GridMark {
                                         value: i as f64,
                                         step_size: 1.,
@@ -719,10 +726,9 @@ pub fn draw_egui(
                                     //         value: value.log(10.0),
                                     //         step_size: 0.5,
                                     //     });
-                                    // }                            
+                                    // }
                                 }
                                 marks
-
                             })
                             .x_axis_formatter(|mark, _, _| {
                                 format!("{:.0}", 10_f64.powf(mark.value))

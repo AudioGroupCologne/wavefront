@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::Vec2;
 
-use crate::components::wall::WallType;
+pub enum WallType {
+    Rectangle,
+    Circle,
+}
 
 #[derive(Default, Resource)]
 pub struct GameTicks {
@@ -39,7 +42,7 @@ pub struct UiState {
     pub is_running: bool,
     pub delta_l: f32,
     pub epsilon: f32,
-    pub e_al: u32,
+    pub boundary_width: u32,
     pub render_abc_area: bool,
     pub at_type: AttenuationType,
     pub power_order: u32,
@@ -52,7 +55,7 @@ pub struct UiState {
     pub wall_reflection_factor: f32,
     pub wall_type: WallType,
     pub wall_radius: u32,
-    pub wall_hollowed: bool,
+    pub wall_is_hollow: bool,
     pub tools_enabled: bool,
 }
 
@@ -62,7 +65,7 @@ impl Default for UiState {
             is_running: true,
             delta_l: 0.001,
             epsilon: 0.001,
-            e_al: 50,
+            boundary_width: 50,
             render_abc_area: false,
             at_type: AttenuationType::Power,
             power_order: 5,
@@ -75,7 +78,7 @@ impl Default for UiState {
             wall_reflection_factor: 1.,
             wall_type: WallType::Rectangle,
             wall_radius: 10,
-            wall_hollowed: false,
+            wall_is_hollow: false,
             tools_enabled: true,
         }
     }

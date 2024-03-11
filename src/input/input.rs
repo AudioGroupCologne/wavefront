@@ -253,7 +253,7 @@ pub fn button_input(
                                 WallResize::BottomRight => {
                                     wall.rect.max.x = x;
                                     wall.rect.max.y = y;
-                                    wall.update_calc_rect(ui_state.e_al);
+                                    wall.update_calc_rect(ui_state.boundary_width);
                                 }
                                 WallResize::Radius => todo!(),
                                 _ => {}
@@ -269,7 +269,7 @@ pub fn button_input(
                             y = (y as f32 / 10.).round() as u32 * 10;
                         }
                         drag_walls.iter_mut().for_each(|(_, mut wall)| {
-                            wall.translate_center_to(x, y, ui_state.e_al);
+                            wall.translate_center_to(x, y, ui_state.boundary_width);
                         });
                     }
                 }
