@@ -1,4 +1,5 @@
 use std::f32::consts::PI;
+use std::fmt;
 
 use bevy::prelude::*;
 use rand::{thread_rng, Rng};
@@ -29,6 +30,16 @@ pub enum SourceType {
     Sin,
     Gauss,
     WhiteNoise,
+}
+
+impl fmt::Display for SourceType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SourceType::Sin => write!(f, "Sinusoidal"),
+            SourceType::Gauss => write!(f, "Gaussian"),
+            SourceType::WhiteNoise => write!(f, "White Noise"),
+        }
+    }
 }
 
 impl Source {

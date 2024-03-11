@@ -22,7 +22,6 @@ use crate::ui::state::*;
 pub fn draw_egui(
     mut commands: Commands,
     diagnostics: Res<DiagnosticsStore>,
-    images: Local<Images>,
     mut pixel_buffers: QueryPixelBuffer,
     mut egui_context: EguiContexts,
     mut ui_state: ResMut<UiState>,
@@ -53,41 +52,39 @@ pub fn draw_egui(
         Query<&Microphone>,
     )>,
 ) {
-    //Icons
-    let _cursor_icon = egui_context.add_image(images.cursor_icon.clone_weak());
+    let ctx = egui_context.ctx_mut();
+    egui_extras::install_image_loaders(ctx);
 
-    let icon_vec = vec![
+    let images = [
         (
             ToolType::PlaceSource,
-            egui_context.add_image(images.place_source_icon.clone_weak()),
+            egui::include_image!("../../assets/place_source.png"),
         ),
         (
             ToolType::MoveSource,
-            egui_context.add_image(images.move_source_icon.clone_weak()),
+            egui::include_image!("../../assets/move_source.png"),
         ),
         (
             ToolType::DrawWall,
-            egui_context.add_image(images.draw_wall_icon.clone_weak()),
+            egui::include_image!("../../assets/draw_wall.png"),
         ),
         (
             ToolType::ResizeWall,
-            egui_context.add_image(images.resize_wall_icon.clone_weak()),
+            egui::include_image!("../../assets/resize_wall.png"),
         ),
         (
             ToolType::MoveWall,
-            egui_context.add_image(images.move_wall_icon.clone_weak()),
+            egui::include_image!("../../assets/move_wall.png"),
         ),
         (
             ToolType::PlaceMic,
-            egui_context.add_image(images.place_mic_icon.clone_weak()),
+            egui::include_image!("../../assets/place_mic.png"),
         ),
         (
             ToolType::MoveMic,
-            egui_context.add_image(images.move_mic_icon.clone_weak()),
+            egui::include_image!("../../assets/move_mic.png"),
         ),
     ];
-
-    let ctx = egui_context.ctx_mut();
 
     // Side Panel (Sources, Mic, Walls, Tool Options, Settings)
     egui::SidePanel::left("left_panel")
@@ -165,7 +162,7 @@ pub fn draw_egui(
                             .on_hover_text("Save a screenshot of the simulation")
                             .clicked()
                         {
-                            let mut pixels: Vec<[u8; 3]> = Vec::new();
+                            let mut pixels: Vec<u8> = Vec::new();
 
                             for y in ui_state.boundary_width
                                 ..(SIMULATION_WIDTH + ui_state.boundary_width)
@@ -178,18 +175,23 @@ pub fn draw_egui(
 
                                     let color = gradient.at(pressure);
 
-                                    pixels.push([color.r(), color.g(), color.b()]);
+                                    pixels.push(color.r());
+                                    pixels.push(color.g());
+                                    pixels.push(color.b());
                                 }
                             }
 
-                            let data = lodepng::encode_memory(
-                                &pixels,
-                                SIMULATION_WIDTH as usize,
-                                SIMULATION_HEIGHT as usize,
-                                lodepng::ColorType::RGB,
-                                8,
+                            let mut data = Vec::new();
+                            let encoder = image::codecs::png::PngEncoder::new(&mut data);
+                            let image = image::RgbImage::from_raw(
+                                SIMULATION_WIDTH,
+                                SIMULATION_HEIGHT,
+                                pixels,
                             )
-                            .expect("");
+                            .expect("could not create image");
+                            image
+                                .write_with_encoder(encoder)
+                                .expect("could not write image");
 
                             commands
                                 .dialog()
@@ -250,7 +252,7 @@ pub fn draw_egui(
                             }
 
                             egui::ComboBox::from_label("Waveform")
-                                .selected_text(format!("{:?}", source.source_type))
+                                .selected_text(format!("{}", source.source_type))
                                 .show_ui(ui, |ui| {
                                     ui.selectable_value(
                                         &mut source.source_type,
@@ -652,7 +654,7 @@ pub fn draw_egui(
                 ui.heading("Microphone Plot");
 
                 egui::ComboBox::from_label("Select Plot Type")
-                    .selected_text(format!("{:?}", ui_state.plot_type))
+                    .selected_text(format!("{}", ui_state.plot_type))
                     .show_ui(ui, |ui| {
                         ui.style_mut().wrap = Some(false);
                         ui.selectable_value(
@@ -747,7 +749,6 @@ pub fn draw_egui(
                                 )
                             })
                             .show(ui, |plot_ui| {
-                                println!("{:?}", ui_state.current_fft_microphone);
                                 if ui_state.current_fft_microphone.is_none() {
                                     return;
                                 }
@@ -795,13 +796,11 @@ pub fn draw_egui(
         .resizable(false)
         .show(ctx, |ui| {
             ui.set_enabled(ui_state.tools_enabled);
-
-            for (tool_type, tool_icon) in icon_vec {
+            for (tool_type, icon) in images {
                 if ui
                     .add(
-                        egui::Button::image_and_text(
-                            egui::load::SizedTexture::new(tool_icon, [25., 25.]),
-                            "",
+                        egui::Button::image(
+                            egui::Image::new(icon).fit_to_exact_size(Vec2::new(25., 25.)),
                         )
                         .fill(if tool_type == ui_state.current_tool {
                             Color32::DARK_GRAY
@@ -810,7 +809,7 @@ pub fn draw_egui(
                         })
                         .min_size(Vec2::new(0., 35.)),
                     )
-                    .on_hover_text(format!("{:?}", tool_type))
+                    .on_hover_text(format!("{}", tool_type))
                     .clicked()
                 {
                     ui_state.current_tool = tool_type;

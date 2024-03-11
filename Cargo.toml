@@ -9,8 +9,9 @@ edition = "2021"
 bevy_file_dialog = "0.4.0"
 bevy_pixel_buffer = { version = "0.7.0", features = ["egui"] }
 colorgrad = "0.6.2"
+egui_extras = { version = "0.26.2", features = ["image"] }
+image = { version = "0.25.0", features = ["png"] }
 egui_plot = "0.26.2"
-lodepng = "3.10.1"
 rand = "0.8.5"
 rand_distr = "0.4.3"
 rayon = "1.8.0"
@@ -27,75 +28,18 @@ version = "0.13"
 # Disable the default features if there are any that you do not want
 default-features = false
 features = [
-    # Bevy functionality:
-    "multi-threaded", # Run with multithreading
-    "bevy_asset",     # Assets management
-    #   "bevy_audio",         # Builtin audio
-    #   "bevy_gilrs",         # Gamepad input support
-    #   "bevy_scene",         # Scenes management
-    "bevy_winit",         # Window management
-    "bevy_render",        # Rendering framework core
-    "bevy_core_pipeline", # Common rendering abstractions
-    #   "bevy_gizmos",        # Support drawing debug lines and shapes
-    #   "bevy_sprite", # 2D (sprites) rendering
-    #   "bevy_pbr",           # 3D (physically-based) rendering
-    #   "bevy_gltf",          # GLTF 3D assets format support
-    #   "bevy_text", # Text/font rendering
-    #   "bevy_ui",   # UI toolkit
-    #   "animation",          # Animation support
-    #   "tonemapping_luts",   # Support different camera Tonemapping modes (embeds extra data)
-    #   "filesystem_watcher", # Asset hot-reloading
-    "default_font", # Embed a minimal default font for text/UI
+    "multi-threaded",
 
-    # File formats:
-    "png", # PNG image format for simple 2D images
-    #   "hdr",    # HDR images
-    #   "ktx2",   # Preferred format for GPU textures
-    #   "zstd",   # ZSTD compression support in KTX2 files
-    #   "vorbis", # Audio: OGG Vorbis
+    "bevy_winit",
+    "bevy_render",
 
-    # Platform-specific:
-    "x11", # Linux: Support X11 windowing system
-    #   "android_shared_stdcxx", # Android: use shared C++ library
-    #   "webgl2",                # Web: use WebGL2 instead of WebGPU
+    "png",
 
-    # These are other features that may be of interest:
-    # (add any of these that you need)
+    "x11",
+    "wayland",
 
-    # Bevy functionality:
-    "subpixel_glyph_atlas", # Subpixel antialiasing for text/fonts
-    "serialize",            # Support for `serde` Serialize/Deserialize
-
-    # File formats:###
-    #   "dds",  # Alternative DirectX format for GPU textures, instead of KTX2
-    #   "jpeg", # JPEG lossy format for 2D photos
-    #   "webp", # WebP image format
-    #   "bmp",  # Uncompressed BMP image format
-    #   "tga",  # Truevision Targa image format
-    #   "exr",  # OpenEXR advanced image format
-    #   "pnm",  # PNM (pam, pbm, pgm, ppm) image format
-    # "basis-universal", # Basis Universal GPU texture compression format
-    #   "zlib", # zlib compression support in KTX2 files
-    #   "flac", # Audio: FLAC lossless format
-    #   "mp3",  # Audio: MP3 format (not recommended)
-    #   "wav",  # Audio: Uncompressed WAV
-    #   "symphonia-all", # All Audio formats supported by the Symphonia library
-    #   "shader_format_glsl", # GLSL shader support
-    #   "shader_format_spirv", # SPIR-V shader support
-
-    # Platform-specific:
-    "wayland", # (Linux) Support Wayland windowing system
-    #   "accesskit_unix",       # (Unix-like) AccessKit integration for UI Accessibility
-    #   "bevy_dynamic_plugin",  # (Desktop) support for loading of `DynamicPlugin`s
-
-    # Development/Debug features:
-    #   "dynamic_linking", # Dynamic linking for faster compile-times
-    # "trace", # Enable tracing for performance measurement
-    #   "detailed_trace",  # Make traces more verbose
-    #   "trace_tracy",     # Tracing using `tracy`
-    #   "trace_tracy_memory", # + memory profiling
-    #   "trace_chrome",    # Tracing using the Chrome format
-    #   "wgpu_trace",      # WGPU/rendering tracing
+    # "subpixel_glyph_atlas",
+    "serialize",
 ]
 
 # Enable a small amount of optimization in debug mode
