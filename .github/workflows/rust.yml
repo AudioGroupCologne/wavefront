@@ -1,6 +1,12 @@
 name: build
 
-on: push
+on: 
+  issues:
+    types:
+      - closed
+  pull_request:
+    types:
+      - closed
 
 jobs:
   release:
