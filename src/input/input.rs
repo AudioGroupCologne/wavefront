@@ -214,6 +214,7 @@ pub fn button_input(
         resize_walls.iter_mut().for_each(|(entity, _, wall)| {
             if wall.is_empty() {
                 commands.entity(entity).despawn();
+                component_ids.decrement_wall_ids();
             }
             commands.entity(entity).remove::<(WallResize, Overlay)>();
         });

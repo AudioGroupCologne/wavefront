@@ -44,4 +44,9 @@ impl ComponentIDs {
         self.current_wall_id += 1;
         current
     }
+
+    /// Decrements the current wall id
+    pub fn decrement_wall_ids(&mut self) {
+        self.current_wall_id -= 1;
+    }
 }
