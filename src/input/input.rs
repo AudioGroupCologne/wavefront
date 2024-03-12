@@ -69,12 +69,12 @@ pub fn button_input(
     mut drag_microphones: Query<(Entity, &mut Microphone), With<Drag>>,
     mut selected: Query<Entity, With<Selected>>,
     mut rect_wall_set: ParamSet<(
-        Query<(Entity, &RectWall), (Without<Drag>, Without<WResize>)>, // walls:
-        Query<(Entity, &mut RectWall), With<Drag>>,                    // mut drag_walls:
+        Query<(Entity, &RectWall)>,
+        Query<(Entity, &mut RectWall), With<Drag>>, // mut drag_walls:
         Query<(Entity, &WResize, &mut RectWall), (With<WResize>, Without<Drag>)>, // mut resize_walls:
     )>,
     mut circ_wall_set: ParamSet<(
-        Query<(Entity, &CircWall), (Without<Drag>, Without<WResize>)>,
+        Query<(Entity, &CircWall)>,
         Query<(Entity, &mut CircWall), With<Drag>>,
         Query<(Entity, &WResize, &mut CircWall), (With<WResize>, Without<Drag>)>,
     )>,
@@ -176,7 +176,7 @@ pub fn button_input(
                         for (entity, wall) in walls {
                             let center = wall.get_center();
                             if (center.x).abs_diff(x) <= 10 && (center.y).abs_diff(y) <= 10 {
-                                commands.entity(entity).insert((Drag, Selected));
+                                commands.entity(entity).insert((Drag, Selected, Overlay));
                                 break;
                             }
                         }
@@ -231,9 +231,6 @@ pub fn button_input(
         }
     }
 
-    // let rect_drag_walls = rect_wall_set.p1();
-    // let rect_resize_walls = rect_wall_set.p2();
-
     if mouse_buttons.just_released(MouseButton::Left) {
         drag_sources.iter_mut().for_each(|(entity, _)| {
             commands.entity(entity).remove::<Drag>();
@@ -242,31 +239,25 @@ pub fn button_input(
             commands.entity(entity).remove::<Drag>();
         });
         rect_wall_set
-            .p2()
+            .p0()
             .iter_mut()
-            .for_each(|(entity, _, rect_wall)| {
+            .for_each(|(entity, rect_wall)| {
                 if rect_wall.is_deletable() {
                     commands.entity(entity).despawn();
                     component_ids.decrement_wall_ids();
                 }
-                commands.entity(entity).remove::<(WResize, Overlay)>();
+                commands.entity(entity).remove::<(WResize, Overlay, Drag)>();
             });
-        rect_wall_set.p1().iter_mut().for_each(|(entity, _)| {
-            commands.entity(entity).remove::<Drag>();
-        });
         circ_wall_set
-            .p2()
+            .p0()
             .iter_mut()
-            .for_each(|(entity, _, circ_wall)| {
+            .for_each(|(entity, circ_wall)| {
                 if circ_wall.is_deletable() {
                     commands.entity(entity).despawn();
                     component_ids.decrement_wall_ids();
                 }
-                commands.entity(entity).remove::<(WResize, Overlay)>();
+                commands.entity(entity).remove::<(WResize, Overlay, Drag)>();
             });
-        circ_wall_set.p1().iter_mut().for_each(|(entity, _)| {
-            commands.entity(entity).remove::<Drag>();
-        });
 
         wall_update_ev.send(UpdateWalls);
     }
@@ -314,6 +305,9 @@ pub fn button_input(
                             y = (y as f32 / 10.).round() as u32 * 10;
                         }
                         rect_wall_set.p1().iter_mut().for_each(|(_, mut wall)| {
+                            wall.set_center(x, y);
+                        });
+                        circ_wall_set.p1().iter_mut().for_each(|(_, mut wall)| {
                             wall.set_center(x, y);
                         });
                     }
