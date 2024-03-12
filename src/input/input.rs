@@ -72,13 +72,11 @@ pub fn button_input(
         Query<(Entity, &RectWall), (Without<Drag>, Without<WResize>)>, // walls:
         Query<(Entity, &mut RectWall), With<Drag>>,                    // mut drag_walls:
         Query<(Entity, &WResize, &mut RectWall), (With<WResize>, Without<Drag>)>, // mut resize_walls:
-        Query<&RectWall>,
     )>,
     mut circ_wall_set: ParamSet<(
         Query<(Entity, &CircWall), (Without<Drag>, Without<WResize>)>,
         Query<(Entity, &mut CircWall), With<Drag>>,
         Query<(Entity, &WResize, &mut CircWall), (With<WResize>, Without<Drag>)>,
-        Query<&CircWall>,
     )>,
     mut commands: Commands,
     mut ui_state: ResMut<UiState>,
