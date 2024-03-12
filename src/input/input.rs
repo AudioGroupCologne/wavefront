@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
+use super::events::UpdateWalls;
 use crate::components::microphone::Microphone;
 use crate::components::source::{Source, SourceType};
 use crate::components::states::{Drag, Overlay, Selected};
@@ -9,8 +10,6 @@ use crate::grid::grid::Grid;
 use crate::grid::plugin::ComponentIDs;
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
 use crate::ui::state::{ClipboardBuffer, ToolType, UiState, WallType};
-
-use super::events::UpdateWalls;
 
 pub fn copy_paste_system(
     keys: Res<ButtonInput<KeyCode>>,

@@ -23,7 +23,7 @@ pub struct Grid {
     pub cur_cells: Vec<Cell>,
     pub next_cells: Vec<Cell>,
     pub pressure: Vec<f32>,
-    pub walls: Vec<WallCell>,
+    pub wall_cache: Vec<WallCell>,
     /// Delta s in seconds
     pub delta_t: f32,
 }
@@ -49,7 +49,7 @@ impl Default for Grid {
                     * (SIMULATION_HEIGHT + 2 * INIT_BOUNDARY_WIDTH))
                     as usize
             ],
-            walls: vec![
+            wall_cache: vec![
                 WallCell::default();
                 ((SIMULATION_WIDTH + 2 * INIT_BOUNDARY_WIDTH)
                     * (SIMULATION_HEIGHT + 2 * INIT_BOUNDARY_WIDTH))
@@ -112,11 +112,11 @@ impl Grid {
         circ_walls: &Query<&CircWall>,
         boundary_width: u32,
     ) {
-        self.walls.par_iter_mut().for_each(|wall_cell| {
+        self.wall_cache.par_iter_mut().for_each(|wall_cell| {
             wall_cell.is_wall = false;
         });
 
-        self.walls
+        self.wall_cache
             .par_iter_mut()
             .enumerate()
             .for_each(|(index, wall_cell)| {
@@ -172,8 +172,8 @@ impl Grid {
                     next_cell.right = 0.5
                         * (bottom_cell.top + left_cell.right + top_cell.bottom - right_cell.left);
 
-                    if self.walls[index].is_wall {
-                        let reflection_factor = self.walls[index].reflection_factor;
+                    if self.wall_cache[index].is_wall {
+                        let reflection_factor = self.wall_cache[index].reflection_factor;
                         next_cell.bottom = reflection_factor * bottom_cell.top;
                         next_cell.left = reflection_factor * left_cell.right;
                         next_cell.top = reflection_factor * top_cell.bottom;

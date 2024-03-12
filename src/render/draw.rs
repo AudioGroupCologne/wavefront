@@ -52,8 +52,8 @@ pub fn draw_pixels(
             coords.y + abc_boundary_width,
             ui_state.boundary_width,
         );
-        if grid.walls[current_index].is_wall {
-            let mut reflection_factor = grid.walls[current_index].reflection_factor;
+        if grid.wall_cache[current_index].is_wall {
+            let mut reflection_factor = grid.wall_cache[current_index].reflection_factor;
             if reflection_factor == 0. {
                 reflection_factor = 1.;
             }
