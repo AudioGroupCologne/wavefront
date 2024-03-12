@@ -6,7 +6,6 @@ use crate::components::microphone::Microphone;
 use crate::components::source::{Source, SourceType};
 use crate::components::states::{Drag, Overlay, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize, Wall};
-use crate::grid::grid::Grid;
 use crate::grid::plugin::ComponentIDs;
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
 use crate::ui::state::{ClipboardBuffer, ToolType, UiState, WallType};
@@ -67,7 +66,6 @@ pub fn button_input(
     sources: Query<(Entity, &Source), Without<Drag>>,
     mut drag_sources: Query<(Entity, &mut Source), With<Drag>>,
     microphones: Query<(Entity, &Microphone), Without<Drag>>,
-    mut grid: ResMut<Grid>,
     mut drag_microphones: Query<(Entity, &mut Microphone), With<Drag>>,
     mut selected: Query<Entity, With<Selected>>,
     mut rect_wall_set: ParamSet<(

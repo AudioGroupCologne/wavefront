@@ -6,7 +6,7 @@ use egui::Color32;
 
 use crate::components::microphone::Microphone;
 use crate::components::states::Overlay;
-use crate::components::wall::{CircWall, RectWall, Wall};
+use crate::components::wall::{CircWall, RectWall};
 use crate::grid::grid::Grid;
 use crate::math::constants::SIMULATION_WIDTH;
 use crate::math::transformations::{coords_to_index, u32_map_range};

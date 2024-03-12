@@ -2,7 +2,7 @@ use serde::Serialize;
 
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
-use crate::components::wall::{CircWall, RectWall, Wall};
+use crate::components::wall::{CircWall, RectWall};
 
 #[derive(Serialize)]
 struct SaveData<'a> {
