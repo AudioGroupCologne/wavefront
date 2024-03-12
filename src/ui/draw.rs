@@ -34,7 +34,7 @@ pub fn draw_egui(
         Query<&RectWall>,
     )>,
     mut circ_wall_set: ParamSet<(
-        Query<(Entity, &mut CircWall), Without<Overlay>>,
+        Query<(Entity, &mut CircWall)>,
         Query<(Entity, &mut CircWall), (Without<Overlay>, With<Selected>)>,
         Query<(Entity, &mut CircWall), (Without<Overlay>, With<MenuSelected>)>,
         Query<&CircWall>,
@@ -330,9 +330,9 @@ pub fn draw_egui(
 
             ui.separator();
 
-            // Walls
+            // Rect Walls
             egui::ScrollArea::vertical()
-                .id_source("wallblock_scroll_area")
+                .id_source("rect_wall_scroll_area")
                 .max_height(400.)
                 .show(ui, |ui| {
                     ui.set_min_width(ui.available_width());
@@ -342,7 +342,7 @@ pub fn draw_egui(
                     wall_vec.sort_by_cached_key(|(_, wall)| wall.id);
 
                     wall_vec.iter_mut().for_each(|(entity, ref mut wall)| {
-                        let collapse = ui.collapsing(format!("Wallblock {}", wall.id), |ui| {
+                        let collapse = ui.collapsing(format!("RectWall {}", wall.id), |ui| {
                             ui.horizontal(|ui| {
                                 ui.label("Top Corner x:");
                                 if ui
@@ -408,6 +408,51 @@ pub fn draw_egui(
                                 ui.label(format!(
                                     "Height: {:.3} m",
                                     wall.rect.height() as f32 * ui_state.delta_l
+                                ));
+                            });
+
+                            ui.add(
+                                egui::Slider::new(&mut wall.reflection_factor, 0.0..=1.0)
+                                    .text("Wall Reflection Factor"),
+                            );
+
+                            ui.checkbox(&mut wall.is_hollow, "Hollow Wall");
+
+                            if ui.add(egui::Button::new("Delete")).clicked() {
+                                commands.entity(*entity).despawn();
+                            }
+                        });
+
+                        if collapse.header_response.contains_pointer()
+                            || collapse.body_response.is_some()
+                        {
+                            commands.entity(*entity).try_insert(MenuSelected);
+                        } else {
+                            commands.entity(*entity).remove::<MenuSelected>();
+                        }
+                    });
+                });
+            // Circ Walls
+            egui::ScrollArea::vertical()
+                .id_source("circ_wall_scroll_area")
+                .max_height(400.)
+                .show(ui, |ui| {
+                    ui.set_min_width(ui.available_width());
+
+                    let mut circ_binding = circ_wall_set.p0();
+                    let mut wall_vec = circ_binding.iter_mut().collect::<Vec<_>>();
+                    wall_vec.sort_by_cached_key(|(_, wall)| wall.id);
+
+                    wall_vec.iter_mut().for_each(|(entity, ref mut wall)| {
+                        let collapse = ui.collapsing(format!("CircWall {}", wall.id), |ui| {
+                            ui.horizontal(|ui| {
+                                ui.label(format!("Center: {:?} m", wall.get_center()));
+
+                                ui.add_space(10.);
+
+                                ui.label(format!(
+                                    "Radius: {:.3} m",
+                                    wall.radius // as f32 * ui_state.delta_l
                                 ));
                             });
 

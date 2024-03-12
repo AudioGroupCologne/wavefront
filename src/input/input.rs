@@ -252,6 +252,19 @@ pub fn button_input(
         rect_wall_set.p1().iter_mut().for_each(|(entity, _)| {
             commands.entity(entity).remove::<Drag>();
         });
+        circ_wall_set
+            .p2()
+            .iter_mut()
+            .for_each(|(entity, _, circ_wall)| {
+                if circ_wall.is_deletable() {
+                    commands.entity(entity).despawn();
+                    component_ids.decrement_wall_ids();
+                }
+                commands.entity(entity).remove::<(WResize, Overlay)>();
+            });
+        circ_wall_set.p1().iter_mut().for_each(|(entity, _)| {
+            commands.entity(entity).remove::<Drag>();
+        });
     }
 
     if mouse_buttons.pressed(MouseButton::Left) && ui_state.tools_enabled {
@@ -281,11 +294,11 @@ pub fn button_input(
                         rect_wall_set
                             .p2()
                             .iter_mut()
-                            .for_each(|(_, wall_resize, mut wall)| match wall_resize {
-                                WResize::BottomRight => wall.resize(wall_resize, x, y),
-                                WResize::Radius => todo!(),
-                                _ => {}
-                            });
+                            .for_each(|(_, wall_resize, mut wall)| wall.resize(wall_resize, x, y));
+                        circ_wall_set
+                            .p2()
+                            .iter_mut()
+                            .for_each(|(_, wall_resize, mut wall)| wall.resize(wall_resize, x, y));
                     }
                 }
                 ToolType::MoveWall => {
