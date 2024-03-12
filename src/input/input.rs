@@ -248,6 +248,7 @@ pub fn button_input(
                 if rect_wall.is_deletable() {
                     commands.entity(entity).despawn();
                     component_ids.decrement_wall_ids();
+                    wall_update_ev.send(UpdateWalls);
                 }
                 commands.entity(entity).remove::<(WResize, Overlay)>();
             });
@@ -261,6 +262,7 @@ pub fn button_input(
                 if circ_wall.is_deletable() {
                     commands.entity(entity).despawn();
                     component_ids.decrement_wall_ids();
+                    wall_update_ev.send(UpdateWalls);
                 }
                 commands.entity(entity).remove::<(WResize, Overlay)>();
             });
