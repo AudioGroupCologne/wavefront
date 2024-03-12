@@ -9,23 +9,12 @@ use crate::math::constants::*;
 use crate::math::transformations::{coords_to_index, index_to_coords};
 use crate::ui::state::{AttenuationType, UiState};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct Cell {
     pub bottom: f32,
     pub left: f32,
     pub top: f32,
     pub right: f32,
-}
-
-impl Default for Cell {
-    fn default() -> Self {
-        Self {
-            bottom: 0.,
-            left: 0.,
-            top: 0.,
-            right: 0.,
-        }
-    }
 }
 
 #[derive(Debug, Resource)]
@@ -130,8 +119,8 @@ impl Grid {
                 // if pixel is in sim region
                 if x >= boundary_width
                     && x < SIMULATION_WIDTH + boundary_width
-                    && y >= boundary_width
                     && y < SIMULATION_HEIGHT + boundary_width
+                    && y >= boundary_width
                 {
                     let bottom_cell = self.cur_cells[coords_to_index(x, y + 1, boundary_width)];
                     let left_cell = self.cur_cells[coords_to_index(x - 1, y, boundary_width)];
@@ -149,40 +138,30 @@ impl Grid {
                         * (bottom_cell.top + left_cell.right + top_cell.bottom - right_cell.left);
 
                     for wall in rect_walls {
-                        if wall.contains(x - boundary_width, y - boundary_width) {
+                        if wall.edge_contains(x - boundary_width, y - boundary_width) {
+                            next_cell.bottom = wall.get_reflection_factor() * bottom_cell.top;
+                            next_cell.left = wall.get_reflection_factor() * left_cell.right;
+                            next_cell.top = wall.get_reflection_factor() * top_cell.bottom;
+                            next_cell.right = wall.get_reflection_factor() * right_cell.left;
+                        } else if wall.contains(x - boundary_width, y - boundary_width) {
                             next_cell.bottom = 0.;
                             next_cell.left = 0.;
                             next_cell.top = 0.;
                             next_cell.right = 0.;
-                        }
-                        if wall.edge_contains(x - boundary_width, y - boundary_width) {
-                            next_cell.bottom = wall.get_reflection_factor()
-                                * self.cur_cells[coords_to_index(x, y + 1, boundary_width)].top;
-                            next_cell.left = wall.get_reflection_factor()
-                                * self.cur_cells[coords_to_index(x - 1, y, boundary_width)].right;
-                            next_cell.top = wall.get_reflection_factor()
-                                * self.cur_cells[coords_to_index(x, y - 1, boundary_width)].bottom;
-                            next_cell.right = wall.get_reflection_factor()
-                                * self.cur_cells[coords_to_index(x + 1, y, boundary_width)].left;
                         }
                     }
 
                     for wall in circ_walls {
-                        if wall.contains(x - boundary_width, y - boundary_width) {
+                        if wall.edge_contains(x - boundary_width, y - boundary_width) {
+                            next_cell.bottom = wall.get_reflection_factor() * bottom_cell.top;
+                            next_cell.left = wall.get_reflection_factor() * left_cell.right;
+                            next_cell.top = wall.get_reflection_factor() * top_cell.bottom;
+                            next_cell.right = wall.get_reflection_factor() * right_cell.left;
+                        } else if wall.contains(x - boundary_width, y - boundary_width) {
                             next_cell.bottom = 0.;
                             next_cell.left = 0.;
                             next_cell.top = 0.;
                             next_cell.right = 0.;
-                        }
-                        if wall.edge_contains(x - boundary_width, y - boundary_width) {
-                            next_cell.bottom = wall.get_reflection_factor()
-                                * self.cur_cells[coords_to_index(x, y + 1, boundary_width)].top;
-                            next_cell.left = wall.get_reflection_factor()
-                                * self.cur_cells[coords_to_index(x - 1, y, boundary_width)].right;
-                            next_cell.top = wall.get_reflection_factor()
-                                * self.cur_cells[coords_to_index(x, y - 1, boundary_width)].bottom;
-                            next_cell.right = wall.get_reflection_factor()
-                                * self.cur_cells[coords_to_index(x + 1, y, boundary_width)].left;
                         }
                     }
                 }

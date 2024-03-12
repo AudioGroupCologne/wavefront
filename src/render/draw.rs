@@ -49,6 +49,7 @@ pub fn draw_pixels(
     // draw TLM and walls
     let mut frame = images.frame(items.next().expect("one pixel buffer"));
     frame.per_pixel_par(|coords, _| {
+        //TODO: maybe this can be solved in a better way
         for wall in rect_walls.iter() {
             if wall.contains(coords.x - boundary_width, coords.y - boundary_width) {
                 return Pixel {
@@ -89,9 +90,9 @@ pub fn draw_pixels(
     });
 
     // draw spectrum
-    let mut frame = images.frame(items.next().expect("two pixel buffers"));
     if ui_state.plot_type == PlotType::FrequencyDomain && ui_state.current_fft_microphone.is_some()
     {
+        let mut frame = images.frame(items.next().expect("two pixel buffers"));
         let mic = microphones
             .iter()
             .find(|m| m.id == ui_state.current_fft_microphone.expect("no mic selected"))
