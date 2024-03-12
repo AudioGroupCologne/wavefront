@@ -34,52 +34,39 @@ pub fn draw_pixels(
     gradient: Res<GradientResource>,
     ui_state: Res<UiState>,
     microphones: Query<&Microphone>,
-    rect_walls: Query<&RectWall, Without<Overlay>>,
-    circ_walls: Query<&CircWall, Without<Overlay>>,
 ) {
     let (query, mut images) = pixel_buffers.split();
     let mut items = query.iter();
 
-    let boundary_width = if ui_state.render_abc_area {
-        ui_state.boundary_width
-    } else {
+    let abc_boundary_width = if ui_state.render_abc_area {
         0
+    } else {
+        ui_state.boundary_width
     };
 
     // draw TLM and walls
     let mut frame = images.frame(items.next().expect("one pixel buffer"));
     frame.per_pixel_par(|coords, _| {
-        //TODO: maybe this can be solved in a better way
-        // for wall in rect_walls.iter() {
-        //     if wall.contains(coords.x - boundary_width, coords.y - boundary_width) {
-        //         return Pixel {
-        //             r: (wall.reflection_factor * 255.) as u8,
-        //             g: (wall.reflection_factor * 255.) as u8,
-        //             b: (wall.reflection_factor * 255.) as u8,
-        //             a: 255,
-        //         };
-        //     }
-        // }
-        // for wall in circ_walls.iter() {
-        //     if wall.contains(coords.x - boundary_width, coords.y - boundary_width) {
-        //         return Pixel {
-        //             r: (wall.reflection_factor * 255.) as u8,
-        //             g: (wall.reflection_factor * 255.) as u8,
-        //             b: (wall.reflection_factor * 255.) as u8,
-        //             a: 255,
-        //         };
-        //     }
-        // }
+        let current_index = coords_to_index(
+            coords.x + abc_boundary_width,
+            coords.y + abc_boundary_width,
+            ui_state.boundary_width,
+        );
+        if grid.walls[current_index].is_wall {
+            let mut reflection_factor = grid.walls[current_index].reflection_factor;
+            if reflection_factor == 0. {
+                reflection_factor = 1.;
+            }
+            return Pixel {
+                r: (reflection_factor * 255.) as u8,
+                g: (reflection_factor * 255.) as u8,
+                b: (reflection_factor * 255.) as u8,
+                a: 255,
+            };
+        }
 
-        let p = if ui_state.render_abc_area {
-            grid.pressure[coords_to_index(coords.x, coords.y, ui_state.boundary_width)]
-        } else {
-            grid.pressure[coords_to_index(
-                coords.x + ui_state.boundary_width,
-                coords.y + ui_state.boundary_width,
-                ui_state.boundary_width,
-            )]
-        };
+        let p = grid.pressure[current_index];
+
         let color = gradient.at(p);
         Pixel {
             r: color.r(),

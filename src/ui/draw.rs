@@ -13,6 +13,7 @@ use crate::components::source::*;
 use crate::components::states::{Gizmo, MenuSelected, Overlay, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize, Wall};
 use crate::grid::grid::Grid;
+use crate::input::events::UpdateWalls;
 use crate::math::constants::*;
 use crate::math::fft::calc_mic_spectrum;
 use crate::math::transformations::{coords_to_index, f32_map_range};
@@ -27,6 +28,7 @@ pub fn draw_egui(
     mut ui_state: ResMut<UiState>,
     mut grid: ResMut<Grid>,
     mut gradient: ResMut<GradientResource>,
+    mut wall_update_ev: EventWriter<UpdateWalls>,
     mut rect_wall_set: ParamSet<(
         Query<(Entity, &mut RectWall)>,
         Query<(Entity, &mut RectWall), (Without<Overlay>, With<Selected>)>,
@@ -412,14 +414,18 @@ pub fn draw_egui(
                             });
 
                             ui.add(
-                                egui::Slider::new(&mut wall.reflection_factor, 0.0..=1.0)
+                                // 0.01 because rendering then draws white
+                                egui::Slider::new(&mut wall.reflection_factor, 0.01..=1.0)
                                     .text("Wall Reflection Factor"),
                             );
 
-                            ui.checkbox(&mut wall.is_hollow, "Hollow Wall");
+                            if ui.checkbox(&mut wall.is_hollow, "Hollow Wall").changed() {
+                                wall_update_ev.send(UpdateWalls);
+                            };
 
                             if ui.add(egui::Button::new("Delete")).clicked() {
                                 commands.entity(*entity).despawn();
+                                wall_update_ev.send(UpdateWalls);
                             }
                         });
 
@@ -457,14 +463,17 @@ pub fn draw_egui(
                             });
 
                             ui.add(
-                                egui::Slider::new(&mut wall.reflection_factor, 0.0..=1.0)
+                                egui::Slider::new(&mut wall.reflection_factor, 0.01..=1.0)
                                     .text("Wall Reflection Factor"),
                             );
 
-                            ui.checkbox(&mut wall.is_hollow, "Hollow Wall");
+                            if ui.checkbox(&mut wall.is_hollow, "Hollow Wall").changed() {
+                                wall_update_ev.send(UpdateWalls);
+                            };
 
                             if ui.add(egui::Button::new("Delete")).clicked() {
                                 commands.entity(*entity).despawn();
+                                wall_update_ev.send(UpdateWalls);
                             }
                         });
 
