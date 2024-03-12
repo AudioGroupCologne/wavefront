@@ -11,7 +11,8 @@ use super::dialog::SaveFileContents;
 use crate::components::microphone::*;
 use crate::components::source::*;
 use crate::components::states::{Gizmo, MenuSelected, Overlay, Selected};
-use crate::components::wall::{Wall, WallType};
+use crate::components::wall::{CircWall, RectWall, WResize, Wall};
+use crate::events::UpdateWalls;
 use crate::grid::grid::Grid;
 use crate::math::constants::*;
 use crate::math::fft::calc_mic_spectrum;
@@ -22,17 +23,23 @@ use crate::ui::state::*;
 pub fn draw_egui(
     mut commands: Commands,
     diagnostics: Res<DiagnosticsStore>,
-    images: Local<Images>,
     mut pixel_buffers: QueryPixelBuffer,
     mut egui_context: EguiContexts,
     mut ui_state: ResMut<UiState>,
     mut grid: ResMut<Grid>,
-    gradient: Res<GradientResource>,
-    mut wall_set: ParamSet<(
-        Query<(Entity, &mut Wall), Without<Overlay>>,
-        Query<(Entity, &mut Wall), (Without<Overlay>, With<Selected>)>,
-        Query<(Entity, &mut Wall), (Without<Overlay>, With<MenuSelected>)>,
-        Query<&Wall>,
+    mut gradient: ResMut<GradientResource>,
+    mut wall_update_ev: EventWriter<UpdateWalls>,
+    mut rect_wall_set: ParamSet<(
+        Query<(Entity, &mut RectWall)>,
+        Query<(Entity, &mut RectWall), (Without<Overlay>, With<Selected>)>,
+        Query<(Entity, &mut RectWall), (Without<Overlay>, With<MenuSelected>)>,
+        Query<&RectWall>,
+    )>,
+    mut circ_wall_set: ParamSet<(
+        Query<(Entity, &mut CircWall)>,
+        Query<(Entity, &mut CircWall), (Without<Overlay>, With<Selected>)>,
+        Query<(Entity, &mut CircWall), (Without<Overlay>, With<MenuSelected>)>,
+        Query<&CircWall>,
     )>,
     mut source_set: ParamSet<(
         Query<(Entity, &mut Source)>,
@@ -47,41 +54,39 @@ pub fn draw_egui(
         Query<&Microphone>,
     )>,
 ) {
-    //Icons
-    let _cursor_icon = egui_context.add_image(images.cursor_icon.clone_weak());
+    let ctx = egui_context.ctx_mut();
+    egui_extras::install_image_loaders(ctx);
 
-    let icon_vec = vec![
+    let images = [
         (
             ToolType::PlaceSource,
-            egui_context.add_image(images.place_source_icon.clone_weak()),
+            egui::include_image!("../../assets/place_source.png"),
         ),
         (
             ToolType::MoveSource,
-            egui_context.add_image(images.move_source_icon.clone_weak()),
+            egui::include_image!("../../assets/move_source.png"),
         ),
         (
             ToolType::DrawWall,
-            egui_context.add_image(images.draw_wall_icon.clone_weak()),
+            egui::include_image!("../../assets/draw_wall.png"),
         ),
         (
             ToolType::ResizeWall,
-            egui_context.add_image(images.resize_wall_icon.clone_weak()),
+            egui::include_image!("../../assets/resize_wall.png"),
         ),
         (
             ToolType::MoveWall,
-            egui_context.add_image(images.move_wall_icon.clone_weak()),
+            egui::include_image!("../../assets/move_wall.png"),
         ),
         (
             ToolType::PlaceMic,
-            egui_context.add_image(images.place_mic_icon.clone_weak()),
+            egui::include_image!("../../assets/place_mic.png"),
         ),
         (
             ToolType::MoveMic,
-            egui_context.add_image(images.move_mic_icon.clone_weak()),
+            egui::include_image!("../../assets/move_mic.png"),
         ),
     ];
-
-    let ctx = egui_context.ctx_mut();
 
     // Side Panel (Sources, Mic, Walls, Tool Options, Settings)
     egui::SidePanel::left("left_panel")
@@ -116,14 +121,21 @@ pub fn draw_egui(
                                 // TODO: not super happy with this, would like to move it to the dialog system
                                 let source_set = source_set.p3();
                                 let mic_set = mic_set.p3();
-                                let wall_set = wall_set.p3();
+                                let rect_wall_set = rect_wall_set.p3();
+                                let circ_wall_set = circ_wall_set.p3();
 
                                 let sources = source_set.iter().collect::<Vec<_>>();
                                 let mics = mic_set.iter().collect::<Vec<_>>();
-                                let walls = wall_set.iter().collect::<Vec<_>>();
+                                let rect_walls = rect_wall_set.iter().collect::<Vec<_>>();
+                                let circ_walls = circ_wall_set.iter().collect::<Vec<_>>();
 
-                                let data =
-                                    crate::ui::saving::save(&sources, &mics, &walls).unwrap();
+                                let data = crate::ui::saving::save(
+                                    &sources,
+                                    &mics,
+                                    &rect_walls,
+                                    &circ_walls,
+                                )
+                                .unwrap();
 
                                 commands
                                     .dialog()
@@ -152,31 +164,36 @@ pub fn draw_egui(
                             .on_hover_text("Save a screenshot of the simulation")
                             .clicked()
                         {
-                            let mut pixels: Vec<[u8; 3]> = Vec::new();
+                            let mut pixels: Vec<u8> = Vec::new();
 
-                            for y in ui_state.e_al..(SIMULATION_WIDTH + ui_state.e_al) {
-                                for x in ui_state.e_al..(SIMULATION_HEIGHT + ui_state.e_al) {
-                                    let pressure =
-                                        grid.pressure[coords_to_index(x, y, ui_state.e_al)];
+                            for y in ui_state.boundary_width
+                                ..(SIMULATION_WIDTH + ui_state.boundary_width)
+                            {
+                                for x in ui_state.boundary_width
+                                    ..(SIMULATION_HEIGHT + ui_state.boundary_width)
+                                {
+                                    let pressure = grid.pressure
+                                        [coords_to_index(x, y, ui_state.boundary_width)];
 
-                                    let color = gradient.0.at(pressure as f64);
+                                    let color = gradient.at(pressure);
 
-                                    pixels.push([
-                                        (color.r * 255.) as u8,
-                                        (color.g * 255.) as u8,
-                                        (color.b * 255.) as u8,
-                                    ]);
+                                    pixels.push(color.r());
+                                    pixels.push(color.g());
+                                    pixels.push(color.b());
                                 }
                             }
 
-                            let data = lodepng::encode_memory(
-                                &pixels,
-                                SIMULATION_WIDTH as usize,
-                                SIMULATION_HEIGHT as usize,
-                                lodepng::ColorType::RGB,
-                                8,
+                            let mut data = Vec::new();
+                            let encoder = image::codecs::png::PngEncoder::new(&mut data);
+                            let image = image::RgbImage::from_raw(
+                                SIMULATION_WIDTH,
+                                SIMULATION_HEIGHT,
+                                pixels,
                             )
-                            .expect("");
+                            .expect("could not create image");
+                            image
+                                .write_with_encoder(encoder)
+                                .expect("could not write image");
 
                             commands
                                 .dialog()
@@ -237,7 +254,7 @@ pub fn draw_egui(
                             }
 
                             egui::ComboBox::from_label("Waveform")
-                                .selected_text(format!("{:?}", source.source_type))
+                                .selected_text(format!("{}", source.source_type))
                                 .show_ui(ui, |ui| {
                                     ui.selectable_value(
                                         &mut source.source_type,
@@ -315,19 +332,19 @@ pub fn draw_egui(
 
             ui.separator();
 
-            // Walls
+            // Rect Walls
             egui::ScrollArea::vertical()
-                .id_source("wallblock_scroll_area")
+                .id_source("rect_wall_scroll_area")
                 .max_height(400.)
                 .show(ui, |ui| {
                     ui.set_min_width(ui.available_width());
 
-                    let mut binding = wall_set.p0();
-                    let mut wall_vec = binding.iter_mut().collect::<Vec<_>>();
+                    let mut rect_binding = rect_wall_set.p0();
+                    let mut wall_vec = rect_binding.iter_mut().collect::<Vec<_>>();
                     wall_vec.sort_by_cached_key(|(_, wall)| wall.id);
 
                     wall_vec.iter_mut().for_each(|(entity, ref mut wall)| {
-                        let collapse = ui.collapsing(format!("Wallblock {}", wall.id), |ui| {
+                        let collapse = ui.collapsing(format!("RectWall {}", wall.id), |ui| {
                             ui.horizontal(|ui| {
                                 ui.label("Top Corner x:");
                                 if ui
@@ -338,7 +355,9 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    wall.update_calc_rect(ui_state.e_al);
+                                    if wall.rect.min.x > wall.rect.max.x {
+                                        wall.rect.min.x = wall.rect.max.x;
+                                    }
                                 }
                                 ui.add_space(10.);
                                 ui.label("Top Corner x:");
@@ -350,7 +369,7 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    wall.update_calc_rect(ui_state.e_al);
+                                    // wall.update_calc_rect(ui_state.boundary_width);
                                 }
                             });
 
@@ -364,7 +383,7 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    wall.update_calc_rect(ui_state.e_al);
+                                    // wall.update_calc_rect(ui_state.boundary_width);
                                 }
                                 ui.add_space(10.);
                                 ui.label("Bottom Corner y:");
@@ -376,33 +395,85 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    wall.update_calc_rect(ui_state.e_al);
+                                    // wall.update_calc_rect(ui_state.boundary_width);
                                 }
                             });
 
                             ui.horizontal(|ui| {
                                 ui.label(format!(
                                     "Width: {:.3} m",
-                                    wall.draw_rect.width() as f32 * ui_state.delta_l
+                                    wall.rect.width() as f32 * ui_state.delta_l
                                 ));
 
                                 ui.add_space(10.);
 
                                 ui.label(format!(
                                     "Height: {:.3} m",
-                                    wall.draw_rect.height() as f32 * ui_state.delta_l
+                                    wall.rect.height() as f32 * ui_state.delta_l
                                 ));
                             });
 
                             ui.add(
-                                egui::Slider::new(&mut wall.reflection_factor, 0.0..=1.0)
+                                // 0.01 because rendering then draws white
+                                egui::Slider::new(&mut wall.reflection_factor, 0.01..=1.0)
                                     .text("Wall Reflection Factor"),
                             );
 
-                            ui.checkbox(&mut wall.hollow, "Hollow Wall");
+                            if ui.checkbox(&mut wall.is_hollow, "Hollow Wall").changed() {
+                                wall_update_ev.send(UpdateWalls);
+                            };
 
                             if ui.add(egui::Button::new("Delete")).clicked() {
                                 commands.entity(*entity).despawn();
+                                wall_update_ev.send(UpdateWalls);
+                            }
+                        });
+
+                        if collapse.header_response.contains_pointer()
+                            || collapse.body_response.is_some()
+                        {
+                            commands.entity(*entity).try_insert(MenuSelected);
+                        } else {
+                            commands.entity(*entity).remove::<MenuSelected>();
+                        }
+                    });
+                });
+            // Circ Walls
+            egui::ScrollArea::vertical()
+                .id_source("circ_wall_scroll_area")
+                .max_height(400.)
+                .show(ui, |ui| {
+                    ui.set_min_width(ui.available_width());
+
+                    let mut circ_binding = circ_wall_set.p0();
+                    let mut wall_vec = circ_binding.iter_mut().collect::<Vec<_>>();
+                    wall_vec.sort_by_cached_key(|(_, wall)| wall.id);
+
+                    wall_vec.iter_mut().for_each(|(entity, ref mut wall)| {
+                        let collapse = ui.collapsing(format!("CircWall {}", wall.id), |ui| {
+                            ui.horizontal(|ui| {
+                                ui.label(format!("Center: {:?} m", wall.get_center()));
+
+                                ui.add_space(10.);
+
+                                ui.label(format!(
+                                    "Radius: {:.3} m",
+                                    wall.radius // as f32 * ui_state.delta_l
+                                ));
+                            });
+
+                            ui.add(
+                                egui::Slider::new(&mut wall.reflection_factor, 0.01..=1.0)
+                                    .text("Wall Reflection Factor"),
+                            );
+
+                            if ui.checkbox(&mut wall.is_hollow, "Hollow Wall").changed() {
+                                wall_update_ev.send(UpdateWalls);
+                            };
+
+                            if ui.add(egui::Button::new("Delete")).clicked() {
+                                commands.entity(*entity).despawn();
+                                wall_update_ev.send(UpdateWalls);
                             }
                         });
 
@@ -422,6 +493,12 @@ pub fn draw_egui(
                 ui.separator();
 
                 ui.horizontal(|ui| {
+                    ui.color_edit_button_srgba(&mut gradient.0);
+                    ui.color_edit_button_srgba(&mut gradient.1);
+                });
+                ui.separator();
+
+                ui.horizontal(|ui| {
                     if ui
                         .button(if ui_state.is_running { "Stop" } else { "Start" })
                         .clicked()
@@ -430,7 +507,7 @@ pub fn draw_egui(
                     }
 
                     if ui.button("Reset").clicked() {
-                        grid.reset_cells(ui_state.e_al);
+                        grid.reset_cells(ui_state.boundary_width);
                         for (_, mut mic) in mic_set.p0().iter_mut() {
                             mic.clear();
                         }
@@ -463,38 +540,37 @@ pub fn draw_egui(
                     pb.pixel_buffer.size = PixelBufferSize {
                         size: if ui_state.render_abc_area {
                             UVec2::new(
-                                SIMULATION_WIDTH + 2 * ui_state.e_al,
-                                SIMULATION_HEIGHT + 2 * ui_state.e_al,
+                                SIMULATION_WIDTH + 2 * ui_state.boundary_width,
+                                SIMULATION_HEIGHT + 2 * ui_state.boundary_width,
                             )
                         } else {
                             UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
                         },
-                        pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
+                        pixel_size: UVec2::new(1, 1),
                     };
                 }
                 ui.collapsing("ABC", |ui| {
                     ui.set_enabled(ui_state.render_abc_area);
                     if ui
-                        .add(egui::Slider::new(&mut ui_state.e_al, 2..=200).text("E_AL"))
+                        .add(
+                            egui::Slider::new(&mut ui_state.boundary_width, 2..=200)
+                                .text("boundary_width"),
+                        )
                         .changed()
                     {
-                        grid.reset_cells(ui_state.e_al);
+                        grid.reset_cells(ui_state.boundary_width);
                         let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
                         pb.pixel_buffer.size = PixelBufferSize {
                             size: if ui_state.render_abc_area {
                                 UVec2::new(
-                                    SIMULATION_WIDTH + 2 * ui_state.e_al,
-                                    SIMULATION_HEIGHT + 2 * ui_state.e_al,
+                                    SIMULATION_WIDTH + 2 * ui_state.boundary_width,
+                                    SIMULATION_HEIGHT + 2 * ui_state.boundary_width,
                                 )
                             } else {
                                 UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
                             },
-                            pixel_size: UVec2::new(PIXEL_SIZE, PIXEL_SIZE),
+                            pixel_size: UVec2::new(1, 1),
                         };
-
-                        for (_, mut wall) in wall_set.p0().iter_mut() {
-                            wall.update_calc_rect(ui_state.e_al);
-                        }
                     }
 
                     egui::ComboBox::from_label("Attenuation Type")
@@ -572,17 +648,11 @@ pub fn draw_egui(
                                     "Circle",
                                 );
                             });
-                        if ui_state.wall_type == WallType::Circle {
-                            ui.add(
-                                egui::Slider::new(&mut ui_state.wall_radius, 1..=100)
-                                    .text("Brush Radius"),
-                            );
-                        }
                         ui.add(
                             egui::Slider::new(&mut ui_state.wall_reflection_factor, 0.0..=1.0)
                                 .text("Wall Reflection Factor"),
                         );
-                        ui.checkbox(&mut ui_state.wall_hollowed, "Hollow Wall");
+                        ui.checkbox(&mut ui_state.wall_is_hollow, "Hollow Wall");
                     }
                     ToolType::ResizeWall => {}
                     ToolType::MoveMic => {}
@@ -638,7 +708,7 @@ pub fn draw_egui(
                 ui.heading("Microphone Plot");
 
                 egui::ComboBox::from_label("Select Plot Type")
-                    .selected_text(format!("{:?}", ui_state.plot_type))
+                    .selected_text(format!("{}", ui_state.plot_type))
                     .show_ui(ui, |ui| {
                         ui.style_mut().wrap = Some(false);
                         ui.selectable_value(
@@ -700,15 +770,14 @@ pub fn draw_egui(
                             .x_axis_label("Frequency (Hz)")
                             .y_axis_label("Intensity (dB)")
                             .x_grid_spacer(|input| {
-                                println!(
-                                    "bounds: {:?}, base: {:?}",
-                                    input.bounds, input.base_step_size
-                                );
-                                
-                                // all of this is just to get the grid marks to be at 10^x
+                                // println!(
+                                //     "bounds: {:?}, base: {:?}",
+                                //     input.bounds, input.base_step_size
+                                // );
+
                                 let mut marks = Vec::new();
-                                
-                                for i in input.bounds.0 as u32..=input.bounds.1 as u32{
+
+                                for i in input.bounds.0 as u32..=input.bounds.1 as u32 {
                                     marks.push(GridMark {
                                         value: i as f64,
                                         step_size: 1.,
@@ -719,10 +788,9 @@ pub fn draw_egui(
                                     //         value: value.log(10.0),
                                     //         step_size: 0.5,
                                     //     });
-                                    // }                            
+                                    // }
                                 }
                                 marks
-
                             })
                             .x_axis_formatter(|mark, _, _| {
                                 format!("{:.0}", 10_f64.powf(mark.value))
@@ -782,13 +850,11 @@ pub fn draw_egui(
         .resizable(false)
         .show(ctx, |ui| {
             ui.set_enabled(ui_state.tools_enabled);
-
-            for (tool_type, tool_icon) in icon_vec {
+            for (tool_type, icon) in images {
                 if ui
                     .add(
-                        egui::Button::image_and_text(
-                            egui::load::SizedTexture::new(tool_icon, [25., 25.]),
-                            "",
+                        egui::Button::image(
+                            egui::Image::new(icon).fit_to_exact_size(Vec2::new(25., 25.)),
                         )
                         .fill(if tool_type == ui_state.current_tool {
                             Color32::DARK_GRAY
@@ -797,7 +863,7 @@ pub fn draw_egui(
                         })
                         .min_size(Vec2::new(0., 35.)),
                     )
-                    .on_hover_text(format!("{:?}", tool_type))
+                    .on_hover_text(format!("{}", tool_type))
                     .clicked()
                 {
                     ui_state.current_tool = tool_type;
@@ -887,21 +953,21 @@ pub fn draw_egui(
                             Color32::from_rgb(0, 255, 0),
                         )));
                     }
-                    for (_, wall) in wall_set.p2().iter() {
+                    for (_, wall) in rect_wall_set.p2().iter() {
                         let gizmo_pos = pos2(
                             f32_map_range(
                                 0.,
                                 SIMULATION_WIDTH as f32,
                                 image.rect.min.x,
                                 image.rect.max.x,
-                                wall.draw_rect.center().x as f32,
+                                wall.get_center().x as f32,
                             ),
                             f32_map_range(
                                 0.,
                                 SIMULATION_HEIGHT as f32,
                                 image.rect.min.y,
                                 image.rect.max.y,
-                                wall.draw_rect.center().y as f32,
+                                wall.get_center().y as f32,
                             ),
                         );
 
@@ -965,21 +1031,21 @@ pub fn draw_egui(
                             }
                         }
                         ToolType::MoveWall => {
-                            for (_, wall) in wall_set.p0().iter() {
+                            for (_, wall) in rect_wall_set.p0().iter() {
                                 let gizmo_pos = pos2(
                                     f32_map_range(
                                         0.,
                                         SIMULATION_WIDTH as f32,
                                         image.rect.min.x,
                                         image.rect.max.x,
-                                        wall.draw_rect.center().x as f32,
+                                        wall.get_center().x as f32,
                                     ),
                                     f32_map_range(
                                         0.,
                                         SIMULATION_HEIGHT as f32,
                                         image.rect.min.y,
                                         image.rect.max.y,
-                                        wall.draw_rect.center().y as f32,
+                                        wall.get_center().y as f32,
                                     ),
                                 );
 
@@ -989,21 +1055,21 @@ pub fn draw_egui(
                                     Color32::from_rgb(255, 100, 0),
                                 )));
                             }
-                            for (_, wall) in wall_set.p1().iter() {
+                            for (_, wall) in rect_wall_set.p1().iter() {
                                 let gizmo_pos = pos2(
                                     f32_map_range(
                                         0.,
                                         SIMULATION_WIDTH as f32,
                                         image.rect.min.x,
                                         image.rect.max.x,
-                                        wall.draw_rect.center().x as f32,
+                                        wall.get_center().x as f32,
                                     ),
                                     f32_map_range(
                                         0.,
                                         SIMULATION_HEIGHT as f32,
                                         image.rect.min.y,
                                         image.rect.max.y,
-                                        wall.draw_rect.center().y as f32,
+                                        wall.get_center().y as f32,
                                     ),
                                 );
 
@@ -1015,21 +1081,21 @@ pub fn draw_egui(
                             }
                         }
                         ToolType::ResizeWall => {
-                            for (_, wall) in wall_set.p0().iter() {
+                            for (_, wall) in rect_wall_set.p0().iter() {
                                 let gizmo_pos = pos2(
                                     f32_map_range(
                                         0.,
                                         SIMULATION_WIDTH as f32,
                                         image.rect.min.x,
                                         image.rect.max.x,
-                                        wall.rect.max.x as f32,
+                                        wall.get_resize_point(WResize::BottomRight).x as f32,
                                     ),
                                     f32_map_range(
                                         0.,
                                         SIMULATION_HEIGHT as f32,
                                         image.rect.min.y,
                                         image.rect.max.y,
-                                        wall.rect.max.y as f32,
+                                        wall.get_resize_point(WResize::BottomRight).y as f32,
                                     ),
                                 );
 

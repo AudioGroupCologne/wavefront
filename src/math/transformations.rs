@@ -4,14 +4,14 @@ use super::constants::*;
 use crate::ui::state::UiState;
 
 /// Calculates 1D array index from x,y coordinates (and an offset `index`)
-pub fn coords_to_index(x: u32, y: u32, e_al: u32) -> usize {
-    (y * (SIMULATION_WIDTH + 2 * e_al) + x) as usize
+pub fn coords_to_index(x: u32, y: u32, boundary_width: u32) -> usize {
+    (y * (SIMULATION_WIDTH + 2 * boundary_width) + x) as usize
 }
 
 /// Calculates x,y coordinates from 1D array index
-pub fn index_to_coords(i: u32, e_al: u32) -> (u32, u32) {
-    let x = i % (SIMULATION_WIDTH + 2 * e_al);
-    let y = i / (SIMULATION_WIDTH + 2 * e_al);
+pub fn index_to_coords(i: u32, boundary_width: u32) -> (u32, u32) {
+    let x = i % (SIMULATION_WIDTH + 2 * boundary_width);
+    let y = i / (SIMULATION_WIDTH + 2 * boundary_width);
     (x, y)
 }
 
@@ -28,7 +28,7 @@ pub fn f32_map_range(a1: f32, a2: f32, b1: f32, b2: f32, s: f32) -> f32 {
 /// converts screen coordinates to grid coordinates
 pub fn screen_to_grid(x: f32, y: f32, image_rect: Rect, ui_state: &UiState) -> Option<(u32, u32)> {
     let boundary_width = if ui_state.render_abc_area {
-        ui_state.e_al
+        ui_state.boundary_width
     } else {
         0
     };

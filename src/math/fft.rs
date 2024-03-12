@@ -1,4 +1,4 @@
-use spectrum_analyzer::scaling::{scale_20_times_log10, scale_to_zero_to_one};
+use spectrum_analyzer::scaling::scale_to_zero_to_one;
 use spectrum_analyzer::windows::hann_window;
 use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
 

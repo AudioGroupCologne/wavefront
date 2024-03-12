@@ -1,7 +1,13 @@
+use std::fmt;
+
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::Vec2;
 
-use crate::components::wall::WallType;
+#[derive(Debug, PartialEq)]
+pub enum WallType {
+    Rectangle,
+    Circle,
+}
 
 #[derive(Default, Resource)]
 pub struct GameTicks {
@@ -23,6 +29,15 @@ pub enum PlotType {
     FrequencyDomain,
 }
 
+impl fmt::Display for PlotType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PlotType::TimeDomain => write!(f, "Time Domain"),
+            PlotType::FrequencyDomain => write!(f, "Frequency Domain"),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum ToolType {
     PlaceSource,
@@ -34,12 +49,26 @@ pub enum ToolType {
     MoveMic,
 }
 
+impl fmt::Display for ToolType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ToolType::PlaceSource => write!(f, "Place Source"),
+            ToolType::MoveSource => write!(f, "Move Source"),
+            ToolType::DrawWall => write!(f, "Draw Wall"),
+            ToolType::ResizeWall => write!(f, "Resize Wall"),
+            ToolType::MoveWall => write!(f, "Move Wall"),
+            ToolType::PlaceMic => write!(f, "Place Mic"),
+            ToolType::MoveMic => write!(f, "Move Mic"),
+        }
+    }
+}
+
 #[derive(Resource)]
 pub struct UiState {
     pub is_running: bool,
     pub delta_l: f32,
     pub epsilon: f32,
-    pub e_al: u32,
+    pub boundary_width: u32,
     pub render_abc_area: bool,
     pub at_type: AttenuationType,
     pub power_order: u32,
@@ -51,8 +80,7 @@ pub struct UiState {
     pub current_tool: ToolType,
     pub wall_reflection_factor: f32,
     pub wall_type: WallType,
-    pub wall_radius: u32,
-    pub wall_hollowed: bool,
+    pub wall_is_hollow: bool,
     pub tools_enabled: bool,
 }
 
@@ -62,7 +90,7 @@ impl Default for UiState {
             is_running: true,
             delta_l: 0.001,
             epsilon: 0.001,
-            e_al: 50,
+            boundary_width: 50,
             render_abc_area: false,
             at_type: AttenuationType::Power,
             power_order: 5,
@@ -74,8 +102,7 @@ impl Default for UiState {
             current_tool: ToolType::MoveSource,
             wall_reflection_factor: 1.,
             wall_type: WallType::Rectangle,
-            wall_radius: 10,
-            wall_hollowed: false,
+            wall_is_hollow: false,
             tools_enabled: true,
         }
     }
@@ -97,32 +124,5 @@ impl ClipboardBuffer {
 
     pub fn copy(&mut self, entity: Entity) {
         self.buffer = Some(entity);
-    }
-}
-
-pub struct Images {
-    pub cursor_icon: Handle<Image>,
-    pub place_source_icon: Handle<Image>,
-    pub move_source_icon: Handle<Image>,
-    pub draw_wall_icon: Handle<Image>,
-    pub resize_wall_icon: Handle<Image>,
-    pub move_wall_icon: Handle<Image>,
-    pub place_mic_icon: Handle<Image>,
-    pub move_mic_icon: Handle<Image>,
-}
-
-impl FromWorld for Images {
-    fn from_world(world: &mut World) -> Self {
-        let asset_server = world.get_resource_mut::<AssetServer>().unwrap();
-        Self {
-            cursor_icon: asset_server.load("test_icon.png"),
-            place_source_icon: asset_server.load("place_source.png"),
-            move_source_icon: asset_server.load("move_source.png"),
-            draw_wall_icon: asset_server.load("draw_wall.png"),
-            resize_wall_icon: asset_server.load("resize_wall.png"),
-            move_wall_icon: asset_server.load("move_wall.png"),
-            place_mic_icon: asset_server.load("place_mic.png"),
-            move_mic_icon: asset_server.load("move_mic.png"),
-        }
     }
 }

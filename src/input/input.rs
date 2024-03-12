@@ -4,10 +4,11 @@ use bevy::window::PrimaryWindow;
 use crate::components::microphone::Microphone;
 use crate::components::source::{Source, SourceType};
 use crate::components::states::{Drag, Overlay, Selected};
-use crate::components::wall::{Wall, WallPos2, WallRect, WallResize, WallType};
+use crate::components::wall::{CircWall, RectWall, WResize, Wall};
+use crate::events::UpdateWalls;
 use crate::grid::plugin::ComponentIDs;
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
-use crate::ui::state::{ClipboardBuffer, ToolType, UiState};
+use crate::ui::state::{ClipboardBuffer, ToolType, UiState, WallType};
 
 pub fn copy_paste_system(
     keys: Res<ButtonInput<KeyCode>>,
@@ -16,7 +17,8 @@ pub fn copy_paste_system(
     mut ids: ResMut<ComponentIDs>,
     mut commands: Commands,
     sources: Query<(Entity, &Source), With<Selected>>,
-    walls: Query<(Entity, &Wall), With<Selected>>,
+    rect_walls: Query<(Entity, &RectWall), With<Selected>>,
+    circ_walls: Query<(Entity, &CircWall), With<Selected>>,
     mics: Query<(Entity, &Microphone), With<Selected>>,
 ) {
     #[cfg(not(target_os = "macos"))]
@@ -37,10 +39,16 @@ pub fn copy_paste_system(
                 let mut source = source.clone();
                 source.id = ids.get_new_source_id();
                 commands.spawn(source);
-            } else if let Ok((_, wall)) = walls.get(entity) {
-                let mut wall = wall.clone();
-                wall.id = ids.get_new_wall_id();
-                commands.spawn(wall);
+            } else if let Ok((_, rect_wall)) = rect_walls.get(entity) {
+                let mut rect_wall = rect_wall.clone();
+                rect_wall.id = ids.get_new_wall_id();
+                rect_wall.set_center(rect_wall.get_center().x + 5, rect_wall.get_center().y + 5);
+                commands.spawn(rect_wall);
+            } else if let Ok((_, circ_wall)) = circ_walls.get(entity) {
+                let mut circ_wall = circ_wall.clone();
+                circ_wall.id = ids.get_new_wall_id();
+                circ_wall.set_center(circ_wall.get_center().x + 5, circ_wall.get_center().y + 5);
+                commands.spawn(circ_wall);
             } else if let Ok((_, mic)) = mics.get(entity) {
                 let mut mic = mic.clone();
                 mic.id = ids.get_new_mic_id();
@@ -52,6 +60,7 @@ pub fn copy_paste_system(
 
 pub fn button_input(
     mouse_buttons: Res<ButtonInput<MouseButton>>,
+    mut wall_update_ev: EventWriter<UpdateWalls>,
     keys: Res<ButtonInput<KeyCode>>,
     q_windows: Query<&Window, With<PrimaryWindow>>,
     sources: Query<(Entity, &Source), Without<Drag>>,
@@ -59,9 +68,16 @@ pub fn button_input(
     microphones: Query<(Entity, &Microphone), Without<Drag>>,
     mut drag_microphones: Query<(Entity, &mut Microphone), With<Drag>>,
     mut selected: Query<Entity, With<Selected>>,
-    walls: Query<(Entity, &Wall), (Without<Drag>, Without<WallResize>)>,
-    mut drag_walls: Query<(Entity, &mut Wall), With<Drag>>,
-    mut resize_walls: Query<(Entity, &WallResize, &mut Wall), (With<WallResize>, Without<Drag>)>,
+    mut rect_wall_set: ParamSet<(
+        Query<(Entity, &RectWall)>,
+        Query<(Entity, &mut RectWall), With<Drag>>, // mut drag_walls:
+        Query<(Entity, &WResize, &mut RectWall), (With<WResize>, Without<Drag>)>, // mut resize_walls:
+    )>,
+    mut circ_wall_set: ParamSet<(
+        Query<(Entity, &CircWall)>,
+        Query<(Entity, &mut CircWall), With<Drag>>,
+        Query<(Entity, &WResize, &mut CircWall), (With<WResize>, Without<Drag>)>,
+    )>,
     mut commands: Commands,
     mut ui_state: ResMut<UiState>,
     mut component_ids: ResMut<ComponentIDs>,
@@ -113,17 +129,16 @@ pub fn button_input(
                                 y = (y as f32 / 10.).round() as u32 * 10;
                             }
                             commands.spawn((
-                                Wall::new(
-                                    WallType::Rectangle,
-                                    ui_state.wall_hollowed,
-                                    WallRect {
-                                        min: WallPos2 { x, y },
-                                        max: WallPos2 { x, y },
-                                    },
+                                RectWall::new(
+                                    x,
+                                    y,
+                                    x,
+                                    y,
+                                    ui_state.wall_is_hollow,
                                     ui_state.wall_reflection_factor,
                                     component_ids.get_new_wall_id(),
                                 ),
-                                WallResize::BottomRight,
+                                WResize::BottomRight,
                                 Overlay,
                             ));
                         }
@@ -133,17 +148,15 @@ pub fn button_input(
                             screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
                         {
                             commands.spawn((
-                                Wall::new(
-                                    WallType::Circle,
-                                    ui_state.wall_hollowed,
-                                    WallRect {
-                                        min: WallPos2 { x, y },
-                                        max: WallPos2 { x, y },
-                                    },
+                                CircWall::new(
+                                    x,
+                                    y,
+                                    0,
+                                    ui_state.wall_is_hollow,
                                     ui_state.wall_reflection_factor,
                                     component_ids.get_new_wall_id(),
                                 ),
-                                WallResize::Radius,
+                                WResize::Radius,
                                 Overlay,
                             ));
                         }
@@ -153,10 +166,17 @@ pub fn button_input(
                     if let Some((x, y)) =
                         screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
                     {
-                        for (entity, wall) in walls.iter() {
+                        let rect_walls = rect_wall_set.p0();
+                        let circ_walls = circ_wall_set.p0();
+                        let walls = rect_walls
+                            .iter()
+                            .map(|(e, w)| (e, w as &dyn Wall))
+                            .chain(circ_walls.iter().map(|(e, w)| (e, w as &dyn Wall)));
+
+                        for (entity, wall) in walls {
                             let center = wall.get_center();
                             if (center.x).abs_diff(x) <= 10 && (center.y).abs_diff(y) <= 10 {
-                                commands.entity(entity).insert((Drag, Selected));
+                                commands.entity(entity).insert((Drag, Selected, Overlay));
                                 break;
                             }
                         }
@@ -166,14 +186,21 @@ pub fn button_input(
                     if let Some((x, y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                     {
-                        for (entity, wall) in walls.iter() {
-                            let resize_point = wall.get_resize_point();
+                        let rect_walls = rect_wall_set.p0();
+                        let circ_walls = circ_wall_set.p0();
+                        let walls = rect_walls
+                            .iter()
+                            .map(|(e, w)| (e, w as &dyn Wall))
+                            .chain(circ_walls.iter().map(|(e, w)| (e, w as &dyn Wall)));
+
+                        for (entity, wall) in walls {
+                            let resize_point = wall.get_resize_point(WResize::BottomRight);
                             if (resize_point.x).abs_diff(x) <= 10
                                 && (resize_point.y).abs_diff(y) <= 10
                             {
                                 commands
                                     .entity(entity)
-                                    .insert((WallResize::BottomRight, Overlay));
+                                    .insert((WResize::BottomRight, Overlay));
                                 break;
                             }
                         }
@@ -211,16 +238,28 @@ pub fn button_input(
         drag_microphones.iter_mut().for_each(|(entity, _)| {
             commands.entity(entity).remove::<Drag>();
         });
-        resize_walls.iter_mut().for_each(|(entity, _, wall)| {
-            if wall.is_empty() {
-                commands.entity(entity).despawn();
-                component_ids.decrement_wall_ids();
-            }
-            commands.entity(entity).remove::<(WallResize, Overlay)>();
-        });
-        drag_walls.iter_mut().for_each(|(entity, _)| {
-            commands.entity(entity).remove::<Drag>();
-        });
+        rect_wall_set
+            .p0()
+            .iter_mut()
+            .for_each(|(entity, rect_wall)| {
+                if rect_wall.is_deletable() {
+                    commands.entity(entity).despawn();
+                    component_ids.decrement_wall_ids();
+                }
+                commands.entity(entity).remove::<(WResize, Overlay, Drag)>();
+            });
+        circ_wall_set
+            .p0()
+            .iter_mut()
+            .for_each(|(entity, circ_wall)| {
+                if circ_wall.is_deletable() {
+                    commands.entity(entity).despawn();
+                    component_ids.decrement_wall_ids();
+                }
+                commands.entity(entity).remove::<(WResize, Overlay, Drag)>();
+            });
+
+        wall_update_ev.send(UpdateWalls);
     }
 
     if mouse_buttons.pressed(MouseButton::Left) && ui_state.tools_enabled {
@@ -247,17 +286,14 @@ pub fn button_input(
                             y = (y as f32 / 10.).round() as u32 * 10;
                         }
 
-                        resize_walls
+                        rect_wall_set
+                            .p2()
                             .iter_mut()
-                            .for_each(|(_, wall_resize, mut wall)| match wall_resize {
-                                WallResize::BottomRight => {
-                                    wall.rect.max.x = x;
-                                    wall.rect.max.y = y;
-                                    wall.update_calc_rect(ui_state.e_al);
-                                }
-                                WallResize::Radius => todo!(),
-                                _ => {}
-                            });
+                            .for_each(|(_, wall_resize, mut wall)| wall.resize(wall_resize, x, y));
+                        circ_wall_set
+                            .p2()
+                            .iter_mut()
+                            .for_each(|(_, wall_resize, mut wall)| wall.resize(wall_resize, x, y));
                     }
                 }
                 ToolType::MoveWall => {
@@ -268,8 +304,11 @@ pub fn button_input(
                             x = (x as f32 / 10.).round() as u32 * 10;
                             y = (y as f32 / 10.).round() as u32 * 10;
                         }
-                        drag_walls.iter_mut().for_each(|(_, mut wall)| {
-                            wall.translate_center_to(x, y, ui_state.e_al);
+                        rect_wall_set.p1().iter_mut().for_each(|(_, mut wall)| {
+                            wall.set_center(x, y);
+                        });
+                        circ_wall_set.p1().iter_mut().for_each(|(_, mut wall)| {
+                            wall.set_center(x, y);
                         });
                     }
                 }
