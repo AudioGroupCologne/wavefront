@@ -198,27 +198,49 @@ pub struct CircWall {
 
 impl Wall for CircWall {
     fn get_center(&self) -> UVec2 {
-        todo!()
+        self.center
     }
 
     fn get_resize_point(&self, resize_type: WResize) -> UVec2 {
-        todo!()
+        match resize_type {
+            WResize::Radius => UVec2 {
+                // here I want to implement offset
+                // either left or right depending on radius size
+                x: self.center.x,
+                y: self.center.y,
+            },
+            _ => {
+                unreachable!()
+            }
+        }
     }
 
     fn contains(&self, x: u32, y: u32) -> bool {
-        todo!()
+        if self.is_hollow {
+            return self.edge_contains(x, y);
+        }
+        // very crude implementation
+        let r_squared = self.radius * self.radius;
+
+        (self.center.x - x).pow(2) + (self.center.y - y).pow(2) <= r_squared
     }
 
     fn edge_contains(&self, x: u32, y: u32) -> bool {
-        todo!()
+        let r_squared = self.radius * self.radius;
+        // This is legit stupid, but not the focus right now
+        (self.center.x - x).pow(2) + (self.center.y - y).pow(2) <= r_squared
+            && (self.center.x - x).pow(2) + (self.center.y - y).pow(2)
+                >= (r_squared as f32 * 0.8) as u32
     }
 
     fn is_deletable(&self) -> bool {
-        todo!()
+        // self.radius == 0
+        false
     }
 
     fn set_center(&mut self, x: u32, y: u32) {
-        todo!()
+        self.center.x = x;
+        self.center.y = y;
     }
 
     fn get_reflection_factor(&self) -> f32 {
@@ -227,7 +249,11 @@ impl Wall for CircWall {
 
     fn resize(&mut self, resize_type: &WResize, x: u32, y: u32) {
         match resize_type {
-            WResize::Radius => {}
+            WResize::Radius => {
+                // scale only on x-axis from center.x
+                let x_offset = self.center.x as i32 - x as i32;
+                self.radius = x_offset.abs() as u32;
+            }
             _ => {
                 panic!("Circular walls cannot be resized by radius.");
             }
@@ -244,6 +270,12 @@ impl CircWall {
         reflection_factor: f32,
         id: usize,
     ) -> Self {
-        todo!()
+        CircWall {
+            center: UVec2 { x, y },
+            radius,
+            is_hollow,
+            reflection_factor,
+            id,
+        }
     }
 }
