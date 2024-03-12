@@ -10,6 +10,8 @@ use crate::grid::plugin::ComponentIDs;
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
 use crate::ui::state::{ClipboardBuffer, ToolType, UiState, WallType};
 
+use super::events::UpdateWalls;
+
 pub fn copy_paste_system(
     keys: Res<ButtonInput<KeyCode>>,
     selected: Query<Entity, With<Selected>>,
@@ -60,6 +62,7 @@ pub fn copy_paste_system(
 
 pub fn button_input(
     mouse_buttons: Res<ButtonInput<MouseButton>>,
+    mut wall_update_ev: EventWriter<UpdateWalls>,
     keys: Res<ButtonInput<KeyCode>>,
     q_windows: Query<&Window, With<PrimaryWindow>>,
     sources: Query<(Entity, &Source), Without<Drag>>,
@@ -270,11 +273,7 @@ pub fn button_input(
             commands.entity(entity).remove::<Drag>();
         });
 
-        grid.update_walls(
-            &rect_wall_set.p3(),
-            &circ_wall_set.p3(),
-            ui_state.boundary_width,
-        );
+        wall_update_ev.send(UpdateWalls);
     }
 
     if mouse_buttons.pressed(MouseButton::Left) && ui_state.tools_enabled {
