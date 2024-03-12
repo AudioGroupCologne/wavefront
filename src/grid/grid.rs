@@ -121,22 +121,24 @@ impl Grid {
             .enumerate()
             .for_each(|(index, wall_cell)| {
                 let (x, y) = index_to_coords(index as u32, boundary_width);
+                let x = x.saturating_sub(boundary_width);
+                let y = y.saturating_sub(boundary_width);
 
                 for wall in rect_walls {
-                    if wall.edge_contains(x - boundary_width, y - boundary_width) {
+                    if wall.edge_contains(x, y) {
                         wall_cell.is_wall = true;
                         wall_cell.reflection_factor = wall.get_reflection_factor();
-                    } else if wall.contains(x - boundary_width, y - boundary_width) {
+                    } else if wall.contains(x, y) {
                         wall_cell.is_wall = true;
                         wall_cell.reflection_factor = 0.;
                     }
                 }
 
                 for wall in circ_walls {
-                    if wall.edge_contains(x - boundary_width, y - boundary_width) {
+                    if wall.edge_contains(x, y) {
                         wall_cell.is_wall = true;
                         wall_cell.reflection_factor = wall.get_reflection_factor();
-                    } else if wall.contains(x - boundary_width, y - boundary_width) {
+                    } else if wall.contains(x, y) {
                         wall_cell.is_wall = true;
                         wall_cell.reflection_factor = 0.;
                     }
