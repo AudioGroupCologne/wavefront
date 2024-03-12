@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use bevy::window::PresentMode;
 use bevy_pixel_buffer::bevy_egui::EguiPlugin;
 use bevy_pixel_buffer::prelude::*;
+use tlm_rs::events::EventPlugin;
 use tlm_rs::grid::plugin::GridPlugin;
 use tlm_rs::input::plugin::InputPlugin;
 use tlm_rs::render::plugin::RenderPlugin;
@@ -27,6 +28,7 @@ fn main() {
             GridPlugin,
             InputPlugin,
             UiPlugin,
+            EventPlugin,
         ))
         .run();
 }

@@ -1,11 +1,11 @@
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
-use super::events::UpdateWalls;
 use crate::components::microphone::Microphone;
 use crate::components::source::{Source, SourceType};
 use crate::components::states::{Drag, Overlay, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize, Wall};
+use crate::events::UpdateWalls;
 use crate::grid::plugin::ComponentIDs;
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
 use crate::ui::state::{ClipboardBuffer, ToolType, UiState, WallType};
@@ -248,7 +248,6 @@ pub fn button_input(
                 if rect_wall.is_deletable() {
                     commands.entity(entity).despawn();
                     component_ids.decrement_wall_ids();
-                    wall_update_ev.send(UpdateWalls);
                 }
                 commands.entity(entity).remove::<(WResize, Overlay)>();
             });
@@ -262,7 +261,6 @@ pub fn button_input(
                 if circ_wall.is_deletable() {
                     commands.entity(entity).despawn();
                     component_ids.decrement_wall_ids();
-                    wall_update_ev.send(UpdateWalls);
                 }
                 commands.entity(entity).remove::<(WResize, Overlay)>();
             });
