@@ -212,7 +212,11 @@ impl Grid {
 
                 mic.record.push([
                     cur_time,
-                    self.pressure[coords_to_index(x, y, ui_state.boundary_width)] as f64,
+                    self.pressure[coords_to_index(
+                        x + ui_state.boundary_width,
+                        y + ui_state.boundary_width,
+                        ui_state.boundary_width,
+                    )] as f64,
                 ]);
             }
         }
