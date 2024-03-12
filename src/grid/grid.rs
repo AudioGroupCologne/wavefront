@@ -3,8 +3,8 @@ use rayon::iter::{IndexedParallelIterator, IntoParallelRefMutIterator, ParallelI
 
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
-use crate::components::states::Overlay;
-use crate::components::wall::{CircWall, RectWall, Wall};
+use crate::components::states::{Drag, Overlay};
+use crate::components::wall::{CircWall, RectWall, WResize, Wall, WallCell};
 use crate::math::constants::*;
 use crate::math::transformations::{coords_to_index, index_to_coords};
 use crate::ui::state::{AttenuationType, UiState};
@@ -23,6 +23,7 @@ pub struct Grid {
     pub cur_cells: Vec<Cell>,
     pub next_cells: Vec<Cell>,
     pub pressure: Vec<f32>,
+    pub walls: Vec<WallCell>,
     /// Delta s in seconds
     pub delta_t: f32,
 }
@@ -44,6 +45,12 @@ impl Default for Grid {
             ],
             pressure: vec![
                 0_f32;
+                ((SIMULATION_WIDTH + 2 * INIT_BOUNDARY_WIDTH)
+                    * (SIMULATION_HEIGHT + 2 * INIT_BOUNDARY_WIDTH))
+                    as usize
+            ],
+            walls: vec![
+                WallCell::default();
                 ((SIMULATION_WIDTH + 2 * INIT_BOUNDARY_WIDTH)
                     * (SIMULATION_HEIGHT + 2 * INIT_BOUNDARY_WIDTH))
                     as usize
@@ -99,18 +106,45 @@ impl Grid {
             });
     }
 
-    pub fn calc_cells(
+    pub fn update_walls(
         &mut self,
-        rect_walls: &Query<&RectWall, Without<Overlay>>,
-        circ_walls: &Query<&CircWall, Without<Overlay>>,
+        rect_walls: &Query<&RectWall>,
+        circ_walls: &Query<&CircWall>,
         boundary_width: u32,
     ) {
-        // let walls = rect_walls
-        //     .iter()
-        //     .map(|x| Box::new(x as &dyn Wall))
-        //     .chain(circ_walls.iter().map(|x| Box::new(x as &dyn Wall)))
-        //     .collect::<Vec<_>>();
+        self.walls.par_iter_mut().for_each(|wall_cell| {
+            wall_cell.is_wall = false;
+        });
 
+        self.walls
+            .par_iter_mut()
+            .enumerate()
+            .for_each(|(index, wall_cell)| {
+                let (x, y) = index_to_coords(index as u32, boundary_width);
+
+                for wall in rect_walls {
+                    if wall.edge_contains(x - boundary_width, y - boundary_width) {
+                        wall_cell.is_wall = true;
+                        wall_cell.reflection_factor = wall.get_reflection_factor();
+                    } else if wall.contains(x - boundary_width, y - boundary_width) {
+                        wall_cell.is_wall = true;
+                        wall_cell.reflection_factor = 0.;
+                    }
+                }
+
+                for wall in circ_walls {
+                    if wall.edge_contains(x - boundary_width, y - boundary_width) {
+                        wall_cell.is_wall = true;
+                        wall_cell.reflection_factor = wall.get_reflection_factor();
+                    } else if wall.contains(x - boundary_width, y - boundary_width) {
+                        wall_cell.is_wall = true;
+                        wall_cell.reflection_factor = 0.;
+                    }
+                }
+            });
+    }
+
+    pub fn calc_cells(&mut self, boundary_width: u32) {
         self.next_cells
             .par_iter_mut()
             .enumerate()
@@ -126,7 +160,6 @@ impl Grid {
                     let left_cell = self.cur_cells[coords_to_index(x - 1, y, boundary_width)];
                     let top_cell = self.cur_cells[coords_to_index(x, y - 1, boundary_width)];
                     let right_cell = self.cur_cells[coords_to_index(x + 1, y, boundary_width)];
-
                     // theoretically more calculations than needed, needs more thinking
                     next_cell.bottom = 0.5
                         * (-bottom_cell.top + left_cell.right + top_cell.bottom + right_cell.left);
@@ -137,32 +170,12 @@ impl Grid {
                     next_cell.right = 0.5
                         * (bottom_cell.top + left_cell.right + top_cell.bottom - right_cell.left);
 
-                    for wall in rect_walls {
-                        if wall.edge_contains(x - boundary_width, y - boundary_width) {
-                            next_cell.bottom = wall.get_reflection_factor() * bottom_cell.top;
-                            next_cell.left = wall.get_reflection_factor() * left_cell.right;
-                            next_cell.top = wall.get_reflection_factor() * top_cell.bottom;
-                            next_cell.right = wall.get_reflection_factor() * right_cell.left;
-                        } else if wall.contains(x - boundary_width, y - boundary_width) {
-                            next_cell.bottom = 0.;
-                            next_cell.left = 0.;
-                            next_cell.top = 0.;
-                            next_cell.right = 0.;
-                        }
-                    }
-
-                    for wall in circ_walls {
-                        if wall.edge_contains(x - boundary_width, y - boundary_width) {
-                            next_cell.bottom = wall.get_reflection_factor() * bottom_cell.top;
-                            next_cell.left = wall.get_reflection_factor() * left_cell.right;
-                            next_cell.top = wall.get_reflection_factor() * top_cell.bottom;
-                            next_cell.right = wall.get_reflection_factor() * right_cell.left;
-                        } else if wall.contains(x - boundary_width, y - boundary_width) {
-                            next_cell.bottom = 0.;
-                            next_cell.left = 0.;
-                            next_cell.top = 0.;
-                            next_cell.right = 0.;
-                        }
+                    if self.walls[index].is_wall {
+                        let reflection_factor = self.walls[index].reflection_factor;
+                        next_cell.bottom = reflection_factor * bottom_cell.top;
+                        next_cell.left = reflection_factor * left_cell.right;
+                        next_cell.top = reflection_factor * top_cell.bottom;
+                        next_cell.right = reflection_factor * right_cell.left;
                     }
                 }
             });

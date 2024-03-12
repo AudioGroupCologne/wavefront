@@ -6,6 +6,12 @@ use serde::{Deserialize, Serialize};
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::rect::WRect;
 
+#[derive(Debug, Default, Clone)]
+pub struct WallCell {
+    pub is_wall: bool,
+    pub reflection_factor: f32,
+}
+
 #[derive(Component, PartialEq)]
 pub enum WResize {
     TopLeft,

@@ -50,26 +50,26 @@ pub fn draw_pixels(
     let mut frame = images.frame(items.next().expect("one pixel buffer"));
     frame.per_pixel_par(|coords, _| {
         //TODO: maybe this can be solved in a better way
-        for wall in rect_walls.iter() {
-            if wall.contains(coords.x - boundary_width, coords.y - boundary_width) {
-                return Pixel {
-                    r: (wall.reflection_factor * 255.) as u8,
-                    g: (wall.reflection_factor * 255.) as u8,
-                    b: (wall.reflection_factor * 255.) as u8,
-                    a: 255,
-                };
-            }
-        }
-        for wall in circ_walls.iter() {
-            if wall.contains(coords.x - boundary_width, coords.y - boundary_width) {
-                return Pixel {
-                    r: (wall.reflection_factor * 255.) as u8,
-                    g: (wall.reflection_factor * 255.) as u8,
-                    b: (wall.reflection_factor * 255.) as u8,
-                    a: 255,
-                };
-            }
-        }
+        // for wall in rect_walls.iter() {
+        //     if wall.contains(coords.x - boundary_width, coords.y - boundary_width) {
+        //         return Pixel {
+        //             r: (wall.reflection_factor * 255.) as u8,
+        //             g: (wall.reflection_factor * 255.) as u8,
+        //             b: (wall.reflection_factor * 255.) as u8,
+        //             a: 255,
+        //         };
+        //     }
+        // }
+        // for wall in circ_walls.iter() {
+        //     if wall.contains(coords.x - boundary_width, coords.y - boundary_width) {
+        //         return Pixel {
+        //             r: (wall.reflection_factor * 255.) as u8,
+        //             g: (wall.reflection_factor * 255.) as u8,
+        //             b: (wall.reflection_factor * 255.) as u8,
+        //             a: 255,
+        //         };
+        //     }
+        // }
 
         let p = if ui_state.render_abc_area {
             grid.pressure[coords_to_index(coords.x, coords.y, ui_state.boundary_width)]

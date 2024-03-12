@@ -7,14 +7,9 @@ use crate::components::states::Overlay;
 use crate::components::wall::{CircWall, RectWall};
 use crate::ui::state::{GameTicks, UiState};
 
-pub fn calc_system(
-    mut grid: ResMut<Grid>,
-    rect_walls: Query<&RectWall, Without<Overlay>>,
-    circ_walls: Query<&CircWall, Without<Overlay>>,
-    ui_state: Res<UiState>,
-) {
+pub fn calc_system(mut grid: ResMut<Grid>, ui_state: Res<UiState>) {
     if ui_state.is_running {
-        grid.calc_cells(&rect_walls, &circ_walls, ui_state.boundary_width);
+        grid.calc_cells(ui_state.boundary_width);
     }
 }
 

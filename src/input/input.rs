@@ -5,6 +5,7 @@ use crate::components::microphone::Microphone;
 use crate::components::source::{Source, SourceType};
 use crate::components::states::{Drag, Overlay, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize, Wall};
+use crate::grid::grid::Grid;
 use crate::grid::plugin::ComponentIDs;
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
 use crate::ui::state::{ClipboardBuffer, ToolType, UiState, WallType};
@@ -64,17 +65,20 @@ pub fn button_input(
     sources: Query<(Entity, &Source), Without<Drag>>,
     mut drag_sources: Query<(Entity, &mut Source), With<Drag>>,
     microphones: Query<(Entity, &Microphone), Without<Drag>>,
+    mut grid: ResMut<Grid>,
     mut drag_microphones: Query<(Entity, &mut Microphone), With<Drag>>,
     mut selected: Query<Entity, With<Selected>>,
     mut rect_wall_set: ParamSet<(
         Query<(Entity, &RectWall), (Without<Drag>, Without<WResize>)>, // walls:
         Query<(Entity, &mut RectWall), With<Drag>>,                    // mut drag_walls:
         Query<(Entity, &WResize, &mut RectWall), (With<WResize>, Without<Drag>)>, // mut resize_walls:
+        Query<&RectWall>,
     )>,
     mut circ_wall_set: ParamSet<(
         Query<(Entity, &CircWall), (Without<Drag>, Without<WResize>)>,
         Query<(Entity, &mut CircWall), With<Drag>>,
         Query<(Entity, &WResize, &mut CircWall), (With<WResize>, Without<Drag>)>,
+        Query<&CircWall>,
     )>,
     mut commands: Commands,
     mut ui_state: ResMut<UiState>,
@@ -265,6 +269,12 @@ pub fn button_input(
         circ_wall_set.p1().iter_mut().for_each(|(entity, _)| {
             commands.entity(entity).remove::<Drag>();
         });
+
+        grid.update_walls(
+            &rect_wall_set.p3(),
+            &circ_wall_set.p3(),
+            ui_state.boundary_width,
+        );
     }
 
     if mouse_buttons.pressed(MouseButton::Left) && ui_state.tools_enabled {
