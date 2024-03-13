@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::grid::plugin::ComponentIDs;
 use crate::math::constants::*;
 
-#[derive(Debug, Default, Component, Serialize, Deserialize, Clone)]
+#[derive(Debug, Default, Component, Serialize, Deserialize, Clone, PartialEq, Copy)]
 /// A sound source on the grid
 pub struct Source {
     pub x: u32,
@@ -24,7 +24,7 @@ pub struct Source {
     pub id: usize,
 }
 
-#[derive(Debug, Default, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, Default, PartialEq, Serialize, Deserialize, Clone, Copy)]
 pub enum SourceType {
     #[default]
     Sin,

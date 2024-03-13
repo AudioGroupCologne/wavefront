@@ -3,7 +3,7 @@ use std::fmt;
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::Vec2;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum WallType {
     Rectangle,
     Circle,
@@ -63,7 +63,7 @@ impl fmt::Display for ToolType {
     }
 }
 
-#[derive(Resource)]
+#[derive(Resource, PartialEq, Clone, Copy)]
 pub struct UiState {
     pub is_running: bool,
     pub delta_l: f32,

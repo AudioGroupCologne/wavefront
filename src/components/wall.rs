@@ -44,7 +44,7 @@ pub trait Wall: Sync + Send {
     fn resize(&mut self, resize_type: &WResize, x: u32, y: u32);
 }
 
-#[derive(Component, Serialize, Deserialize, Clone)]
+#[derive(Component, Serialize, Deserialize, Clone, PartialEq, Copy)]
 pub struct RectWall {
     // between 0 and SIM_WIDTH
     // between 0 and SIM_HEIGHT
@@ -192,7 +192,7 @@ impl RectWall {
     }
 }
 
-#[derive(Component, Serialize, Deserialize, Clone)]
+#[derive(Component, Serialize, Deserialize, Clone, PartialEq, Copy)]
 pub struct CircWall {
     pub center: UVec2,
     /// Radius excludes center point

@@ -7,7 +7,7 @@ use crate::grid::plugin::ComponentIDs;
 use crate::math::constants::*;
 use crate::math::transformations::f32_map_range;
 
-#[derive(Debug, Default, Component, Serialize, Deserialize, Clone)]
+#[derive(Debug, Default, Component, Serialize, Deserialize, Clone, PartialEq)]
 /// A microphone on the grid that records the pressure at its position
 pub struct Microphone {
     pub x: u32,

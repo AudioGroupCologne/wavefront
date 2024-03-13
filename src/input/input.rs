@@ -36,16 +36,16 @@ pub fn copy_paste_system(
     if ctrl && keys.just_pressed(KeyCode::KeyV) {
         if let Some(entity) = clipboard.get() {
             if let Ok((_, source)) = sources.get(entity) {
-                let mut source = source.clone();
+                let mut source = *source;
                 source.id = ids.get_new_source_id();
                 commands.spawn(source);
             } else if let Ok((_, rect_wall)) = rect_walls.get(entity) {
-                let mut rect_wall = rect_wall.clone();
+                let mut rect_wall = *rect_wall;
                 rect_wall.id = ids.get_new_wall_id();
                 rect_wall.set_center(rect_wall.get_center().x + 5, rect_wall.get_center().y + 5);
                 commands.spawn(rect_wall);
             } else if let Ok((_, circ_wall)) = circ_walls.get(entity) {
-                let mut circ_wall = circ_wall.clone();
+                let mut circ_wall = *circ_wall;
                 circ_wall.id = ids.get_new_wall_id();
                 circ_wall.set_center(circ_wall.get_center().x + 5, circ_wall.get_center().y + 5);
                 commands.spawn(circ_wall);

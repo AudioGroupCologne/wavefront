@@ -8,6 +8,7 @@ use tlm_rs::grid::plugin::GridPlugin;
 use tlm_rs::input::plugin::InputPlugin;
 use tlm_rs::render::plugin::RenderPlugin;
 use tlm_rs::ui::plugin::UiPlugin;
+use tlm_rs::undo::UndoPlugin;
 
 fn main() {
     App::new()
@@ -29,6 +30,7 @@ fn main() {
             InputPlugin,
             UiPlugin,
             EventPlugin,
+            UndoPlugin,
         ))
         .run();
 }
