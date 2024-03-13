@@ -394,3 +394,40 @@ impl CircWall {
         }
     }
 }
+
+impl GizmoComponent for CircWall {
+    fn get_gizmo_positions(&self, tool_type: &ToolType) -> Vec<Pos2> {
+        match tool_type {
+            ToolType::MoveWall | ToolType::ResizeWall => {
+                vec![Pos2 {
+                    x: self.center.x as f32,
+                    y: self.center.y as f32,
+                }]
+            }
+            _ => {
+                unreachable!()
+            }
+        }
+    }
+
+    fn draw_gizmo(
+        &self,
+        painter: &egui::Painter,
+        tool_type: &ToolType,
+        highlight: bool,
+        image_rect: &Rect,
+    ) {
+        match tool_type {
+            ToolType::ResizeWall | ToolType::MoveWall => {
+                for pos in self.get_gizmo_positions(tool_type) {
+                    painter.add(egui::Shape::Circle(CircleShape::filled(
+                        grid_to_image(pos, image_rect),
+                        if highlight { 10. } else { 5. },
+                        Color32::LIGHT_RED,
+                    )));
+                }
+            }
+            _ => {}
+        }
+    }
+}

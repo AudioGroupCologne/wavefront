@@ -529,6 +529,7 @@ pub fn draw_egui(
                         }
 
                         grid.reset_cells(ui_state.boundary_width);
+                        wall_update_ev.send(UpdateWalls);
                     }
                 });
 
@@ -926,6 +927,25 @@ pub fn draw_egui(
                 let painter = ui.painter();
                 //menu gizmos
                 if !ui_state.tools_enabled {
+                    for (_, wall) in rect_wall_set.p2().iter() {
+                        wall.draw_gizmo(painter, &ToolType::ResizeWall, true, &ui_state.image_rect);
+                    }
+                    for (_, wall) in circ_wall_set.p2().iter() {
+                        wall.draw_gizmo(painter, &ToolType::ResizeWall, true, &ui_state.image_rect);
+                    }
+                    // all mics
+                    for (_, mic) in mic_set.p2().iter() {
+                        mic.draw_gizmo(painter, &ToolType::MoveMic, true, &ui_state.image_rect);
+                    }
+                    // all sources
+                    for (_, source) in source_set.p2().iter() {
+                        source.draw_gizmo(
+                            painter,
+                            &ToolType::MoveSource,
+                            true,
+                            &ui_state.image_rect,
+                        );
+                    }
                 } else {
                     // Tool specific gizmos
                     // all walls
@@ -946,8 +966,8 @@ pub fn draw_egui(
                             &ui_state.image_rect,
                         );
                     }
-                    // all mics
-                    for wall in mic_set.p3().iter() {
+                    // all circ walls
+                    for wall in circ_wall_set.p3().iter() {
                         wall.draw_gizmo(
                             painter,
                             &ui_state.current_tool,
@@ -955,8 +975,8 @@ pub fn draw_egui(
                             &ui_state.image_rect,
                         );
                     }
-                    // selected mics
-                    for (_, wall) in mic_set.p1().iter() {
+                    // selected circ walls
+                    for (_, wall) in circ_wall_set.p1().iter() {
                         wall.draw_gizmo(
                             painter,
                             &ui_state.current_tool,
@@ -964,9 +984,22 @@ pub fn draw_egui(
                             &ui_state.image_rect,
                         );
                     }
+                    // all mics
+                    for mic in mic_set.p3().iter() {
+                        mic.draw_gizmo(
+                            painter,
+                            &ui_state.current_tool,
+                            false,
+                            &ui_state.image_rect,
+                        );
+                    }
+                    // selected mics
+                    for (_, mic) in mic_set.p1().iter() {
+                        mic.draw_gizmo(painter, &ui_state.current_tool, true, &ui_state.image_rect);
+                    }
                     // all sources
-                    for wall in source_set.p3().iter() {
-                        wall.draw_gizmo(
+                    for source in source_set.p3().iter() {
+                        source.draw_gizmo(
                             painter,
                             &ui_state.current_tool,
                             false,
@@ -974,8 +1007,8 @@ pub fn draw_egui(
                         );
                     }
                     // selected sources
-                    for (_, wall) in source_set.p1().iter() {
-                        wall.draw_gizmo(
+                    for (_, source) in source_set.p1().iter() {
+                        source.draw_gizmo(
                             painter,
                             &ui_state.current_tool,
                             true,
