@@ -49,4 +49,11 @@ impl ComponentIDs {
     pub fn decrement_wall_ids(&mut self) {
         self.current_wall_id -= 1;
     }
+
+    /// Resets **all** ids to 0
+    pub fn reset(&mut self) {
+        self.current_mic_id = 0;
+        self.current_source_id = 0;
+        self.current_wall_id = 0;
+    }
 }

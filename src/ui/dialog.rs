@@ -8,6 +8,7 @@ use crate::components::source::Source;
 use crate::components::wall::{CircWall, RectWall};
 use crate::events::UpdateWalls;
 use crate::grid::grid::Grid;
+use crate::grid::plugin::ComponentIDs;
 
 /// Marker component for the file dialog and the corresponding event.
 pub struct SaveFileContents;
@@ -33,6 +34,7 @@ pub fn file_loaded(
     rect_walls: Query<(Entity, &RectWall)>,
     circ_walls: Query<(Entity, &CircWall)>,
     ui_state: Res<UiState>,
+    mut ids: ResMut<ComponentIDs>,
 ) {
     if let Some(data) = ev_loaded.read().next() {
         let save_data = serde_json::from_slice::<SaveData>(&data.contents).unwrap();
@@ -51,18 +53,24 @@ pub fn file_loaded(
             commands.entity(entity).despawn();
         }
 
+        ids.reset();
+
         // Load entities
         for source in save_data.sources {
             commands.spawn(source);
+            ids.get_new_source_id();
         }
         for mic in save_data.mics {
             commands.spawn(mic);
+            ids.get_new_mic_id();
         }
         for rect_wall in save_data.rect_walls {
             commands.spawn(rect_wall);
+            ids.get_new_wall_id();
         }
         for circ_wall in save_data.circ_walls {
             commands.spawn(circ_wall);
+            ids.get_new_wall_id();
         }
 
         grid.reset_cells(ui_state.boundary_width);
