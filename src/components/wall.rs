@@ -14,6 +14,7 @@ pub struct WallCell {
 
 #[derive(Component, PartialEq)]
 pub enum WResize {
+    Draw,
     TopLeft,
     TopRight,
     BottomRight,
@@ -65,6 +66,7 @@ impl Wall for RectWall {
             "RectWall cannot be resized with WResize::Radius"
         );
         match resize_type {
+            WResize::Draw => self.rect.max,
             WResize::TopLeft => self.rect.min,
             WResize::TopRight => UVec2::new(self.rect.max.x, self.rect.min.y),
             WResize::BottomRight => self.rect.max,
@@ -158,6 +160,20 @@ impl Wall for RectWall {
             WResize::TopRight => todo!(),
             WResize::BottomRight => {
                 // make sure x and y are never less than min
+                // wall is always 2 pixel tall and wide
+                if x < self.rect.min.x + 1 {
+                    x = self.rect.min.x + 1;
+                }
+                if y < self.rect.min.y + 1 {
+                    y = self.rect.min.y + 1;
+                }
+
+                self.rect.max = UVec2::new(x, y);
+            }
+            WResize::BottomLeft => todo!(),
+            WResize::Radius => unreachable!(),
+            WResize::Draw => {
+                // I want to be able to drag into each quadrant here
                 if x < self.rect.min.x {
                     x = self.rect.min.x;
                 }
@@ -167,8 +183,6 @@ impl Wall for RectWall {
 
                 self.rect.max = UVec2::new(x, y);
             }
-            WResize::BottomLeft => todo!(),
-            WResize::Radius => unreachable!(),
         }
     }
 }

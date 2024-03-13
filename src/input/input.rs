@@ -139,7 +139,7 @@ pub fn button_input(
                                     ui_state.wall_reflection_factor,
                                     component_ids.get_new_wall_id(),
                                 ),
-                                WResize::BottomRight,
+                                WResize::Draw,
                                 Overlay,
                             ));
                         }
