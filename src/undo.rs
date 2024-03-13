@@ -65,15 +65,19 @@ fn undo(
     keys: Res<ButtonInput<KeyCode>>,
     mut wall_update_ev: EventWriter<UpdateWalls>,
 ) {
-
     #[cfg(not(target_os = "macos"))]
     let ctrl = keys.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
-    
+
     #[cfg(target_os = "macos")]
     let ctrl = keys.any_pressed([KeyCode::SuperLeft, KeyCode::SuperRight]);
-    
+
+    let shift = keys.any_pressed([KeyCode::ShiftLeft, KeyCode::ShiftRight]);
+
     //TODO this is bound to ctrl+y for me?
-    if ctrl && keys.just_pressed(KeyCode::KeyZ) {
+    let is_undo = ctrl && !shift && keys.just_pressed(KeyCode::KeyZ);
+    let is_redo = ctrl && shift && keys.just_pressed(KeyCode::KeyZ);
+
+    if is_undo || is_redo {
         let sources = q_sources.iter().map(|x| *x.1).collect::<Vec<_>>();
         let mics = q_mics.iter().map(|x| x.1.clone()).collect::<Vec<_>>();
         let rect_walls = q_rect_walls.iter().map(|x| *x.1).collect::<Vec<_>>();
@@ -87,9 +91,13 @@ fn undo(
             ui_state: *ui_state,
         };
 
-        println!("has undo point {}", undo.0.has_undo(&current_state));
+        let new_state = if is_undo {
+            undo.0.undo(&current_state)
+        } else {
+            undo.0.redo(&current_state)
+        };
 
-        if let Some(state) = undo.0.undo(&current_state) {
+        if let Some(state) = new_state {
             for (e, _) in q_sources.iter() {
                 commands.entity(e).despawn();
             }
