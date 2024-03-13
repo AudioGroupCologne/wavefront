@@ -512,6 +512,23 @@ pub fn draw_egui(
                             mic.clear();
                         }
                     }
+
+                    if ui.button("Delete All").clicked() {
+                        for (e, _) in source_set.p0().iter() {
+                            commands.entity(e).despawn();
+                        }
+                        for (e, _) in rect_wall_set.p0().iter() {
+                            commands.entity(e).despawn();
+                        }
+                        for (e, _) in circ_wall_set.p0().iter() {
+                            commands.entity(e).despawn();
+                        }
+                        for (e, _) in mic_set.p0().iter() {
+                            commands.entity(e).despawn();
+                        }
+
+                        grid.reset_cells(ui_state.boundary_width);
+                    }
                 });
 
                 ui.add(
