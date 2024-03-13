@@ -10,6 +10,7 @@ use crate::grid::plugin::ComponentIDs;
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
 use crate::ui::state::{ClipboardBuffer, ToolType, UiState, WallType};
 
+/// This system handles the copy and paste functionality
 pub fn copy_paste_system(
     keys: Res<ButtonInput<KeyCode>>,
     selected: Query<Entity, With<Selected>>,

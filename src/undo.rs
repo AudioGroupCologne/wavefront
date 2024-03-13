@@ -7,9 +7,11 @@ use crate::components::wall::{CircWall, RectWall};
 use crate::events::UpdateWalls;
 use crate::ui::state::UiState;
 
+/// The undo resource. This is a wrapper around the [`Undoer`] struct from the [`egui`] crate.
 #[derive(Resource, Default)]
 pub struct Undo(Undoer<State>);
 
+/// The state of the application. This is used for undo/redo.
 #[derive(Default, PartialEq, Clone)]
 struct State {
     sources: Vec<Source>,
@@ -19,16 +21,18 @@ struct State {
     ui_state: UiState,
 }
 
+/// Manages the undo/redo functionality.
 pub struct UndoPlugin;
 
 impl Plugin for UndoPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Undo>()
-            .add_systems(Update, undo)
+            .add_systems(Update, undo_redo)
             .add_systems(PostUpdate, update_state);
     }
 }
 
+/// Feeds the current state into the undoer.
 fn update_state(
     ui_state: Res<UiState>,
     sources: Query<&Source>,
@@ -54,7 +58,8 @@ fn update_state(
     undo.0.feed_state(time.elapsed_seconds_f64(), &state);
 }
 
-fn undo(
+/// Updates the state of the application based on the undo/redo commands.
+fn undo_redo(
     mut undo: ResMut<Undo>,
     mut ui_state: ResMut<UiState>,
     mut commands: Commands,

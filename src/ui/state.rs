@@ -108,6 +108,7 @@ impl Default for UiState {
     }
 }
 
+/// A resource to store the currently copied [`Entity`] for the clipboard.
 #[derive(Resource, Default)]
 pub struct ClipboardBuffer {
     buffer: Option<Entity>,

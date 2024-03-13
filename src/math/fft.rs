@@ -6,6 +6,12 @@ use crate::components::microphone::Microphone;
 use crate::math::constants::*;
 use crate::ui::state::UiState;
 
+/// Calculate the spectrum of a [`Microphone`] based on the record field.
+/// The spectrum is calculated using the FFT algorithm and a Hann window. The corresponding window size is specified in [`FFT_WINDOW_SIZE`].
+/// The spectrum is then mapped to a logarithmic scale and returned.
+/// * `microphone` - The microphone to calculate the spectrum for.
+/// * `delta_t` - The time between two samples.
+/// * `ui_state` - The current state of the UI.
 pub fn calc_mic_spectrum(
     microphone: &mut Microphone,
     delta_t: f32,

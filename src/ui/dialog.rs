@@ -9,8 +9,11 @@ use crate::components::wall::{CircWall, RectWall};
 use crate::events::UpdateWalls;
 use crate::grid::grid::Grid;
 
+/// Marker component for the file dialog and the corresponding event.
 pub struct SaveFileContents;
 
+
+/// The data that is loaded from a file. Used for deserialization.
 #[derive(Deserialize)]
 pub struct SaveData {
     pub sources: Vec<Source>,
@@ -19,6 +22,8 @@ pub struct SaveData {
     pub circ_walls: Vec<CircWall>,
 }
 
+/// Loads a file when receiving a `DialogFileLoaded` event from the file dialog.
+/// All entities are despawned and the new entities are spawned.
 pub fn file_loaded(
     mut ev_loaded: EventReader<DialogFileLoaded<SaveFileContents>>,
     mut commands: Commands,

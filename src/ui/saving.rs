@@ -4,6 +4,7 @@ use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::components::wall::{CircWall, RectWall};
 
+/// The data that is saved to a file. Used for serialization.
 #[derive(Serialize)]
 struct SaveData<'a> {
     sources: &'a Vec<&'a Source>,
@@ -12,6 +13,7 @@ struct SaveData<'a> {
     circ_walls: &'a Vec<&'a CircWall>,
 }
 
+/// Serializes the given data to a byte vector of JSON.
 pub fn save(
     sources: &Vec<&Source>,
     mics: &Vec<&Microphone>,
