@@ -341,11 +341,36 @@ impl Wall for CircWall {
     }
 
     fn edge_contains(&self, x: u32, y: u32) -> bool {
-        let r_squared = self.radius * self.radius;
-        // This is legit stupid, but not the focus right now
-        (self.center.x - x).pow(2) + (self.center.y - y).pow(2) <= r_squared
-            && (self.center.x - x).pow(2) + (self.center.y - y).pow(2)
-                >= (r_squared as f32 * 0.8) as u32
+        // all this code should just be moved to draw and grid. This way we save tons of unnecessary computations
+        let mut b_x = 0i32;
+        let mut b_y = self.radius as i32;
+        let mut d = 1 - self.radius as i32;
+        while b_x <= b_y {
+            if [
+                (self.center.x as i32 + b_x, self.center.y as i32 + b_y),
+                (self.center.x as i32 + b_x, self.center.y as i32 - b_y),
+                (self.center.x as i32 - b_x, self.center.y as i32 + b_y),
+                (self.center.x as i32 - b_x, self.center.y as i32 - b_y),
+                (self.center.x as i32 + b_y, self.center.y as i32 + b_x),
+                (self.center.x as i32 + b_y, self.center.y as i32 - b_x),
+                (self.center.x as i32 - b_y, self.center.y as i32 + b_x),
+                (self.center.x as i32 - b_y, self.center.y as i32 - b_x),
+            ]
+            .contains(&(x as i32, y as i32))
+            {
+                return true;
+            }
+            if d < 0 {
+                d = d + 2 * b_x + 3;
+                b_x += 1;
+            } else {
+                d = d + 2 * (b_x - b_y) + 5;
+                b_x += 1;
+                b_y -= 1;
+            }
+        }
+
+        false
     }
 
     fn is_deletable(&self) -> bool {
@@ -365,9 +390,9 @@ impl Wall for CircWall {
     fn resize(&mut self, resize_type: &WResize, x: u32, y: u32) {
         match resize_type {
             WResize::Radius => {
-                // scale only on x-axis from center.x
                 let x_offset = self.center.x as i32 - x as i32;
-                self.radius = x_offset.abs() as u32;
+                let y_offset = self.center.y as i32 - y as i32;
+                self.radius = ((x_offset.pow(2) + y_offset.pow(2)) as f32).sqrt() as u32;
             }
             _ => {
                 panic!("Circular walls cannot be resized by radius.");
