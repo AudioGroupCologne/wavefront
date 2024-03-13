@@ -91,6 +91,7 @@ pub fn draw_egui(
     // Side Panel (Sources, Mic, Walls, Tool Options, Settings)
     egui::SidePanel::left("left_panel")
         .default_width(450.)
+        .resizable(false)
         .show(ctx, |ui| {
             // not a perfect solution -> when resizing this will set tools_enabled to true
             ui_state.tools_enabled = !ui.rect_contains_pointer(ui.available_rect_before_wrap())
