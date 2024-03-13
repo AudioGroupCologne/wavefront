@@ -139,7 +139,7 @@ pub fn draw_egui(
 
                                 commands
                                     .dialog()
-                                    .add_filter("Json", &["json"])
+                                    .add_filter("JSON", &["json"])
                                     .set_file_name("save.json")
                                     .set_directory("./")
                                     .set_title("Select a file to save to")
@@ -153,7 +153,7 @@ pub fn draw_egui(
                             {
                                 commands
                                     .dialog()
-                                    .add_filter("Json", &["json"])
+                                    .add_filter("JSON", &["json"])
                                     .set_directory("./")
                                     .set_title("Select a file to load")
                                     .load_file::<SaveFileContents>();
@@ -197,8 +197,8 @@ pub fn draw_egui(
 
                             commands
                                 .dialog()
-                                .add_filter("Jpeg", &["jpeg"])
-                                .set_file_name("save.jpg")
+                                .add_filter("PNG", &["png"])
+                                .set_file_name("screenshot.png")
                                 .set_directory("./")
                                 .set_title("Select a file to save to")
                                 .save_file::<SaveFileContents>(data);
