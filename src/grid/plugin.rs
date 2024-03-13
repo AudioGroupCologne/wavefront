@@ -16,7 +16,7 @@ impl Plugin for GridPlugin {
 }
 
 /// A resource to keep track of the current ids of objects in the grid
-#[derive(Resource, Default)]
+#[derive(Resource, Default, Clone, Copy, PartialEq)]
 pub struct ComponentIDs {
     current_mic_id: usize,
     current_source_id: usize,

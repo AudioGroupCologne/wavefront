@@ -5,6 +5,7 @@ use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::components::wall::{CircWall, RectWall};
 use crate::events::UpdateWalls;
+use crate::grid::plugin::ComponentIDs;
 use crate::ui::state::UiState;
 
 /// The undo resource. This is a wrapper around the [`Undoer`] struct from the [`egui`] crate.
@@ -19,6 +20,7 @@ struct State {
     rect_walls: Vec<RectWall>,
     circle_walls: Vec<CircWall>,
     ui_state: UiState,
+    ids: ComponentIDs,
 }
 
 /// Manages the undo/redo functionality.
@@ -34,12 +36,13 @@ impl Plugin for UndoPlugin {
 
 /// Feeds the current state into the undoer.
 fn update_state(
+    mut undo: ResMut<Undo>,
     ui_state: Res<UiState>,
     sources: Query<&Source>,
     mics: Query<&Microphone>,
     rect_walls: Query<&RectWall>,
     circle_walls: Query<&CircWall>,
-    mut undo: ResMut<Undo>,
+    ids: Res<ComponentIDs>,
     time: Res<Time>,
 ) {
     let sources = sources.iter().copied().collect::<Vec<_>>();
@@ -52,6 +55,7 @@ fn update_state(
         mics,
         rect_walls,
         circle_walls,
+        ids: *ids,
         ui_state: *ui_state,
     };
 
@@ -62,13 +66,14 @@ fn update_state(
 fn undo_redo(
     mut undo: ResMut<Undo>,
     mut ui_state: ResMut<UiState>,
+    mut ids: ResMut<ComponentIDs>,
     mut commands: Commands,
+    mut wall_update_ev: EventWriter<UpdateWalls>,
     q_sources: Query<(Entity, &Source)>,
     q_mics: Query<(Entity, &Microphone)>,
     q_rect_walls: Query<(Entity, &RectWall)>,
     q_circle_walls: Query<(Entity, &CircWall)>,
     keys: Res<ButtonInput<KeyCode>>,
-    mut wall_update_ev: EventWriter<UpdateWalls>,
 ) {
     #[cfg(not(target_os = "macos"))]
     let ctrl = keys.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
@@ -93,6 +98,7 @@ fn undo_redo(
             mics,
             rect_walls,
             circle_walls,
+            ids: *ids,
             ui_state: *ui_state,
         };
 
@@ -131,6 +137,7 @@ fn undo_redo(
 
             wall_update_ev.send(UpdateWalls);
 
+            *ids = state.ids;
             *ui_state = state.ui_state;
         }
     }
