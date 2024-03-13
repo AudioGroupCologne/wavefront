@@ -6,9 +6,9 @@ use egui::Color32;
 
 use crate::components::microphone::Microphone;
 use crate::components::states::Drag;
-use crate::components::wall::{CircWall, RectWall, WResize};
+use crate::components::wall::{CircWall, RectWall, WResize, Wall};
 use crate::grid::grid::Grid;
-use crate::math::constants::SIMULATION_WIDTH;
+use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::transformations::{coords_to_index, u32_map_range};
 use crate::ui::state::{PlotType, UiState};
 
@@ -129,6 +129,24 @@ pub fn draw_walls(
                 let b = raw_pixles[index as usize].b;
 
                 raw_pixles[index as usize] = Pixel { r, g, b, a: 70 };
+            }
+        }
+    }
+
+    // only for debugging right now, runs slowly
+    for wall in circ_walls_overlay.iter() {
+        for x in 0..SIMULATION_WIDTH {
+            for y in 0..SIMULATION_HEIGHT {
+                if wall.contains(x, y) {
+                    // no out of bounds check
+                    let index = x + y * SIMULATION_WIDTH;
+
+                    let r = raw_pixles[index as usize].r;
+                    let g = raw_pixles[index as usize].g;
+                    let b = raw_pixles[index as usize].b;
+
+                    raw_pixles[index as usize] = Pixel { r, g, b, a: 70 };
+                }
             }
         }
     }
