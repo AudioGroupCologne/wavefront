@@ -173,14 +173,26 @@ pub fn draw_egui(
                                 for x in ui_state.boundary_width
                                     ..(SIMULATION_HEIGHT + ui_state.boundary_width)
                                 {
-                                    let pressure = grid.pressure
-                                        [coords_to_index(x, y, ui_state.boundary_width)];
+                                    let current_index =
+                                        coords_to_index(x, y, ui_state.boundary_width);
+                                    if grid.wall_cache[current_index].is_wall {
+                                        let mut reflection_factor =
+                                            grid.wall_cache[current_index].reflection_factor;
+                                        if reflection_factor == 0. {
+                                            reflection_factor = 1.;
+                                        }
+                                        pixels.push((reflection_factor * 255.) as u8);
+                                        pixels.push((reflection_factor * 255.) as u8);
+                                        pixels.push((reflection_factor * 255.) as u8);
+                                    } else {
+                                        let pressure = grid.pressure[current_index];
 
-                                    let color = gradient.at(pressure);
+                                        let color = gradient.at(pressure);
 
-                                    pixels.push(color.r());
-                                    pixels.push(color.g());
-                                    pixels.push(color.b());
+                                        pixels.push(color.r());
+                                        pixels.push(color.g());
+                                        pixels.push(color.b());
+                                    }
                                 }
                             }
 
