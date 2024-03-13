@@ -2,11 +2,16 @@ use std::f32::consts::PI;
 use std::fmt;
 
 use bevy::prelude::*;
+use egui::epaint::CircleShape;
+use egui::{Color32, Pos2, Rect};
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
+use super::gizmo::GizmoComponent;
 use crate::grid::plugin::ComponentIDs;
 use crate::math::constants::*;
+use crate::math::transformations::grid_to_image;
+use crate::ui::state::ToolType;
 
 #[derive(Debug, Default, Component, Serialize, Deserialize, Clone, PartialEq, Copy)]
 /// A sound source on the grid
@@ -107,5 +112,42 @@ impl Source {
             SourceType::Sin,
             component_ids.get_new_source_id(),
         ));
+    }
+}
+
+impl GizmoComponent for Source {
+    fn get_gizmo_positions(&self, tool_type: &ToolType) -> Vec<Pos2> {
+        match tool_type {
+            ToolType::PlaceSource | ToolType::MoveSource => {
+                vec![Pos2 {
+                    x: self.x as f32,
+                    y: self.y as f32,
+                }]
+            }
+            _ => {
+                unreachable!()
+            }
+        }
+    }
+
+    fn draw_gizmo(
+        &self,
+        painter: &egui::Painter,
+        tool_type: &ToolType,
+        highlight: bool,
+        image_rect: &Rect,
+    ) {
+        match tool_type {
+            ToolType::PlaceSource | ToolType::MoveSource => {
+                for pos in self.get_gizmo_positions(tool_type) {
+                    painter.add(egui::Shape::Circle(CircleShape::filled(
+                        grid_to_image(pos, image_rect),
+                        if highlight { 10. } else { 5. },
+                        Color32::LIGHT_BLUE,
+                    )));
+                }
+            }
+            _ => {}
+        }
     }
 }

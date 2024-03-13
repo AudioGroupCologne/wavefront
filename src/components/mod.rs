@@ -1,3 +1,4 @@
+pub mod gizmo;
 pub mod microphone;
 pub mod source;
 pub mod states;

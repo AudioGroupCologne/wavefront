@@ -46,7 +46,10 @@ fn update_state(
     time: Res<Time>,
 ) {
     let sources = sources.iter().copied().collect::<Vec<_>>();
-    let mics = mics.iter().cloned().collect::<Vec<_>>();
+    let mics = mics
+        .iter()
+        .map(|mic| Microphone::new(mic.x, mic.y, mic.id))
+        .collect::<Vec<_>>();
     let rect_walls = rect_walls.iter().copied().collect::<Vec<_>>();
     let circle_walls = circle_walls.iter().copied().collect::<Vec<_>>();
 

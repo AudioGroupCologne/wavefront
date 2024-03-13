@@ -1,11 +1,13 @@
 use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::emath::Pos2;
+use egui::epaint::CircleShape;
+use egui::{Color32, Rect};
 use serde::{Deserialize, Serialize};
 
-use super::states::Gizmo;
+use super::gizmo::GizmoComponent;
 use crate::grid::plugin::ComponentIDs;
-use crate::math::constants::*;
-use crate::math::transformations::f32_map_range;
+use crate::math::transformations::grid_to_image;
+use crate::ui::state::ToolType;
 
 #[derive(Debug, Default, Component, Serialize, Deserialize, Clone, PartialEq)]
 /// A microphone on the grid that records the pressure at its position
@@ -44,27 +46,39 @@ impl Microphone {
     }
 }
 
-impl Gizmo for Microphone {
-    fn get_gizmo_position(&self, rect: &bevy_pixel_buffer::bevy_egui::egui::Rect) -> Pos2 {
-        Pos2 {
-            x: f32_map_range(
-                0.,
-                SIMULATION_WIDTH as f32,
-                rect.min.x,
-                rect.max.x,
-                self.x as f32,
-            ),
-            y: f32_map_range(
-                0.,
-                SIMULATION_HEIGHT as f32,
-                rect.min.y,
-                rect.max.y,
-                self.y as f32,
-            ),
+impl GizmoComponent for Microphone {
+    fn get_gizmo_positions(&self, tool_type: &ToolType) -> Vec<Pos2> {
+        match tool_type {
+            ToolType::MoveMic | ToolType::PlaceMic => {
+                vec![Pos2 {
+                    x: self.x as f32,
+                    y: self.y as f32,
+                }]
+            }
+            _ => {
+                unreachable!()
+            }
         }
     }
 
-    fn get_gizmo_color(&self) -> bevy_pixel_buffer::bevy_egui::egui::Color32 {
-        todo!()
+    fn draw_gizmo(
+        &self,
+        painter: &egui::Painter,
+        tool_type: &ToolType,
+        highlight: bool,
+        image_rect: &Rect,
+    ) {
+        match tool_type {
+            ToolType::PlaceMic | ToolType::MoveMic => {
+                for pos in self.get_gizmo_positions(tool_type) {
+                    painter.add(egui::Shape::Circle(CircleShape::filled(
+                        grid_to_image(pos, image_rect),
+                        if highlight { 10. } else { 5. },
+                        Color32::LIGHT_GREEN,
+                    )));
+                }
+            }
+            _ => {}
+        }
     }
 }

@@ -5,8 +5,8 @@ use bevy_pixel_buffer::query::QueryPixelBuffer;
 use egui::Color32;
 
 use crate::components::microphone::Microphone;
-use crate::components::states::Overlay;
-use crate::components::wall::{CircWall, RectWall};
+use crate::components::states::Drag;
+use crate::components::wall::{CircWall, RectWall, WResize};
 use crate::grid::grid::Grid;
 use crate::math::constants::SIMULATION_WIDTH;
 use crate::math::transformations::{coords_to_index, u32_map_range};
@@ -110,8 +110,8 @@ pub fn draw_pixels(
 
 pub fn draw_walls(
     pixel_buffers: QueryPixelBuffer,
-    rect_walls_overlay: Query<&RectWall, With<Overlay>>,
-    circ_walls_overlay: Query<&CircWall, With<Overlay>>,
+    rect_walls_overlay: Query<&RectWall, Or<(With<WResize>, With<Drag>)>>,
+    circ_walls_overlay: Query<&CircWall, Or<(With<WResize>, With<Drag>)>>,
 ) {
     let (query, mut images) = pixel_buffers.split();
     let mut frame = images.frame(query.iter().next().expect("one pixel buffer"));

@@ -1,4 +1,5 @@
 use bevy_pixel_buffer::bevy_egui::egui::emath::Rect;
+use egui::{pos2, Pos2};
 
 use super::constants::*;
 use crate::ui::state::UiState;
@@ -8,7 +9,7 @@ pub fn coords_to_index(x: u32, y: u32, boundary_width: u32) -> usize {
     (y * (SIMULATION_WIDTH + 2 * boundary_width) + x) as usize
 }
 
-/// Calculates x,y coordinates from 1D array index
+/// Calculates x, y coordinates from 1D array index
 pub fn index_to_coords(i: u32, boundary_width: u32) -> (u32, u32) {
     let x = i % (SIMULATION_WIDTH + 2 * boundary_width);
     let y = i / (SIMULATION_WIDTH + 2 * boundary_width);
@@ -83,4 +84,23 @@ pub fn screen_to_nearest_grid(x: f32, y: f32, image_rect: Rect) -> Option<(u32, 
         u32_map_range(0, width, 0, SIMULATION_WIDTH - 1, x),
         u32_map_range(0, height, 0, SIMULATION_HEIGHT - 1, y),
     ))
+}
+
+pub fn grid_to_image(pos: Pos2, image_rect: &Rect) -> Pos2 {
+    pos2(
+        f32_map_range(
+            0.,
+            SIMULATION_WIDTH as f32,
+            image_rect.min.x,
+            image_rect.max.x,
+            pos.x,
+        ),
+        f32_map_range(
+            0.,
+            SIMULATION_HEIGHT as f32,
+            image_rect.min.y,
+            image_rect.max.y,
+            pos.y,
+        ),
+    )
 }

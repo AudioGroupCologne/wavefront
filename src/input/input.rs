@@ -3,7 +3,7 @@ use bevy::window::PrimaryWindow;
 
 use crate::components::microphone::Microphone;
 use crate::components::source::{Source, SourceType};
-use crate::components::states::{Drag, Overlay, Selected};
+use crate::components::states::{Drag, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize, Wall};
 use crate::events::UpdateWalls;
 use crate::grid::plugin::ComponentIDs;
@@ -140,7 +140,6 @@ pub fn button_input(
                                     component_ids.get_new_wall_id(),
                                 ),
                                 WResize::Draw,
-                                Overlay,
                             ));
                         }
                     }
@@ -158,7 +157,6 @@ pub fn button_input(
                                     component_ids.get_new_wall_id(),
                                 ),
                                 WResize::Radius,
-                                Overlay,
                             ));
                         }
                     }
@@ -177,7 +175,7 @@ pub fn button_input(
                         for (entity, wall) in walls {
                             let center = wall.get_center();
                             if (center.x).abs_diff(x) <= 10 && (center.y).abs_diff(y) <= 10 {
-                                commands.entity(entity).insert((Drag, Selected, Overlay));
+                                commands.entity(entity).insert((Drag, Selected));
                                 break;
                             }
                         }
@@ -187,21 +185,28 @@ pub fn button_input(
                     if let Some((x, y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                     {
-                        let rect_walls = rect_wall_set.p0();
-                        let circ_walls = circ_wall_set.p0();
-                        let walls = rect_walls
-                            .iter()
-                            .map(|(e, w)| (e, w as &dyn Wall))
-                            .chain(circ_walls.iter().map(|(e, w)| (e, w as &dyn Wall)));
-
-                        for (entity, wall) in walls {
-                            let resize_point = wall.get_resize_point(WResize::BottomRight);
+                        for (entity, wall) in rect_wall_set.p0().iter() {
+                            for resize_type in [
+                                WResize::TopLeft,
+                                WResize::TopRight,
+                                WResize::BottomLeft,
+                                WResize::BottomRight,
+                            ] {
+                                let resize_point = wall.get_resize_point(&resize_type);
+                                if (resize_point.x).abs_diff(x) <= 10
+                                    && (resize_point.y).abs_diff(y) <= 10
+                                {
+                                    commands.entity(entity).insert((resize_type));
+                                    break;
+                                }
+                            }
+                        }
+                        for (entity, wall) in circ_wall_set.p0().iter() {
+                            let resize_point = wall.get_resize_point(&WResize::Radius);
                             if (resize_point.x).abs_diff(x) <= 10
                                 && (resize_point.y).abs_diff(y) <= 10
                             {
-                                commands
-                                    .entity(entity)
-                                    .insert((WResize::BottomRight, Overlay));
+                                commands.entity(entity).insert((WResize::Radius));
                                 break;
                             }
                         }
@@ -247,7 +252,7 @@ pub fn button_input(
                     commands.entity(entity).despawn();
                     component_ids.decrement_wall_ids();
                 }
-                commands.entity(entity).remove::<(WResize, Overlay, Drag)>();
+                commands.entity(entity).remove::<(WResize, Drag)>();
             });
         circ_wall_set
             .p0()
@@ -257,7 +262,7 @@ pub fn button_input(
                     commands.entity(entity).despawn();
                     component_ids.decrement_wall_ids();
                 }
-                commands.entity(entity).remove::<(WResize, Overlay, Drag)>();
+                commands.entity(entity).remove::<(WResize, Drag)>();
             });
 
         wall_update_ev.send(UpdateWalls);
@@ -335,6 +340,7 @@ pub fn button_input(
     if keys.just_pressed(KeyCode::Delete) || keys.just_pressed(KeyCode::Backspace) {
         selected.iter_mut().for_each(|entity| {
             commands.entity(entity).despawn();
+            wall_update_ev.send(UpdateWalls);
         });
     }
 }

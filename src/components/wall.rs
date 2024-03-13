@@ -1,10 +1,15 @@
 use std::cmp::Ordering;
 
 use bevy::prelude::*;
+use egui::epaint::CircleShape;
+use egui::{Color32, Pos2, Rect};
 use serde::{Deserialize, Serialize};
 
+use super::gizmo::GizmoComponent;
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::rect::WRect;
+use crate::math::transformations::grid_to_image;
+use crate::ui::state::ToolType;
 
 #[derive(Debug, Default, Clone)]
 pub struct WallCell {
@@ -27,8 +32,6 @@ pub enum WResize {
 }
 
 pub trait Wall: Sync + Send {
-    fn get_resize_point(&self, resize_type: WResize) -> UVec2;
-
     fn contains(&self, x: u32, y: u32) -> bool;
 
     fn edge_contains(&self, x: u32, y: u32) -> bool;
@@ -41,6 +44,8 @@ pub trait Wall: Sync + Send {
     fn get_center(&self) -> UVec2;
 
     fn get_reflection_factor(&self) -> f32;
+
+    fn get_resize_point(&self, resize_type: &WResize) -> UVec2;
 
     fn resize(&mut self, resize_type: &WResize, x: u32, y: u32);
 }
@@ -60,9 +65,9 @@ impl Wall for RectWall {
         self.rect.center()
     }
 
-    fn get_resize_point(&self, resize_type: WResize) -> UVec2 {
+    fn get_resize_point(&self, resize_type: &WResize) -> UVec2 {
         debug_assert!(
-            resize_type != WResize::Radius,
+            resize_type != &WResize::Radius,
             "RectWall cannot be resized with WResize::Radius"
         );
         match resize_type {
@@ -152,12 +157,32 @@ impl Wall for RectWall {
 
     fn resize(&mut self, resize_type: &WResize, mut x: u32, mut y: u32) {
         debug_assert!(
-            *resize_type != WResize::Radius,
+            resize_type != &WResize::Radius,
             "RectWall cannot be resized with WResize::Radius"
         );
         match resize_type {
-            WResize::TopLeft => todo!(),
-            WResize::TopRight => todo!(),
+            WResize::TopLeft => {
+                if x > self.rect.max.x - 1 {
+                    x = self.rect.max.x - 1;
+                }
+                if y > self.rect.max.y - 1 {
+                    y = self.rect.max.y - 1;
+                }
+
+                self.rect.min.x = x;
+                self.rect.min.y = y;
+            }
+            WResize::TopRight => {
+                if x < self.rect.min.x + 1 {
+                    x = self.rect.min.x + 1;
+                }
+                if y > self.rect.max.y - 1 {
+                    y = self.rect.max.y - 1;
+                }
+
+                self.rect.max.x = x;
+                self.rect.min.y = y;
+            }
             WResize::BottomRight => {
                 // make sure x and y are never less than min
                 // wall is always 2 pixel tall and wide
@@ -168,10 +193,20 @@ impl Wall for RectWall {
                     y = self.rect.min.y + 1;
                 }
 
-                self.rect.max = UVec2::new(x, y);
+                self.rect.max.x = x;
+                self.rect.max.y = y;
             }
-            WResize::BottomLeft => todo!(),
-            WResize::Radius => unreachable!(),
+            WResize::BottomLeft => {
+                if x > self.rect.max.x - 1 {
+                    x = self.rect.max.x - 1;
+                }
+                if y < self.rect.min.y + 1 {
+                    y = self.rect.min.y + 1;
+                }
+
+                self.rect.min.x = x;
+                self.rect.max.y = y;
+            }
             WResize::Draw => {
                 // I want to be able to drag into each quadrant here
                 if x < self.rect.min.x {
@@ -181,8 +216,68 @@ impl Wall for RectWall {
                     y = self.rect.min.y;
                 }
 
-                self.rect.max = UVec2::new(x, y);
+                self.rect.max.x = x;
+                self.rect.max.y = y;
             }
+            WResize::Radius => unreachable!(),
+        }
+    }
+}
+
+impl GizmoComponent for RectWall {
+    fn get_gizmo_positions(&self, tool_type: &ToolType) -> Vec<Pos2> {
+        match tool_type {
+            ToolType::ResizeWall => {
+                let top_left = Pos2 {
+                    x: self.rect.min.x as f32,
+                    y: self.rect.min.y as f32,
+                };
+                let top_right = Pos2 {
+                    x: self.rect.max.x as f32,
+                    y: self.rect.min.y as f32,
+                };
+                let bottom_left = Pos2 {
+                    x: self.rect.min.x as f32,
+                    y: self.rect.max.y as f32,
+                };
+                let bottom_right = Pos2 {
+                    x: self.rect.max.x as f32,
+                    y: self.rect.max.y as f32,
+                };
+
+                vec![top_left, top_right, bottom_left, bottom_right]
+            }
+            ToolType::MoveWall => {
+                let center = self.get_center();
+                vec![Pos2 {
+                    x: center.x as f32,
+                    y: center.y as f32,
+                }]
+            }
+            _ => {
+                unreachable!()
+            }
+        }
+    }
+
+    fn draw_gizmo(
+        &self,
+        painter: &egui::Painter,
+        tool_type: &ToolType,
+        highlight: bool,
+        image_rect: &Rect,
+    ) {
+        match tool_type {
+            ToolType::ResizeWall | ToolType::MoveWall => {
+                for pos in self.get_gizmo_positions(tool_type) {
+                    painter.add(egui::Shape::Circle(CircleShape::filled(
+                        grid_to_image(pos, image_rect),
+                        if highlight { 10. } else { 5. },
+                        Color32::LIGHT_RED,
+                    )));
+                }
+            }
+            _ => {}
         }
     }
 }
@@ -221,7 +316,7 @@ impl Wall for CircWall {
         self.center
     }
 
-    fn get_resize_point(&self, resize_type: WResize) -> UVec2 {
+    fn get_resize_point(&self, resize_type: &WResize) -> UVec2 {
         match resize_type {
             WResize::Radius => UVec2 {
                 // here I want to implement offset

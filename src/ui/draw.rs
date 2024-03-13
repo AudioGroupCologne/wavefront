@@ -8,9 +8,10 @@ use bevy_pixel_buffer::prelude::*;
 use egui_plot::{GridMark, Legend, Line, Plot, PlotPoints};
 
 use super::dialog::SaveFileContents;
+use crate::components::gizmo::GizmoComponent;
 use crate::components::microphone::*;
 use crate::components::source::*;
-use crate::components::states::{Gizmo, MenuSelected, Overlay, Selected};
+use crate::components::states::{MenuSelected, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize, Wall};
 use crate::events::UpdateWalls;
 use crate::grid::grid::Grid;
@@ -31,14 +32,14 @@ pub fn draw_egui(
     mut wall_update_ev: EventWriter<UpdateWalls>,
     mut rect_wall_set: ParamSet<(
         Query<(Entity, &mut RectWall)>,
-        Query<(Entity, &mut RectWall), (Without<Overlay>, With<Selected>)>,
-        Query<(Entity, &mut RectWall), (Without<Overlay>, With<MenuSelected>)>,
+        Query<(Entity, &mut RectWall), With<Selected>>,
+        Query<(Entity, &mut RectWall), With<MenuSelected>>,
         Query<&RectWall>,
     )>,
     mut circ_wall_set: ParamSet<(
         Query<(Entity, &mut CircWall)>,
-        Query<(Entity, &mut CircWall), (Without<Overlay>, With<Selected>)>,
-        Query<(Entity, &mut CircWall), (Without<Overlay>, With<MenuSelected>)>,
+        Query<(Entity, &mut CircWall), With<Selected>>,
+        Query<(Entity, &mut CircWall), With<MenuSelected>>,
         Query<&CircWall>,
     )>,
     mut source_set: ParamSet<(
@@ -733,7 +734,10 @@ pub fn draw_egui(
                             .y_axis_label("Amplitude")
                             .legend(Legend::default())
                             .show(ui, |plot_ui| {
-                                for (_, mic) in mic_set.p0().iter() {
+                                let mut binding = mic_set.p0();
+                                let mut mic_vec = binding.iter_mut().collect::<Vec<_>>();
+                                mic_vec.sort_by_cached_key(|(_, mic)| mic.id);
+                                for (_, mic) in mic_vec {
                                     //TODO: because of this clone, the app is getting slower as time goes on (because the vec is getting bigger)
                                     let points: PlotPoints = PlotPoints::new(mic.record.clone());
                                     let line = Line::new(points);
@@ -905,266 +909,61 @@ pub fn draw_egui(
                 let painter = ui.painter();
                 //menu gizmos
                 if !ui_state.tools_enabled {
-                    for (_, mic) in mic_set.p2().iter() {
-                        let gizmo_pos = pos2(
-                            f32_map_range(
-                                0.,
-                                SIMULATION_WIDTH as f32,
-                                image.rect.min.x,
-                                image.rect.max.x,
-                                mic.x as f32,
-                            ),
-                            f32_map_range(
-                                0.,
-                                SIMULATION_HEIGHT as f32,
-                                image.rect.min.y,
-                                image.rect.max.y,
-                                mic.y as f32,
-                            ),
-                        );
-
-                        painter.add(egui::Shape::Circle(CircleShape::filled(
-                            gizmo_pos,
-                            10.,
-                            Color32::from_rgb(0, 0, 255),
-                        )));
-                    }
-                    for (_, source) in source_set.p2().iter() {
-                        let gizmo_pos = pos2(
-                            f32_map_range(
-                                0.,
-                                SIMULATION_WIDTH as f32,
-                                image.rect.min.x,
-                                image.rect.max.x,
-                                source.x as f32,
-                            ),
-                            f32_map_range(
-                                0.,
-                                SIMULATION_HEIGHT as f32,
-                                image.rect.min.y,
-                                image.rect.max.y,
-                                source.y as f32,
-                            ),
-                        );
-
-                        painter.add(egui::Shape::Circle(CircleShape::filled(
-                            gizmo_pos,
-                            10.,
-                            Color32::from_rgb(0, 255, 0),
-                        )));
-                    }
-                    for (_, wall) in rect_wall_set.p2().iter() {
-                        let gizmo_pos = pos2(
-                            f32_map_range(
-                                0.,
-                                SIMULATION_WIDTH as f32,
-                                image.rect.min.x,
-                                image.rect.max.x,
-                                wall.get_center().x as f32,
-                            ),
-                            f32_map_range(
-                                0.,
-                                SIMULATION_HEIGHT as f32,
-                                image.rect.min.y,
-                                image.rect.max.y,
-                                wall.get_center().y as f32,
-                            ),
-                        );
-
-                        painter.add(egui::Shape::Circle(CircleShape::filled(
-                            gizmo_pos,
-                            10.,
-                            Color32::from_rgb(255, 0, 0),
-                        )));
-                    }
                 } else {
                     // Tool specific gizmos
-                    match ui_state.current_tool {
-                        ToolType::MoveSource => {
-                            for (_, source) in source_set.p0().iter() {
-                                let gizmo_pos = pos2(
-                                    f32_map_range(
-                                        0.,
-                                        SIMULATION_WIDTH as f32,
-                                        image.rect.min.x,
-                                        image.rect.max.x,
-                                        source.x as f32,
-                                    ),
-                                    f32_map_range(
-                                        0.,
-                                        SIMULATION_HEIGHT as f32,
-                                        image.rect.min.y,
-                                        image.rect.max.y,
-                                        source.y as f32,
-                                    ),
-                                );
-
-                                painter.add(egui::Shape::Circle(CircleShape::filled(
-                                    gizmo_pos,
-                                    5.,
-                                    Color32::from_rgb(255, 100, 0),
-                                )));
-                            }
-                            for (_, source) in source_set.p1().iter() {
-                                let gizmo_pos = pos2(
-                                    f32_map_range(
-                                        0.,
-                                        SIMULATION_WIDTH as f32,
-                                        image.rect.min.x,
-                                        image.rect.max.x,
-                                        source.x as f32,
-                                    ),
-                                    f32_map_range(
-                                        0.,
-                                        SIMULATION_HEIGHT as f32,
-                                        image.rect.min.y,
-                                        image.rect.max.y,
-                                        source.y as f32,
-                                    ),
-                                );
-
-                                painter.add(egui::Shape::Circle(CircleShape::filled(
-                                    gizmo_pos,
-                                    10.,
-                                    Color32::from_rgb(255, 120, 50),
-                                )));
-                            }
-                        }
-                        ToolType::MoveWall => {
-                            for (_, wall) in rect_wall_set.p0().iter() {
-                                let gizmo_pos = pos2(
-                                    f32_map_range(
-                                        0.,
-                                        SIMULATION_WIDTH as f32,
-                                        image.rect.min.x,
-                                        image.rect.max.x,
-                                        wall.get_center().x as f32,
-                                    ),
-                                    f32_map_range(
-                                        0.,
-                                        SIMULATION_HEIGHT as f32,
-                                        image.rect.min.y,
-                                        image.rect.max.y,
-                                        wall.get_center().y as f32,
-                                    ),
-                                );
-
-                                painter.add(egui::Shape::Circle(CircleShape::filled(
-                                    gizmo_pos,
-                                    5.,
-                                    Color32::from_rgb(255, 100, 0),
-                                )));
-                            }
-                            for (_, wall) in rect_wall_set.p1().iter() {
-                                let gizmo_pos = pos2(
-                                    f32_map_range(
-                                        0.,
-                                        SIMULATION_WIDTH as f32,
-                                        image.rect.min.x,
-                                        image.rect.max.x,
-                                        wall.get_center().x as f32,
-                                    ),
-                                    f32_map_range(
-                                        0.,
-                                        SIMULATION_HEIGHT as f32,
-                                        image.rect.min.y,
-                                        image.rect.max.y,
-                                        wall.get_center().y as f32,
-                                    ),
-                                );
-
-                                painter.add(egui::Shape::Circle(CircleShape::filled(
-                                    gizmo_pos,
-                                    10.,
-                                    Color32::from_rgb(255, 100, 0),
-                                )));
-                            }
-                        }
-                        ToolType::ResizeWall => {
-                            for (_, wall) in rect_wall_set.p0().iter() {
-                                let gizmo_pos = pos2(
-                                    f32_map_range(
-                                        0.,
-                                        SIMULATION_WIDTH as f32,
-                                        image.rect.min.x,
-                                        image.rect.max.x,
-                                        wall.get_resize_point(WResize::BottomRight).x as f32,
-                                    ),
-                                    f32_map_range(
-                                        0.,
-                                        SIMULATION_HEIGHT as f32,
-                                        image.rect.min.y,
-                                        image.rect.max.y,
-                                        wall.get_resize_point(WResize::BottomRight).y as f32,
-                                    ),
-                                );
-
-                                painter.add(egui::Shape::Circle(CircleShape::filled(
-                                    gizmo_pos,
-                                    5.,
-                                    Color32::from_rgb(54, 188, 255),
-                                )));
-                            }
-                        }
-                        ToolType::PlaceSource => {
-                            for (_, source) in source_set.p0().iter() {
-                                let gizmo_pos = pos2(
-                                    f32_map_range(
-                                        0.,
-                                        SIMULATION_WIDTH as f32,
-                                        image.rect.min.x,
-                                        image.rect.max.x,
-                                        source.x as f32,
-                                    ),
-                                    f32_map_range(
-                                        0.,
-                                        SIMULATION_HEIGHT as f32,
-                                        image.rect.min.y,
-                                        image.rect.max.y,
-                                        source.y as f32,
-                                    ),
-                                );
-
-                                painter.add(egui::Shape::Circle(CircleShape::filled(
-                                    gizmo_pos,
-                                    2.5,
-                                    Color32::from_rgb(255, 100, 0),
-                                )));
-                            }
-                        }
-                        ToolType::DrawWall => {}
-                        ToolType::PlaceMic => {
-                            for (_, mic) in mic_set.p0().iter() {
-                                let gizmo_pos = mic.get_gizmo_position(&image.rect);
-
-                                painter.add(egui::Shape::Circle(CircleShape::filled(
-                                    gizmo_pos,
-                                    2.5,
-                                    Color32::from_rgb(0, 100, 255),
-                                )));
-                            }
-                        }
-                        ToolType::MoveMic => {
-                            for (_, mic) in mic_set.p0().iter() {
-                                let gizmo_pos = mic.get_gizmo_position(&image.rect);
-
-                                painter.add(egui::Shape::Circle(CircleShape::filled(
-                                    gizmo_pos,
-                                    5.,
-                                    Color32::from_rgb(0, 100, 255),
-                                )));
-                            }
-                            // selected mics
-                            for (_, mic) in mic_set.p1().iter() {
-                                let gizmo_pos = mic.get_gizmo_position(&image.rect);
-
-                                painter.add(egui::Shape::Circle(CircleShape::filled(
-                                    gizmo_pos,
-                                    10.,
-                                    Color32::from_rgb(100, 150, 255),
-                                )));
-                            }
-                        }
+                    // all walls
+                    for wall in rect_wall_set.p3().iter() {
+                        wall.draw_gizmo(
+                            painter,
+                            &ui_state.current_tool,
+                            false,
+                            &ui_state.image_rect,
+                        );
+                    }
+                    // selected walls
+                    for (_, wall) in rect_wall_set.p1().iter() {
+                        wall.draw_gizmo(
+                            painter,
+                            &ui_state.current_tool,
+                            true,
+                            &ui_state.image_rect,
+                        );
+                    }
+                    // all mics
+                    for wall in mic_set.p3().iter() {
+                        wall.draw_gizmo(
+                            painter,
+                            &ui_state.current_tool,
+                            false,
+                            &ui_state.image_rect,
+                        );
+                    }
+                    // selected mics
+                    for (_, wall) in mic_set.p1().iter() {
+                        wall.draw_gizmo(
+                            painter,
+                            &ui_state.current_tool,
+                            true,
+                            &ui_state.image_rect,
+                        );
+                    }
+                    // all sources
+                    for wall in source_set.p3().iter() {
+                        wall.draw_gizmo(
+                            painter,
+                            &ui_state.current_tool,
+                            false,
+                            &ui_state.image_rect,
+                        );
+                    }
+                    // selected sources
+                    for (_, wall) in source_set.p1().iter() {
+                        wall.draw_gizmo(
+                            painter,
+                            &ui_state.current_tool,
+                            true,
+                            &ui_state.image_rect,
+                        );
                     }
                 }
             }
