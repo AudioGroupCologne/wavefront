@@ -196,7 +196,7 @@ pub fn button_input(
                                 if (resize_point.x).abs_diff(x) <= 10
                                     && (resize_point.y).abs_diff(y) <= 10
                                 {
-                                    commands.entity(entity).insert((resize_type));
+                                    commands.entity(entity).insert(resize_type);
                                     break;
                                 }
                             }
@@ -206,7 +206,7 @@ pub fn button_input(
                             if (resize_point.x).abs_diff(x) <= 10
                                 && (resize_point.y).abs_diff(y) <= 10
                             {
-                                commands.entity(entity).insert((WResize::Radius));
+                                commands.entity(entity).insert(WResize::Radius);
                                 break;
                             }
                         }

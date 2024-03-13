@@ -1,8 +1,7 @@
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
 use bevy_file_dialog::prelude::*;
-use bevy_pixel_buffer::bevy_egui::egui::epaint::CircleShape;
-use bevy_pixel_buffer::bevy_egui::egui::{pos2, Color32, Frame, Margin, Vec2};
+use bevy_pixel_buffer::bevy_egui::egui::{Color32, Frame, Margin, Vec2};
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::prelude::*;
 use egui_plot::{GridMark, Legend, Line, Plot, PlotPoints};
@@ -12,12 +11,12 @@ use crate::components::gizmo::GizmoComponent;
 use crate::components::microphone::*;
 use crate::components::source::*;
 use crate::components::states::{MenuSelected, Selected};
-use crate::components::wall::{CircWall, RectWall, WResize, Wall};
+use crate::components::wall::{CircWall, RectWall, Wall};
 use crate::events::UpdateWalls;
 use crate::grid::grid::Grid;
 use crate::math::constants::*;
 use crate::math::fft::calc_mic_spectrum;
-use crate::math::transformations::{coords_to_index, f32_map_range};
+use crate::math::transformations::coords_to_index;
 use crate::render::draw::GradientResource;
 use crate::ui::state::*;
 

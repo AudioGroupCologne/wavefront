@@ -1,7 +1,6 @@
 use bevy::prelude::*;
-use bevy_pixel_buffer::bevy_egui::egui::emath::Pos2;
 use egui::epaint::CircleShape;
-use egui::{Color32, Rect};
+use egui::{Color32, Pos2, Rect};
 use serde::{Deserialize, Serialize};
 
 use super::gizmo::GizmoComponent;

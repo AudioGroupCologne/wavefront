@@ -12,7 +12,6 @@ use crate::grid::grid::Grid;
 /// Marker component for the file dialog and the corresponding event.
 pub struct SaveFileContents;
 
-
 /// The data that is loaded from a file. Used for deserialization.
 #[derive(Deserialize)]
 pub struct SaveData {

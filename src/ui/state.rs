@@ -1,7 +1,7 @@
 use std::fmt;
 
 use bevy::prelude::*;
-use bevy_pixel_buffer::bevy_egui::egui::Vec2;
+use egui::Vec2;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum WallType {
@@ -72,7 +72,7 @@ pub struct UiState {
     pub render_abc_area: bool,
     pub at_type: AttenuationType,
     pub power_order: u32,
-    pub image_rect: egui::emath::Rect,
+    pub image_rect: egui::Rect,
     pub show_plots: bool,
     pub current_fft_microphone: Option<usize>,
     pub spectrum_size: Vec2,
@@ -94,7 +94,7 @@ impl Default for UiState {
             render_abc_area: false,
             at_type: AttenuationType::Power,
             power_order: 5,
-            image_rect: egui::emath::Rect::NOTHING,
+            image_rect: egui::Rect::NOTHING,
             show_plots: false,
             current_fft_microphone: None,
             spectrum_size: Vec2 { x: 250., y: 500. }, // random init values

@@ -1,5 +1,4 @@
-use bevy_pixel_buffer::bevy_egui::egui::emath::Rect;
-use egui::{pos2, Pos2};
+use egui::{Pos2, Rect};
 
 use super::constants::*;
 use crate::ui::state::UiState;
@@ -87,7 +86,7 @@ pub fn screen_to_nearest_grid(x: f32, y: f32, image_rect: Rect) -> Option<(u32, 
 }
 
 pub fn grid_to_image(pos: Pos2, image_rect: &Rect) -> Pos2 {
-    pos2(
+    Pos2::new(
         f32_map_range(
             0.,
             SIMULATION_WIDTH as f32,
