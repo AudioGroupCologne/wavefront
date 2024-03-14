@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_pixel_buffer::builder::PixelBufferBuilder;
 use bevy_pixel_buffer::pixel_buffer::PixelBufferSize;
 
-use super::draw::{draw_pixels, draw_walls, GradientResource};
+use super::draw::{draw_overlays, draw_pixels, GradientResource};
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::math::constants::*;
@@ -27,7 +27,7 @@ impl Plugin for RenderPlugin {
                     Microphone::spawn_initial_microphones,
                 ),
             )
-            .add_systems(Update, (draw_pixels, draw_walls).chain());
+            .add_systems(Update, (draw_pixels, draw_overlays).chain());
     }
 }
 

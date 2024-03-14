@@ -108,7 +108,7 @@ pub fn draw_pixels(
     }
 }
 
-pub fn draw_walls(
+pub fn draw_overlays(
     pixel_buffers: QueryPixelBuffer,
     rect_walls_overlay: Query<&RectWall, Or<(With<WResize>, With<Drag>)>>,
     circ_walls_overlay: Query<&CircWall, Or<(With<WResize>, With<Drag>)>>,
@@ -128,7 +128,12 @@ pub fn draw_walls(
                 let g = raw_pixles[index as usize].g;
                 let b = raw_pixles[index as usize].b;
 
-                raw_pixles[index as usize] = Pixel { r, g, b, a: 70 };
+                raw_pixles[index as usize] = Pixel {
+                    r: u32_map_range(0, 255, 80, 255, r as u32) as u8,
+                    g: u32_map_range(0, 255, 80, 255, g as u32) as u8,
+                    b: u32_map_range(0, 255, 80, 255, b as u32) as u8,
+                    a: 255,
+                };
             }
         }
     }
@@ -145,7 +150,12 @@ pub fn draw_walls(
                         let g = raw_pixles[index as usize].g;
                         let b = raw_pixles[index as usize].b;
 
-                        raw_pixles[index as usize] = Pixel { r, g, b, a: 70 };
+                        raw_pixles[index as usize] = Pixel {
+                            r: u32_map_range(0, 255, 80, 255, r as u32) as u8,
+                            g: u32_map_range(0, 255, 80, 255, g as u32) as u8,
+                            b: u32_map_range(0, 255, 80, 255, b as u32) as u8,
+                            a: 255,
+                        };
                     }
                 }
             }
@@ -174,7 +184,12 @@ pub fn draw_walls(
                     let b = raw_pixles[index as usize].b;
 
                     // make more visible
-                    raw_pixles[index as usize] = Pixel { r, g, b, a: 70 };
+                    raw_pixles[index as usize] = Pixel {
+                        r: u32_map_range(0, 255, 80, 255, r as u32) as u8,
+                        g: u32_map_range(0, 255, 80, 255, g as u32) as u8,
+                        b: u32_map_range(0, 255, 80, 255, b as u32) as u8,
+                        a: 255,
+                    };
                 }
             }
 
