@@ -133,20 +133,58 @@ pub fn draw_walls(
         }
     }
 
-    // only for debugging right now, runs slowly
     for wall in circ_walls_overlay.iter() {
-        for x in 0..SIMULATION_WIDTH {
-            for y in 0..SIMULATION_HEIGHT {
-                if wall.contains(x, y) {
-                    // no out of bounds check
-                    let index = x + y * SIMULATION_WIDTH;
+        if !wall.is_hollow {
+            for x in 0..SIMULATION_WIDTH {
+                for y in 0..SIMULATION_HEIGHT {
+                    if wall.contains(x, y) {
+                        // no out of bounds check
+                        let index = x + y * SIMULATION_WIDTH;
 
+                        let r = raw_pixles[index as usize].r;
+                        let g = raw_pixles[index as usize].g;
+                        let b = raw_pixles[index as usize].b;
+
+                        raw_pixles[index as usize] = Pixel { r, g, b, a: 70 };
+                    }
+                }
+            }
+        }
+    }
+
+    for wall in circ_walls_overlay.iter() {
+        let mut b_x = 0i32;
+        let mut b_y = wall.radius as i32;
+        let mut d = 1 - wall.radius as i32;
+        while b_x <= b_y {
+            for (x, y) in [
+                (wall.center.x as i32 + b_x, wall.center.y as i32 + b_y),
+                (wall.center.x as i32 + b_x, wall.center.y as i32 - b_y),
+                (wall.center.x as i32 - b_x, wall.center.y as i32 + b_y),
+                (wall.center.x as i32 - b_x, wall.center.y as i32 - b_y),
+                (wall.center.x as i32 + b_y, wall.center.y as i32 + b_x),
+                (wall.center.x as i32 + b_y, wall.center.y as i32 - b_x),
+                (wall.center.x as i32 - b_y, wall.center.y as i32 + b_x),
+                (wall.center.x as i32 - b_y, wall.center.y as i32 - b_x),
+            ] {
+                if x >= 0 && x < SIMULATION_WIDTH as i32 && y >= 0 && y < SIMULATION_HEIGHT as i32 {
+                    let index = x as u32 + y as u32 * SIMULATION_WIDTH;
                     let r = raw_pixles[index as usize].r;
                     let g = raw_pixles[index as usize].g;
                     let b = raw_pixles[index as usize].b;
 
+                    // make more visible
                     raw_pixles[index as usize] = Pixel { r, g, b, a: 70 };
                 }
+            }
+
+            if d < 0 {
+                d = d + 2 * b_x + 3;
+                b_x += 1;
+            } else {
+                d = d + 2 * (b_x - b_y) + 5;
+                b_x += 1;
+                b_y -= 1;
             }
         }
     }

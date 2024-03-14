@@ -332,16 +332,17 @@ impl Wall for CircWall {
 
     fn contains(&self, x: u32, y: u32) -> bool {
         if self.is_hollow {
-            return self.edge_contains(x, y);
+            return false;
         }
         // very crude implementation
         let r_squared = self.radius * self.radius;
 
-        (self.center.x - x).pow(2) + (self.center.y - y).pow(2) <= r_squared
+        (self.center.x - x).pow(2) + (self.center.y - y).pow(2) < r_squared
     }
 
     fn edge_contains(&self, x: u32, y: u32) -> bool {
-        // all this code should just be moved to draw and grid. This way we save tons of unnecessary computations
+        // This works but adds many unnecessary calculations.
+        // DO NOT USE! only for debugging
         let mut b_x = 0i32;
         let mut b_y = self.radius as i32;
         let mut d = 1 - self.radius as i32;

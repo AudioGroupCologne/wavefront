@@ -134,15 +134,54 @@ impl Grid {
                 }
 
                 for wall in circ_walls {
-                    if wall.edge_contains(x, y) {
-                        wall_cell.is_wall = true;
-                        wall_cell.reflection_factor = wall.get_reflection_factor();
-                    } else if wall.contains(x, y) {
+                    if wall.contains(x, y) {
                         wall_cell.is_wall = true;
                         wall_cell.reflection_factor = 0.;
                     }
                 }
             });
+
+        for wall in circ_walls {
+            let mut b_x = 0i32;
+            let mut b_y = wall.radius as i32;
+            let mut d = 1 - wall.radius as i32;
+            while b_x <= b_y {
+                for (x, y) in [
+                    (wall.center.x as i32 + b_x, wall.center.y as i32 + b_y),
+                    (wall.center.x as i32 + b_x, wall.center.y as i32 - b_y),
+                    (wall.center.x as i32 - b_x, wall.center.y as i32 + b_y),
+                    (wall.center.x as i32 - b_x, wall.center.y as i32 - b_y),
+                    (wall.center.x as i32 + b_y, wall.center.y as i32 + b_x),
+                    (wall.center.x as i32 + b_y, wall.center.y as i32 - b_x),
+                    (wall.center.x as i32 - b_y, wall.center.y as i32 + b_x),
+                    (wall.center.x as i32 - b_y, wall.center.y as i32 - b_x),
+                ] {
+                    if x >= 0
+                        && x < SIMULATION_WIDTH as i32
+                        && y >= 0
+                        && y < SIMULATION_HEIGHT as i32
+                    {
+                        // x and y in 0..SIM_WIDTH/HEIGHT
+                        let index = coords_to_index(
+                            x as u32 + boundary_width,
+                            y as u32 + boundary_width,
+                            boundary_width,
+                        );
+                        self.wall_cache[index].is_wall = true;
+                        self.wall_cache[index].reflection_factor = wall.get_reflection_factor();
+                    }
+                }
+
+                if d < 0 {
+                    d = d + 2 * b_x + 3;
+                    b_x += 1;
+                } else {
+                    d = d + 2 * (b_x - b_y) + 5;
+                    b_x += 1;
+                    b_y -= 1;
+                }
+            }
+        }
     }
 
     pub fn calc_cells(&mut self, boundary_width: u32) {
