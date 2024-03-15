@@ -10,7 +10,7 @@ impl Plugin for EventPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PostUpdate, (update_wall_event, reset_event))
             .add_event::<UpdateWalls>()
-            .add_event::<ResetEvent>();
+            .add_event::<Reset>();
     }
 }
 
@@ -30,10 +30,10 @@ pub fn update_wall_event(
 }
 
 #[derive(Event)]
-pub struct ResetEvent;
+pub struct Reset;
 
 pub fn reset_event(
-    mut reset_ev: EventReader<ResetEvent>,
+    mut reset_ev: EventReader<Reset>,
     mut grid: ResMut<Grid>,
     ui_state: Res<UiState>,
 ) {

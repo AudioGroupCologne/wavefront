@@ -5,7 +5,7 @@ use crate::components::microphone::Microphone;
 use crate::components::source::{Source, SourceType};
 use crate::components::states::{Drag, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize, Wall};
-use crate::events::{ResetEvent, UpdateWalls};
+use crate::events::{Reset, UpdateWalls};
 use crate::grid::plugin::ComponentIDs;
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
 use crate::ui::state::{ClipboardBuffer, ToolType, UiState, WallType};
@@ -62,7 +62,7 @@ pub fn copy_paste_system(
 pub fn button_input(
     mouse_buttons: Res<ButtonInput<MouseButton>>,
     mut wall_update_ev: EventWriter<UpdateWalls>,
-    mut reset_ev: EventWriter<ResetEvent>,
+    mut reset_ev: EventWriter<Reset>,
     keys: Res<ButtonInput<KeyCode>>,
     q_windows: Query<&Window, With<PrimaryWindow>>,
     sources: Query<(Entity, &Source), Without<Drag>>,
@@ -274,7 +274,7 @@ pub fn button_input(
 
         if let Some(position) = window.cursor_position() {
             //TODO: this triggers everytime we release left mouse (pls fix)
-            reset_ev.send(ResetEvent);
+            reset_ev.send(Reset);
             match ui_state.current_tool {
                 ToolType::MoveSource => {
                     if let Some((x, y)) =
@@ -344,7 +344,7 @@ pub fn button_input(
         selected.iter_mut().for_each(|entity| {
             commands.entity(entity).despawn();
             wall_update_ev.send(UpdateWalls);
-            reset_ev.send(ResetEvent);
+            reset_ev.send(Reset);
         });
     }
 }

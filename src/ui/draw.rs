@@ -12,7 +12,7 @@ use crate::components::microphone::*;
 use crate::components::source::*;
 use crate::components::states::{MenuSelected, Selected};
 use crate::components::wall::{CircWall, RectWall, Wall};
-use crate::events::{ResetEvent, UpdateWalls};
+use crate::events::{Reset, UpdateWalls};
 use crate::grid::grid::Grid;
 use crate::math::constants::*;
 use crate::math::fft::calc_mic_spectrum;
@@ -29,7 +29,7 @@ pub fn draw_egui(
     mut grid: ResMut<Grid>,
     mut gradient: ResMut<Gradient>,
     mut wall_update_ev: EventWriter<UpdateWalls>,
-    mut reset_ev: EventWriter<ResetEvent>,
+    mut reset_ev: EventWriter<Reset>,
     mut rect_wall_set: ParamSet<(
         Query<(Entity, &mut RectWall)>,
         Query<(Entity, &mut RectWall), With<Selected>>,
@@ -245,7 +245,7 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    reset_ev.send(ResetEvent);
+                                    reset_ev.send(Reset);
                                 }
                                 ui.add_space(10.);
                                 ui.label("y:");
@@ -257,7 +257,7 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    reset_ev.send(ResetEvent);
+                                    reset_ev.send(Reset);
                                 }
                             });
                             if source.source_type != SourceType::WhiteNoise {
@@ -268,7 +268,7 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    reset_ev.send(ResetEvent);
+                                    reset_ev.send(Reset);
                                 }
                             }
                             ui.add(
@@ -283,7 +283,7 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    reset_ev.send(ResetEvent);
+                                    reset_ev.send(Reset);
                                 }
                             }
 
@@ -395,7 +395,7 @@ pub fn draw_egui(
                                     if wall.rect.min.x > wall.rect.max.x {
                                         wall.rect.min.x = wall.rect.max.x;
                                     }
-                                    reset_ev.send(ResetEvent);
+                                    reset_ev.send(Reset);
                                 }
                                 ui.add_space(10.);
                                 ui.label("Top Corner x:");
@@ -408,7 +408,7 @@ pub fn draw_egui(
                                     .changed()
                                 {
                                     // wall.update_calc_rect(ui_state.boundary_width);
-                                    reset_ev.send(ResetEvent);
+                                    reset_ev.send(Reset);
                                 }
                             });
 
@@ -423,7 +423,7 @@ pub fn draw_egui(
                                     .changed()
                                 {
                                     // wall.update_calc_rect(ui_state.boundary_width);
-                                    reset_ev.send(ResetEvent);
+                                    reset_ev.send(Reset);
                                 }
                                 ui.add_space(10.);
                                 ui.label("Bottom Corner y:");
@@ -436,7 +436,7 @@ pub fn draw_egui(
                                     .changed()
                                 {
                                     // wall.update_calc_rect(ui_state.boundary_width);
-                                    reset_ev.send(ResetEvent);
+                                    reset_ev.send(Reset);
                                 }
                             });
 
@@ -462,18 +462,18 @@ pub fn draw_egui(
                                 )
                                 .changed()
                             {
-                                reset_ev.send(ResetEvent);
+                                reset_ev.send(Reset);
                             }
 
                             if ui.checkbox(&mut wall.is_hollow, "Hollow Wall").changed() {
                                 wall_update_ev.send(UpdateWalls);
-                                reset_ev.send(ResetEvent);
+                                reset_ev.send(Reset);
                             };
 
                             if ui.add(egui::Button::new("Delete")).clicked() {
                                 commands.entity(*entity).despawn();
                                 wall_update_ev.send(UpdateWalls);
-                                reset_ev.send(ResetEvent);
+                                reset_ev.send(Reset);
                             }
                         });
 
@@ -517,18 +517,18 @@ pub fn draw_egui(
                                 )
                                 .changed()
                             {
-                                reset_ev.send(ResetEvent);
+                                reset_ev.send(Reset);
                             }
 
                             if ui.checkbox(&mut wall.is_hollow, "Hollow Wall").changed() {
                                 wall_update_ev.send(UpdateWalls);
-                                reset_ev.send(ResetEvent);
+                                reset_ev.send(Reset);
                             };
 
                             if ui.add(egui::Button::new("Delete")).clicked() {
                                 commands.entity(*entity).despawn();
                                 wall_update_ev.send(UpdateWalls);
-                                reset_ev.send(ResetEvent);
+                                reset_ev.send(Reset);
                             }
                         });
 
@@ -593,7 +593,7 @@ pub fn draw_egui(
                     )
                     .changed()
                 {
-                    reset_ev.send(ResetEvent);
+                    reset_ev.send(Reset);
                 }
 
                 ui.horizontal(|ui| {

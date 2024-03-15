@@ -4,7 +4,7 @@ use egui::util::undoer::Undoer;
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::components::wall::{CircWall, RectWall};
-use crate::events::UpdateWalls;
+use crate::events::{UpdateWalls, Reset};
 use crate::grid::plugin::ComponentIDs;
 use crate::ui::state::UiState;
 
@@ -72,6 +72,7 @@ fn undo_redo(
     mut ids: ResMut<ComponentIDs>,
     mut commands: Commands,
     mut wall_update_ev: EventWriter<UpdateWalls>,
+    mut reset_ev: EventWriter<Reset>,
     q_sources: Query<(Entity, &Source)>,
     q_mics: Query<(Entity, &Microphone)>,
     q_rect_walls: Query<(Entity, &RectWall)>,
@@ -139,6 +140,7 @@ fn undo_redo(
             }
 
             wall_update_ev.send(UpdateWalls);
+            reset_ev.send(Reset);
 
             *ids = state.ids;
             *ui_state = state.ui_state;
