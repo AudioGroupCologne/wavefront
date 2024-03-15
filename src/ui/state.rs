@@ -82,6 +82,7 @@ pub struct UiState {
     pub wall_type: WallType,
     pub wall_is_hollow: bool,
     pub tools_enabled: bool,
+    pub reset_on_change: bool,
 }
 
 impl Default for UiState {
@@ -104,6 +105,7 @@ impl Default for UiState {
             wall_type: WallType::Rectangle,
             wall_is_hollow: false,
             tools_enabled: true,
+            reset_on_change: true,
         }
     }
 }

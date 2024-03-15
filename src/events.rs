@@ -8,8 +8,9 @@ pub struct EventPlugin;
 
 impl Plugin for EventPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(PostUpdate, update_wall_event)
-            .add_event::<UpdateWalls>();
+        app.add_systems(PostUpdate, (update_wall_event, reset_event))
+            .add_event::<UpdateWalls>()
+            .add_event::<ResetEvent>();
     }
 }
 
@@ -25,5 +26,20 @@ pub fn update_wall_event(
 ) {
     for _ in wall_update_ev.read() {
         grid.update_walls(&rect_walls, &circ_walls, ui_state.boundary_width);
+    }
+}
+
+#[derive(Event)]
+pub struct ResetEvent;
+
+pub fn reset_event(
+    mut reset_ev: EventReader<ResetEvent>,
+    mut grid: ResMut<Grid>,
+    ui_state: Res<UiState>,
+) {
+    if ui_state.reset_on_change {
+        for _ in reset_ev.read() {
+            grid.reset_cells(ui_state.boundary_width);
+        }
     }
 }

@@ -12,7 +12,7 @@ use crate::components::microphone::*;
 use crate::components::source::*;
 use crate::components::states::{MenuSelected, Selected};
 use crate::components::wall::{CircWall, RectWall, Wall};
-use crate::events::UpdateWalls;
+use crate::events::{ResetEvent, UpdateWalls};
 use crate::grid::grid::Grid;
 use crate::math::constants::*;
 use crate::math::fft::calc_mic_spectrum;
@@ -29,6 +29,7 @@ pub fn draw_egui(
     mut grid: ResMut<Grid>,
     mut gradient: ResMut<GradientResource>,
     mut wall_update_ev: EventWriter<UpdateWalls>,
+    mut reset_ev: EventWriter<ResetEvent>,
     mut rect_wall_set: ParamSet<(
         Query<(Entity, &mut RectWall)>,
         Query<(Entity, &mut RectWall), With<Selected>>,
@@ -236,34 +237,54 @@ pub fn draw_egui(
                         let collapse = ui.collapsing(format!("Source {}", source.id), |ui| {
                             ui.horizontal(|ui| {
                                 ui.label("x:");
-                                ui.add(
-                                    egui::DragValue::new(&mut source.x)
-                                        .speed(1)
-                                        .clamp_range(0.0..=SIMULATION_WIDTH as f32 - 1.),
-                                );
+                                if ui
+                                    .add(
+                                        egui::DragValue::new(&mut source.x)
+                                            .speed(1)
+                                            .clamp_range(0.0..=SIMULATION_WIDTH as f32 - 1.),
+                                    )
+                                    .changed()
+                                {
+                                    reset_ev.send(ResetEvent);
+                                }
                                 ui.add_space(10.);
                                 ui.label("y:");
-                                ui.add(
-                                    egui::DragValue::new(&mut source.y)
-                                        .speed(1)
-                                        .clamp_range(0.0..=SIMULATION_HEIGHT as f32 - 1.),
-                                );
+                                if ui
+                                    .add(
+                                        egui::DragValue::new(&mut source.y)
+                                            .speed(1)
+                                            .clamp_range(0.0..=SIMULATION_HEIGHT as f32 - 1.),
+                                    )
+                                    .changed()
+                                {
+                                    reset_ev.send(ResetEvent);
+                                }
                             });
                             if source.source_type != SourceType::WhiteNoise {
-                                ui.add(
-                                    egui::Slider::new(&mut source.frequency, 0.0..=20000.0)
-                                        .text("Frequency (Hz)"),
-                                );
+                                if ui
+                                    .add(
+                                        egui::Slider::new(&mut source.frequency, 0.0..=20000.0)
+                                            .text("Frequency (Hz)"),
+                                    )
+                                    .changed()
+                                {
+                                    reset_ev.send(ResetEvent);
+                                }
                             }
                             ui.add(
                                 egui::Slider::new(&mut source.amplitude, 0.0..=25.0)
                                     .text("Amplitude"),
                             );
                             if source.source_type == SourceType::Sin {
-                                ui.add(
-                                    egui::Slider::new(&mut source.phase, 0.0..=360.0)
-                                        .text("Phase (°)"),
-                                );
+                                if ui
+                                    .add(
+                                        egui::Slider::new(&mut source.phase, 0.0..=360.0)
+                                            .text("Phase (°)"),
+                                    )
+                                    .changed()
+                                {
+                                    reset_ev.send(ResetEvent);
+                                }
                             }
 
                             egui::ComboBox::from_label("Waveform")
@@ -374,6 +395,7 @@ pub fn draw_egui(
                                     if wall.rect.min.x > wall.rect.max.x {
                                         wall.rect.min.x = wall.rect.max.x;
                                     }
+                                    reset_ev.send(ResetEvent);
                                 }
                                 ui.add_space(10.);
                                 ui.label("Top Corner x:");
@@ -386,6 +408,7 @@ pub fn draw_egui(
                                     .changed()
                                 {
                                     // wall.update_calc_rect(ui_state.boundary_width);
+                                    reset_ev.send(ResetEvent);
                                 }
                             });
 
@@ -400,6 +423,7 @@ pub fn draw_egui(
                                     .changed()
                                 {
                                     // wall.update_calc_rect(ui_state.boundary_width);
+                                    reset_ev.send(ResetEvent);
                                 }
                                 ui.add_space(10.);
                                 ui.label("Bottom Corner y:");
@@ -412,6 +436,7 @@ pub fn draw_egui(
                                     .changed()
                                 {
                                     // wall.update_calc_rect(ui_state.boundary_width);
+                                    reset_ev.send(ResetEvent);
                                 }
                             });
 
@@ -429,19 +454,26 @@ pub fn draw_egui(
                                 ));
                             });
 
-                            ui.add(
-                                // 0.01 because rendering then draws white
-                                egui::Slider::new(&mut wall.reflection_factor, 0.01..=1.0)
-                                    .text("Wall Reflection Factor"),
-                            );
+                            if ui
+                                .add(
+                                    // 0.01 because rendering then draws white
+                                    egui::Slider::new(&mut wall.reflection_factor, 0.01..=1.0)
+                                        .text("Wall Reflection Factor"),
+                                )
+                                .changed()
+                            {
+                                reset_ev.send(ResetEvent);
+                            }
 
                             if ui.checkbox(&mut wall.is_hollow, "Hollow Wall").changed() {
                                 wall_update_ev.send(UpdateWalls);
+                                reset_ev.send(ResetEvent);
                             };
 
                             if ui.add(egui::Button::new("Delete")).clicked() {
                                 commands.entity(*entity).despawn();
                                 wall_update_ev.send(UpdateWalls);
+                                reset_ev.send(ResetEvent);
                             }
                         });
 
@@ -478,18 +510,25 @@ pub fn draw_egui(
                                 ));
                             });
 
-                            ui.add(
-                                egui::Slider::new(&mut wall.reflection_factor, 0.01..=1.0)
-                                    .text("Wall Reflection Factor"),
-                            );
+                            if ui
+                                .add(
+                                    egui::Slider::new(&mut wall.reflection_factor, 0.01..=1.0)
+                                        .text("Wall Reflection Factor"),
+                                )
+                                .changed()
+                            {
+                                reset_ev.send(ResetEvent);
+                            }
 
                             if ui.checkbox(&mut wall.is_hollow, "Hollow Wall").changed() {
                                 wall_update_ev.send(UpdateWalls);
+                                reset_ev.send(ResetEvent);
                             };
 
                             if ui.add(egui::Button::new("Delete")).clicked() {
                                 commands.entity(*entity).despawn();
                                 wall_update_ev.send(UpdateWalls);
+                                reset_ev.send(ResetEvent);
                             }
                         });
 
@@ -506,12 +545,6 @@ pub fn draw_egui(
             // General Settings
             egui::TopBottomPanel::bottom("general_settings_bottom_panel").show_inside(ui, |ui| {
                 ui.heading("General Settings");
-                ui.separator();
-
-                ui.horizontal(|ui| {
-                    ui.color_edit_button_srgba(&mut gradient.0);
-                    ui.color_edit_button_srgba(&mut gradient.1);
-                });
                 ui.separator();
 
                 ui.horizontal(|ui| {
@@ -548,13 +581,25 @@ pub fn draw_egui(
                         grid.reset_cells(ui_state.boundary_width);
                         wall_update_ev.send(UpdateWalls);
                     }
+
+                    ui.checkbox(&mut ui_state.reset_on_change, "Reset on Change")
                 });
 
-                ui.add(
-                    egui::Slider::new(&mut ui_state.delta_l, 0.0..=10.0)
-                        .text("Delta L")
-                        .logarithmic(true),
-                );
+                if ui
+                    .add(
+                        egui::Slider::new(&mut ui_state.delta_l, 0.0..=10.0)
+                            .text("Delta L")
+                            .logarithmic(true),
+                    )
+                    .changed()
+                {
+                    reset_ev.send(ResetEvent);
+                }
+
+                ui.horizontal(|ui| {
+                    ui.color_edit_button_srgba(&mut gradient.0);
+                    ui.color_edit_button_srgba(&mut gradient.1);
+                });
 
                 if ui
                     .checkbox(&mut ui_state.show_plots, "Show Plots")
@@ -810,7 +855,9 @@ pub fn draw_egui(
                             .x_axis_label("Frequency (Hz)")
                             .y_axis_label("Intensity (dB)")
                             .x_grid_spacer(|input| {
-                                let mut marks = Vec::with_capacity(input.bounds.1 as usize - input.bounds.0 as usize + 1);
+                                let mut marks = Vec::with_capacity(
+                                    input.bounds.1 as usize - input.bounds.0 as usize + 1,
+                                );
 
                                 for i in input.bounds.0 as u32 + 1..=input.bounds.1 as u32 {
                                     marks.push(GridMark {
