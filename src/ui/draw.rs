@@ -330,6 +330,9 @@ pub fn draw_egui(
                                 );
                             });
                             if ui.add(egui::Button::new("Delete")).clicked() {
+                                if ui_state.current_fft_microphone == Some(mic.id) {
+                                    ui_state.current_fft_microphone = None;
+                                }
                                 commands.entity(*entity).despawn();
                             }
                         });
@@ -539,6 +542,8 @@ pub fn draw_egui(
                         for (e, _) in mic_set.p0().iter() {
                             commands.entity(e).despawn();
                         }
+                        
+                        ui_state.current_fft_microphone = None;
 
                         grid.reset_cells(ui_state.boundary_width);
                         wall_update_ev.send(UpdateWalls);
@@ -841,9 +846,9 @@ pub fn draw_egui(
                                     return;
                                 }
 
-                                // this is not my doing, but if it works, it works
                                 let mut binding = mic_set.p0();
-                                let mut mic = binding
+
+                                if let Some((_, mut mic)) = binding
                                     .iter_mut()
                                     .find(|m| {
                                         m.1.id
@@ -851,17 +856,16 @@ pub fn draw_egui(
                                                 .current_fft_microphone
                                                 .expect("no mic selected")
                                     })
-                                    .unwrap()
-                                    .1;
+                                {
+                                    let mapped_spectrum =
+                                        calc_mic_spectrum(&mut mic, grid.delta_t, &ui_state);
+                                    // remove the first element, because of log it is at x=-inf
+                                    let mapped_spectrum = &mapped_spectrum[1..];
 
-                                let mapped_spectrum =
-                                    calc_mic_spectrum(&mut mic, grid.delta_t, &ui_state);
-                                // remove the first element, because of log it is at x=-inf
-                                let mapped_spectrum = &mapped_spectrum[1..];
-
-                                let points = PlotPoints::new(mapped_spectrum.to_vec());
-                                let line = Line::new(points);
-                                plot_ui.line(line);
+                                    let points = PlotPoints::new(mapped_spectrum.to_vec());
+                                    let line = Line::new(points);
+                                    plot_ui.line(line);
+                                }
                             });
                     }
                 }
