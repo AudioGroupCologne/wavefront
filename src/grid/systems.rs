@@ -36,7 +36,7 @@ pub fn update_system(
 ) {
     if ui_state.is_running {
         grid.update_cells();
-        grid.update_delta_t(&ui_state);
+        grid.update_delta_t(ui_state.delta_l);
         game_ticks.ticks_since_start += 1;
     }
 }

@@ -60,8 +60,8 @@ impl Default for Grid {
 }
 
 impl Grid {
-    pub fn update_delta_t(&mut self, ui_state: &UiState) {
-        self.delta_t = ui_state.delta_l / PROPAGATION_SPEED;
+    pub fn update_delta_t(&mut self, delta_l: f32) {
+        self.delta_t = delta_l / PROPAGATION_SPEED;
     }
 
     pub fn reset_cells(&mut self, boundary_width: u32) {

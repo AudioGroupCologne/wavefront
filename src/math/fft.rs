@@ -30,7 +30,7 @@ pub fn calc_mic_spectrum(
     let spectrum_hann_window = samples_fft_to_spectrum(
         &hann_window,
         (1. / delta_t) as u32,
-        FrequencyLimit::Range(0., 20_000.),
+        FrequencyLimit::All,
         Some(&scale_to_zero_to_one),
     )
     .unwrap();
@@ -38,7 +38,14 @@ pub fn calc_mic_spectrum(
     let mapped_spectrum = spectrum_hann_window
         .data()
         .iter()
-        .map(|(x, y)| [x.val().log10() as f64, y.val() as f64])
+        .filter_map(|(x, y)| {
+            // only return values between 0 and 20_000 Hz
+            if x.val() > 0. && x.val() < 20_000. {
+                Some([x.val().log10() as f64, y.val() as f64])
+            } else {
+                None
+            }
+        })
         .collect::<Vec<_>>();
 
     microphone.spectrum.push(mapped_spectrum.clone());
