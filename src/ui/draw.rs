@@ -17,7 +17,7 @@ use crate::grid::grid::Grid;
 use crate::math::constants::*;
 use crate::math::fft::calc_mic_spectrum;
 use crate::math::transformations::coords_to_index;
-use crate::render::draw::GradientResource;
+use crate::render::draw::Gradient;
 use crate::ui::state::*;
 
 pub fn draw_egui(
@@ -27,7 +27,7 @@ pub fn draw_egui(
     mut egui_context: EguiContexts,
     mut ui_state: ResMut<UiState>,
     mut grid: ResMut<Grid>,
-    mut gradient: ResMut<GradientResource>,
+    mut gradient: ResMut<Gradient>,
     mut wall_update_ev: EventWriter<UpdateWalls>,
     mut reset_ev: EventWriter<ResetEvent>,
     mut rect_wall_set: ParamSet<(

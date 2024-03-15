@@ -13,9 +13,9 @@ use crate::math::transformations::{coords_to_index, u32_map_range};
 use crate::ui::state::{PlotType, UiState};
 
 #[derive(Resource)]
-pub struct GradientResource(pub Color32, pub Color32);
+pub struct Gradient(pub Color32, pub Color32);
 
-impl GradientResource {
+impl Gradient {
     pub fn new() -> Self {
         Self(Color32::from_rgb(0, 0, 0), Color32::from_rgb(255, 255, 255))
     }
@@ -31,7 +31,7 @@ impl GradientResource {
 pub fn draw_pixels(
     pixel_buffers: QueryPixelBuffer,
     grid: Res<Grid>,
-    gradient: Res<GradientResource>,
+    gradient: Res<Gradient>,
     ui_state: Res<UiState>,
     microphones: Query<&Microphone>,
 ) {
