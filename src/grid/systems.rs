@@ -7,6 +7,7 @@ use crate::ui::state::{GameTicks, UiState};
 
 pub fn calc_system(mut grid: ResMut<Grid>, ui_state: Res<UiState>) {
     if ui_state.is_running {
+        grid.apply_boundaries(&ui_state);
         grid.calc_cells(ui_state.boundary_width);
     }
 }
@@ -24,7 +25,6 @@ pub fn apply_system(
             &sources,
             ui_state.boundary_width,
         );
-        grid.apply_boundaries(&ui_state);
         grid.apply_microphones(microphones, &ui_state);
     }
 }

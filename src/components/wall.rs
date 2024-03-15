@@ -225,8 +225,42 @@ impl Wall for RectWall {
         }
     }
 
+    // x and y: 0..SIM_WIDTH/HEIGHT + 2 * B_W
     fn boundary_delete(&self, x: u32, y: u32, boundary_width: u32) -> bool {
-        todo!()
+        if self.rect.min.x == 0 {
+            if x < self.rect.min.x + boundary_width
+                && y >= self.rect.min.y + boundary_width
+                && y <= self.rect.max.y + boundary_width
+            {
+                return true;
+            }
+        }
+        if self.rect.max.x == SIMULATION_WIDTH - 1 {
+            if x > self.rect.max.x + boundary_width
+                && y >= self.rect.min.y + boundary_width
+                && y <= self.rect.max.y + boundary_width
+            {
+                return true;
+            }
+        }
+
+        if self.rect.min.y == 0 {
+            if y < self.rect.min.y + boundary_width
+                && x >= self.rect.min.x + boundary_width
+                && x <= self.rect.max.x + boundary_width
+            {
+                return true;
+            }
+        }
+        if self.rect.max.y == SIMULATION_HEIGHT - 1 {
+            if y > self.rect.max.y + boundary_width
+                && x >= self.rect.min.x + boundary_width
+                && x <= self.rect.max.x + boundary_width
+            {
+                return true;
+            }
+        }
+        false
     }
 }
 

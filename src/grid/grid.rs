@@ -131,6 +131,12 @@ impl Grid {
                         wall_cell.is_wall = true;
                         wall_cell.reflection_factor = 0.;
                     }
+
+                    if wall.boundary_delete(x + boundary_width, y + boundary_width, boundary_width)
+                    {
+                        wall_cell.is_wall = true;
+                        wall_cell.reflection_factor = 0.;
+                    }
                 }
 
                 for wall in circ_walls {
@@ -190,26 +196,38 @@ impl Grid {
             .enumerate()
             .for_each(|(index, next_cell)| {
                 let (x, y) = index_to_coords(index as u32, boundary_width);
-                // if pixel is in sim region
-                if x >= boundary_width
-                    && x < SIMULATION_WIDTH + boundary_width
-                    && y < SIMULATION_HEIGHT + boundary_width
-                    && y >= boundary_width
+                if x > 0
+                    && x < SIMULATION_WIDTH + 2 * boundary_width - 1
+                    && y > 0
+                    && y < SIMULATION_HEIGHT + 2 * boundary_width - 1
                 {
                     let bottom_cell = self.cur_cells[coords_to_index(x, y + 1, boundary_width)];
                     let left_cell = self.cur_cells[coords_to_index(x - 1, y, boundary_width)];
                     let top_cell = self.cur_cells[coords_to_index(x, y - 1, boundary_width)];
                     let right_cell = self.cur_cells[coords_to_index(x + 1, y, boundary_width)];
-                    // theoretically more calculations than needed, needs more thinking
-                    next_cell.bottom = 0.5
-                        * (-bottom_cell.top + left_cell.right + top_cell.bottom + right_cell.left);
-                    next_cell.left = 0.5
-                        * (bottom_cell.top - left_cell.right + top_cell.bottom + right_cell.left);
-                    next_cell.top = 0.5
-                        * (bottom_cell.top + left_cell.right - top_cell.bottom + right_cell.left);
-                    next_cell.right = 0.5
-                        * (bottom_cell.top + left_cell.right + top_cell.bottom - right_cell.left);
-
+                    // if pixel is in sim region
+                    if x >= boundary_width
+                        && x < SIMULATION_WIDTH + boundary_width
+                        && y < SIMULATION_HEIGHT + boundary_width
+                        && y >= boundary_width
+                    {
+                        // theoretically more calculations than needed, needs more thinking
+                        next_cell.bottom = 0.5
+                            * (-bottom_cell.top
+                                + left_cell.right
+                                + top_cell.bottom
+                                + right_cell.left);
+                        next_cell.left = 0.5
+                            * (bottom_cell.top - left_cell.right
+                                + top_cell.bottom
+                                + right_cell.left);
+                        next_cell.top = 0.5
+                            * (bottom_cell.top + left_cell.right - top_cell.bottom
+                                + right_cell.left);
+                        next_cell.right = 0.5
+                            * (bottom_cell.top + left_cell.right + top_cell.bottom
+                                - right_cell.left);
+                    }
                     if self.wall_cache[index].is_wall {
                         let reflection_factor = self.wall_cache[index].reflection_factor;
                         next_cell.bottom = reflection_factor * bottom_cell.top;
