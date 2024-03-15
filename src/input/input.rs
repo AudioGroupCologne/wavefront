@@ -84,7 +84,10 @@ pub fn button_input(
     mut ui_state: ResMut<UiState>,
     mut component_ids: ResMut<ComponentIDs>,
 ) {
-    if mouse_buttons.just_pressed(MouseButton::Left) && ui_state.tools_enabled {
+    if mouse_buttons.just_pressed(MouseButton::Left)
+        && ui_state.tools_enabled
+        && ui_state.tool_use_enabled
+    {
         let window = q_windows.single();
         selected.iter_mut().for_each(|entity| {
             commands.entity(entity).remove::<Selected>();

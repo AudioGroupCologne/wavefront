@@ -83,6 +83,7 @@ pub struct UiState {
     pub wall_is_hollow: bool,
     pub tools_enabled: bool,
     pub reset_on_change: bool,
+    pub tool_use_enabled: bool,
 }
 
 impl Default for UiState {
@@ -106,6 +107,7 @@ impl Default for UiState {
             wall_is_hollow: false,
             tools_enabled: true,
             reset_on_change: true,
+            tool_use_enabled: true,
         }
     }
 }

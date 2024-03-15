@@ -919,6 +919,8 @@ pub fn draw_egui(
         .resizable(false)
         .show(ctx, |ui| {
             ui.set_enabled(ui_state.tools_enabled);
+
+            ui_state.tool_use_enabled = !ui.rect_contains_pointer(ui.available_rect_before_wrap());
             for (tool_type, icon) in images {
                 if ui
                     .add(
