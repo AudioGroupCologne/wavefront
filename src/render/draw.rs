@@ -52,18 +52,18 @@ pub fn draw_pixels(
             coords.y + abc_boundary_width,
             ui_state.boundary_width,
         );
-        // if grid.wall_cache[current_index].is_wall {
-        //     let mut reflection_factor = grid.wall_cache[current_index].reflection_factor;
-        //     if reflection_factor == 0. {
-        //         reflection_factor = 1.;
-        //     }
-        //     return Pixel {
-        //         r: (reflection_factor * 255.) as u8,
-        //         g: (reflection_factor * 255.) as u8,
-        //         b: (reflection_factor * 255.) as u8,
-        //         a: 255,
-        //     };
-        // }
+        if grid.wall_cache[current_index].is_wall {
+            let mut reflection_factor = grid.wall_cache[current_index].reflection_factor;
+            if reflection_factor == 0. {
+                reflection_factor = 1.;
+            }
+            return Pixel {
+                r: (reflection_factor * 255.) as u8,
+                g: (reflection_factor * 255.) as u8,
+                b: (reflection_factor * 255.) as u8,
+                a: 255,
+            };
+        }
 
         let p = grid.pressure[current_index];
 
