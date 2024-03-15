@@ -11,5 +11,6 @@ pub trait GizmoComponent {
         tool_type: &ToolType,
         highlight: bool,
         image_rect: &Rect,
+        delta_l: f32,
     );
 }

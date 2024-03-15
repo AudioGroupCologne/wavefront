@@ -307,6 +307,7 @@ impl GizmoComponent for RectWall {
         tool_type: &ToolType,
         highlight: bool,
         image_rect: &Rect,
+        delta_l: f32,
     ) {
         match tool_type {
             ToolType::ResizeWall => {
@@ -318,48 +319,7 @@ impl GizmoComponent for RectWall {
                     )));
                 }
 
-                let galley = {
-                    let font_id = FontId::default();
-                    painter.layout_no_wrap(
-                        format!("{} m", self.rect.width()),
-                        font_id,
-                        Color32::WHITE,
-                    )
-                };
-                let rect = Align2::CENTER_BOTTOM.anchor_size(
-                    grid_to_image(
-                        Pos2 {
-                            x: self.get_center().x as f32,
-                            y: (self.get_center().y - self.rect.height() / 2) as f32,
-                        },
-                        image_rect,
-                    ),
-                    galley.size(),
-                );
-                painter.add(TextShape::new(rect.min, galley, Color32::WHITE));
-
-                let galley = {
-                    let font_id = FontId::default();
-                    painter.layout_no_wrap(
-                        format!("{} m", self.rect.height()),
-                        font_id,
-                        Color32::WHITE,
-                    )
-                };
-                let rect = Align2::LEFT_BOTTOM.anchor_size(
-                    grid_to_image(
-                        Pos2 {
-                            y: (self.get_center().x - self.rect.width() / 2) as f32,
-                            x: self.get_center().y as f32,
-                        },
-                        image_rect,
-                    ),
-                    galley.size(),
-                );
-                painter.add(
-                    TextShape::new(rect.min, galley, Color32::WHITE)
-                        .with_angle(-std::f32::consts::FRAC_PI_2),
-                );
+                self.draw_scale_text(painter, image_rect, delta_l);
             }
             ToolType::MoveWall => {
                 for pos in self.get_gizmo_positions(tool_type) {
@@ -369,6 +329,9 @@ impl GizmoComponent for RectWall {
                         Color32::LIGHT_RED,
                     )));
                 }
+            }
+            ToolType::DrawWall => {
+                self.draw_scale_text(painter, image_rect, delta_l);
             }
             _ => {}
         }
@@ -391,6 +354,52 @@ impl RectWall {
             reflection_factor,
             id,
         }
+    }
+
+    fn draw_scale_text(&self, painter: &egui::Painter, image_rect: &Rect, delta_l: f32) {
+        let galley = {
+            let font_id = FontId::default();
+            painter.layout_no_wrap(
+                format!("{:.3} m", self.rect.width() as f32 * delta_l),
+                font_id,
+                Color32::BLACK,
+            )
+        };
+        let rect = Align2::CENTER_TOP.anchor_size(
+            grid_to_image(
+                Pos2 {
+                    x: self.get_center().x as f32,
+                    // +2. for some padding
+                    y: self.get_center().y as f32 - self.rect.height() as f32 / 2. + 2.,
+                },
+                image_rect,
+            ),
+            galley.size(),
+        );
+        painter.add(TextShape::new(rect.min, galley, Color32::BLACK));
+
+        let galley = {
+            let font_id = FontId::default();
+            painter.layout_no_wrap(
+                format!("{:.3} m", self.rect.height() as f32 * delta_l),
+                font_id,
+                Color32::BLACK,
+            )
+        };
+        let rect = Align2::CENTER_TOP.anchor_size(
+            grid_to_image(
+                Pos2 {
+                    x: self.get_center().x as f32 - self.rect.width() as f32 / 2. - 10.,
+                    y: self.get_center().y as f32,
+                },
+                image_rect,
+            ),
+            galley.size(),
+        );
+        painter.add(
+            TextShape::new(rect.max, galley, Color32::BLACK)
+                .with_angle(-std::f32::consts::FRAC_PI_2),
+        );
     }
 }
 
@@ -582,6 +591,7 @@ impl GizmoComponent for CircWall {
         tool_type: &ToolType,
         highlight: bool,
         image_rect: &Rect,
+        delta_l: f32,
     ) {
         match tool_type {
             ToolType::ResizeWall | ToolType::MoveWall => {

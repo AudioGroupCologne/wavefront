@@ -975,14 +975,32 @@ pub fn draw_egui(
                 //menu gizmos
                 if !ui_state.tools_enabled {
                     for (_, wall) in rect_wall_set.p2().iter() {
-                        wall.draw_gizmo(painter, &ToolType::ResizeWall, true, &ui_state.image_rect);
+                        wall.draw_gizmo(
+                            painter,
+                            &ToolType::ResizeWall,
+                            true,
+                            &ui_state.image_rect,
+                            ui_state.delta_l,
+                        );
                     }
                     for (_, wall) in circ_wall_set.p2().iter() {
-                        wall.draw_gizmo(painter, &ToolType::ResizeWall, true, &ui_state.image_rect);
+                        wall.draw_gizmo(
+                            painter,
+                            &ToolType::ResizeWall,
+                            true,
+                            &ui_state.image_rect,
+                            ui_state.delta_l,
+                        );
                     }
                     // all mics
                     for (_, mic) in mic_set.p2().iter() {
-                        mic.draw_gizmo(painter, &ToolType::MoveMic, true, &ui_state.image_rect);
+                        mic.draw_gizmo(
+                            painter,
+                            &ToolType::MoveMic,
+                            true,
+                            &ui_state.image_rect,
+                            ui_state.delta_l,
+                        );
                     }
                     // all sources
                     for (_, source) in source_set.p2().iter() {
@@ -991,6 +1009,7 @@ pub fn draw_egui(
                             &ToolType::MoveSource,
                             true,
                             &ui_state.image_rect,
+                            ui_state.delta_l,
                         );
                     }
                 } else {
@@ -1002,6 +1021,7 @@ pub fn draw_egui(
                             &ui_state.current_tool,
                             false,
                             &ui_state.image_rect,
+                            ui_state.delta_l,
                         );
                     }
                     // selected walls
@@ -1011,6 +1031,7 @@ pub fn draw_egui(
                             &ui_state.current_tool,
                             true,
                             &ui_state.image_rect,
+                            ui_state.delta_l,
                         );
                     }
                     // all circ walls
@@ -1020,6 +1041,7 @@ pub fn draw_egui(
                             &ui_state.current_tool,
                             false,
                             &ui_state.image_rect,
+                            ui_state.delta_l,
                         );
                     }
                     // selected circ walls
@@ -1029,6 +1051,7 @@ pub fn draw_egui(
                             &ui_state.current_tool,
                             true,
                             &ui_state.image_rect,
+                            ui_state.delta_l,
                         );
                     }
                     // all mics
@@ -1038,11 +1061,18 @@ pub fn draw_egui(
                             &ui_state.current_tool,
                             false,
                             &ui_state.image_rect,
+                            ui_state.delta_l,
                         );
                     }
                     // selected mics
                     for (_, mic) in mic_set.p1().iter() {
-                        mic.draw_gizmo(painter, &ui_state.current_tool, true, &ui_state.image_rect);
+                        mic.draw_gizmo(
+                            painter,
+                            &ui_state.current_tool,
+                            true,
+                            &ui_state.image_rect,
+                            ui_state.delta_l,
+                        );
                     }
                     // all sources
                     for source in source_set.p3().iter() {
@@ -1051,6 +1081,7 @@ pub fn draw_egui(
                             &ui_state.current_tool,
                             false,
                             &ui_state.image_rect,
+                            ui_state.delta_l,
                         );
                     }
                     // selected sources
@@ -1060,6 +1091,7 @@ pub fn draw_egui(
                             &ui_state.current_tool,
                             true,
                             &ui_state.image_rect,
+                            ui_state.delta_l,
                         );
                     }
                 }
