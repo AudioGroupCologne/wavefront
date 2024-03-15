@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_pixel_buffer::builder::PixelBufferBuilder;
 use bevy_pixel_buffer::pixel_buffer::PixelBufferSize;
 
-use super::draw::{draw_overlays, draw_pixels, GradientResource};
+use super::draw::{draw_overlays, draw_pixels, Gradient};
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::math::constants::*;
@@ -14,7 +14,7 @@ impl Plugin for RenderPlugin {
     fn build(&self, app: &mut App) {
         let game_ticks = GameTicks::default();
 
-        let gradient = GradientResource::new();
+        let gradient = Gradient::new();
 
         app.insert_resource(gradient)
             .insert_resource(game_ticks)
