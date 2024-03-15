@@ -140,6 +140,7 @@ pub fn draw_overlays(
 
     for wall in circ_walls_overlay.iter() {
         if !wall.is_hollow {
+            // center +- radius for smaller rect
             for x in 0..SIMULATION_WIDTH {
                 for y in 0..SIMULATION_HEIGHT {
                     if wall.contains(x, y) {

@@ -1,8 +1,8 @@
 use std::cmp::Ordering;
 
 use bevy::prelude::*;
-use egui::epaint::CircleShape;
-use egui::{Color32, Pos2, Rect};
+use egui::epaint::{CircleShape, TextShape};
+use egui::{Align2, Color32, FontId, Pos2, Rect};
 use serde::{Deserialize, Serialize};
 
 use super::gizmo::GizmoComponent;
@@ -226,6 +226,7 @@ impl Wall for RectWall {
     }
 
     // x and y: 0..SIM_WIDTH/HEIGHT + 2 * B_W
+    // can be optimized
     fn boundary_delete(&self, x: u32, y: u32, boundary_width: u32) -> bool {
         if self.rect.min.x == 0 {
             if x < self.rect.min.x + boundary_width
@@ -308,7 +309,36 @@ impl GizmoComponent for RectWall {
         image_rect: &Rect,
     ) {
         match tool_type {
-            ToolType::ResizeWall | ToolType::MoveWall => {
+            ToolType::ResizeWall => {
+                for pos in self.get_gizmo_positions(tool_type) {
+                    painter.add(egui::Shape::Circle(CircleShape::filled(
+                        grid_to_image(pos, image_rect),
+                        if highlight { 10. } else { 5. },
+                        Color32::LIGHT_RED,
+                    )));
+                }
+
+                let galley = {
+                    let font_id = FontId::default();
+                    painter.layout_no_wrap(
+                        format!("{}", self.rect.width()),
+                        font_id,
+                        Color32::WHITE,
+                    )
+                };
+                let rect = Align2::CENTER_BOTTOM.anchor_size(
+                    grid_to_image(
+                        Pos2 {
+                            x: self.get_center().x as f32,
+                            y: (self.get_center().y - self.rect.height() / 2) as f32,
+                        },
+                        image_rect,
+                    ),
+                    galley.size(),
+                );
+                painter.add(TextShape::new(rect.min, galley, Color32::WHITE));
+            }
+            ToolType::MoveWall => {
                 for pos in self.get_gizmo_positions(tool_type) {
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         grid_to_image(pos, image_rect),
