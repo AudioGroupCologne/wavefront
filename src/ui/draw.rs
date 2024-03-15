@@ -542,7 +542,7 @@ pub fn draw_egui(
                         for (e, _) in mic_set.p0().iter() {
                             commands.entity(e).despawn();
                         }
-                        
+
                         ui_state.current_fft_microphone = None;
 
                         grid.reset_cells(ui_state.boundary_width);
@@ -809,9 +809,9 @@ pub fn draw_egui(
                             .x_axis_label("Frequency (Hz)")
                             .y_axis_label("Intensity (dB)")
                             .x_grid_spacer(|input| {
-                                let mut marks = Vec::with_capacity(input.bounds.1 as usize + 1);
+                                let mut marks = Vec::with_capacity(input.bounds.1 as usize - input.bounds.0 as usize + 1);
 
-                                for i in input.bounds.0 as u32..=input.bounds.1 as u32 {
+                                for i in input.bounds.0 as u32 + 1..=input.bounds.1 as u32 {
                                     marks.push(GridMark {
                                         value: i as f64,
                                         step_size: 1.,
@@ -836,15 +836,10 @@ pub fn draw_egui(
 
                                 let mut binding = mic_set.p0();
 
-                                if let Some((_, mut mic)) = binding
-                                    .iter_mut()
-                                    .find(|m| {
-                                        m.1.id
-                                            == ui_state
-                                                .current_fft_microphone
-                                                .expect("no mic selected")
-                                    })
-                                {
+                                if let Some((_, mut mic)) = binding.iter_mut().find(|m| {
+                                    m.1.id
+                                        == ui_state.current_fft_microphone.expect("no mic selected")
+                                }) {
                                     let mapped_spectrum =
                                         calc_mic_spectrum(&mut mic, grid.delta_t, &ui_state);
                                     // remove the first element, because of log it is at x=-inf
