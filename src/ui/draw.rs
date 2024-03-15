@@ -809,25 +809,13 @@ pub fn draw_egui(
                             .x_axis_label("Frequency (Hz)")
                             .y_axis_label("Intensity (dB)")
                             .x_grid_spacer(|input| {
-                                // println!(
-                                //     "bounds: {:?}, base: {:?}",
-                                //     input.bounds, input.base_step_size
-                                // );
-
-                                let mut marks = Vec::new();
+                                let mut marks = Vec::with_capacity(input.bounds.1 as usize + 1);
 
                                 for i in input.bounds.0 as u32..=input.bounds.1 as u32 {
                                     marks.push(GridMark {
                                         value: i as f64,
                                         step_size: 1.,
                                     });
-                                    // for j in 1..9 {
-                                    //     let value = i as f64 + j as f64;
-                                    //     marks.push(GridMark {
-                                    //         value: value.log(10.0),
-                                    //         step_size: 0.5,
-                                    //     });
-                                    // }
                                 }
                                 marks
                             })
