@@ -276,7 +276,8 @@ pub fn button_input(
         let window = q_windows.single();
 
         if let Some(position) = window.cursor_position() {
-            //TODO: this triggers everytime we release left mouse (pls fix)
+            //TODO: this triggers everytime we press left mouse (pls fix)
+            // causes fps drops ._.
             reset_ev.send(Reset);
             match ui_state.current_tool {
                 ToolType::MoveSource => {

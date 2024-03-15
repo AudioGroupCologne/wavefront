@@ -561,6 +561,34 @@ impl CircWall {
             id,
         }
     }
+
+    fn draw_scale_text(&self, painter: &egui::Painter, image_rect: &Rect, delta_l: f32) {
+        let galley = {
+            let font_id = FontId::default();
+            painter.layout_no_wrap(
+                format!("{:.3} m", self.radius as f32 * delta_l),
+                font_id,
+                if self.is_hollow {
+                    // possibly different hollow color
+                    // maybe use complementary color from gradient
+                    Color32::WHITE
+                } else {
+                    Color32::BLACK
+                },
+            )
+        };
+        let rect = Align2::CENTER_CENTER.anchor_size(
+            grid_to_image(
+                Pos2 {
+                    x: self.get_center().x as f32,
+                    y: self.get_center().y as f32,
+                },
+                image_rect,
+            ),
+            galley.size(),
+        );
+        painter.add(TextShape::new(rect.min, galley, Color32::BLACK));
+    }
 }
 
 impl GizmoComponent for CircWall {
@@ -602,6 +630,10 @@ impl GizmoComponent for CircWall {
                         Color32::LIGHT_RED,
                     )));
                 }
+                self.draw_scale_text(painter, image_rect, delta_l);
+            }
+            ToolType::DrawWall => {
+                self.draw_scale_text(painter, image_rect, delta_l);
             }
             _ => {}
         }
