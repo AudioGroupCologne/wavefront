@@ -276,9 +276,6 @@ pub fn button_input(
         let window = q_windows.single();
 
         if let Some(position) = window.cursor_position() {
-            //TODO: this triggers everytime we press left mouse (pls fix)
-            // causes fps drops ._.
-            reset_ev.send(Reset);
             match ui_state.current_tool {
                 ToolType::MoveSource => {
                     if let Some((x, y)) =
@@ -350,5 +347,13 @@ pub fn button_input(
             wall_update_ev.send(UpdateWalls);
             reset_ev.send(Reset);
         });
+    }
+
+    // reset when clicking (somewhere) on the image
+    if mouse_buttons.just_released(MouseButton::Left)
+        && ui_state.tool_use_enabled
+        && ui_state.tools_enabled
+    {
+        reset_ev.send(Reset);
     }
 }
