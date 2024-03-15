@@ -741,6 +741,7 @@ pub fn draw_egui(
             .default_height(400.0)
             .max_height(700.)
             .show(ctx, |ui| {
+                ui.add_space(5.);
                 ui.heading("Microphone Plot");
 
                 egui::ComboBox::from_label("Select Plot Type")
