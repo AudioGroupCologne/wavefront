@@ -145,7 +145,7 @@ pub fn button_input(
                     }
                     WallType::Circle => {
                         if let Some((x, y)) =
-                            screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
+                            screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                         {
                             commands.spawn((
                                 CircWall::new(

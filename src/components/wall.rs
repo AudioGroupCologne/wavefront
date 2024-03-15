@@ -36,6 +36,8 @@ pub trait Wall: Sync + Send {
 
     fn edge_contains(&self, x: u32, y: u32) -> bool;
 
+    fn boundary_delete(&self, x: u32, y: u32, boundary_width: u32) -> bool;
+
     /// If width or height equals one, the wall can be deleted
     fn is_deletable(&self) -> bool;
 
@@ -222,6 +224,10 @@ impl Wall for RectWall {
             WResize::Radius => unreachable!(),
         }
     }
+
+    fn boundary_delete(&self, x: u32, y: u32, boundary_width: u32) -> bool {
+        todo!()
+    }
 }
 
 impl GizmoComponent for RectWall {
@@ -318,12 +324,49 @@ impl Wall for CircWall {
 
     fn get_resize_point(&self, resize_type: &WResize) -> UVec2 {
         match resize_type {
-            WResize::Radius => UVec2 {
-                // here I want to implement offset
-                // either left or right depending on radius size
-                x: self.center.x,
-                y: self.center.y,
-            },
+            WResize::Radius => {
+                let mut b_x = 0i32;
+                let mut b_y = self.radius as i32;
+                let mut d = 1 - self.radius as i32;
+                while b_x <= b_y {
+                    for (x, y) in [
+                        (self.center.x as i32 + b_x, self.center.y as i32 + b_y),
+                        (self.center.x as i32 + b_x, self.center.y as i32 - b_y),
+                        (self.center.x as i32 - b_x, self.center.y as i32 + b_y),
+                        (self.center.x as i32 - b_x, self.center.y as i32 - b_y),
+                        (self.center.x as i32 + b_y, self.center.y as i32 + b_x),
+                        (self.center.x as i32 + b_y, self.center.y as i32 - b_x),
+                        (self.center.x as i32 - b_y, self.center.y as i32 + b_x),
+                        (self.center.x as i32 - b_y, self.center.y as i32 - b_x),
+                    ] {
+                        if x >= 0
+                            && x < SIMULATION_WIDTH as i32
+                            && y >= 0
+                            && y < SIMULATION_HEIGHT as i32
+                        {
+                            return UVec2 {
+                                x: x as u32,
+                                y: y as u32,
+                            };
+                        }
+                    }
+                    if d < 0 {
+                        d = d + 2 * b_x + 3;
+                        b_x += 1;
+                    } else {
+                        d = d + 2 * (b_x - b_y) + 5;
+                        b_x += 1;
+                        b_y -= 1;
+                    }
+                }
+
+                UVec2 {
+                    // here I want to implement offset
+                    // either left or right depending on radius size
+                    x: self.center.x,
+                    y: self.center.y,
+                }
+            }
             _ => {
                 unreachable!()
             }
@@ -375,8 +418,7 @@ impl Wall for CircWall {
     }
 
     fn is_deletable(&self) -> bool {
-        // self.radius == 0
-        false
+        self.radius == 0
     }
 
     fn set_center(&mut self, x: u32, y: u32) {
@@ -399,6 +441,10 @@ impl Wall for CircWall {
                 panic!("Circular walls cannot be resized by radius.");
             }
         }
+    }
+
+    fn boundary_delete(&self, x: u32, y: u32, boundary_width: u32) -> bool {
+        todo!()
     }
 }
 
@@ -424,7 +470,14 @@ impl CircWall {
 impl GizmoComponent for CircWall {
     fn get_gizmo_positions(&self, tool_type: &ToolType) -> Vec<Pos2> {
         match tool_type {
-            ToolType::MoveWall | ToolType::ResizeWall => {
+            ToolType::ResizeWall => {
+                let resize_point = self.get_resize_point(&WResize::Radius);
+                vec![Pos2 {
+                    x: resize_point.x as f32,
+                    y: resize_point.y as f32,
+                }]
+            }
+            ToolType::MoveWall => {
                 vec![Pos2 {
                     x: self.center.x as f32,
                     y: self.center.y as f32,
