@@ -86,9 +86,9 @@ fn undo_redo(
 
     let shift = keys.any_pressed([KeyCode::ShiftLeft, KeyCode::ShiftRight]);
 
-    //TODO this is bound to ctrl+y for me?
-    let is_undo = ctrl && !shift && keys.just_pressed(KeyCode::KeyZ);
-    let is_redo = ctrl && shift && keys.just_pressed(KeyCode::KeyZ);
+    // on qwertz keyboards this binds to the z key
+    let is_undo = ctrl && !shift && keys.just_pressed(KeyCode::KeyY);
+    let is_redo = ctrl && shift && keys.just_pressed(KeyCode::KeyY);
 
     if is_undo || is_redo {
         let sources = q_sources.iter().map(|x| *x.1).collect::<Vec<_>>();
