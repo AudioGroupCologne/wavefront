@@ -356,7 +356,10 @@ impl GizmoComponent for RectWall {
                     ),
                     galley.size(),
                 );
-                painter.add(TextShape::new(rect.min, galley, Color32::WHITE).with_angle(-std::f32::consts::FRAC_PI_2));
+                painter.add(
+                    TextShape::new(rect.min, galley, Color32::WHITE)
+                        .with_angle(-std::f32::consts::FRAC_PI_2),
+                );
             }
             ToolType::MoveWall => {
                 for pos in self.get_gizmo_positions(tool_type) {

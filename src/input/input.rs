@@ -268,10 +268,10 @@ pub fn button_input(
 
         wall_update_ev.send(UpdateWalls);
     }
-    
+
     if mouse_buttons.pressed(MouseButton::Left) && ui_state.tools_enabled {
         let window = q_windows.single();
-        
+
         if let Some(position) = window.cursor_position() {
             //TODO: this triggers everytime we release left mouse (pls fix)
             reset_ev.send(ResetEvent);

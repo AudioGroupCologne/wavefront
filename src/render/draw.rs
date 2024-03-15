@@ -84,11 +84,12 @@ pub fn draw_pixels(
         // the mic that is selected might have been deleted, so we need to check if it still exists
         if let Some(mic) = microphones
             .iter()
-            .find(|m| m.id == ui_state.current_fft_microphone.expect("no mic selected")) {
-                let spectrum = &mic.spectrum;
-                let len_y = spectrum.len();
-        
-                frame.per_pixel_par(|coords, _| {
+            .find(|m| m.id == ui_state.current_fft_microphone.expect("no mic selected"))
+        {
+            let spectrum = &mic.spectrum;
+            let len_y = spectrum.len();
+
+            frame.per_pixel_par(|coords, _| {
                     let gray = if len_y > 1 && coords.y < len_y as u32 {
                         spectrum[coords.y as usize]
                             //TODO: is 120 hardcoded <- doesn't work when frequency range changes and linear
@@ -98,7 +99,7 @@ pub fn draw_pixels(
                     } else {
                         0.
                     } as u8;
-        
+
                     Pixel {
                         r: gray,
                         g: gray,
@@ -106,7 +107,7 @@ pub fn draw_pixels(
                         a: 255,
                     }
                 });
-            }
+        }
     }
 }
 
