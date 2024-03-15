@@ -3,13 +3,14 @@ name = "tlm_rs"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 bevy_file_dialog = "0.4.0"
 bevy_pixel_buffer = { version = "0.7.0", features = ["egui"] }
 egui_extras = { version = "0.26.2", features = ["image"] }
-image = { version = "0.25.0", features = ["png"] }
+image = { version = "0.25.0", features = [
+    "png",
+    "rayon",
+], default-features = false }
 egui_plot = "0.26.2"
 rand = "0.8.5"
 rand_distr = "0.4.3"
@@ -24,7 +25,6 @@ features = ["serde"]
 
 [dependencies.bevy]
 version = "0.13"
-# Disable the default features if there are any that you do not want
 default-features = false
 features = [
     "multi-threaded",
