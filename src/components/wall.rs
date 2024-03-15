@@ -321,7 +321,7 @@ impl GizmoComponent for RectWall {
                 let galley = {
                     let font_id = FontId::default();
                     painter.layout_no_wrap(
-                        format!("{}", self.rect.width()),
+                        format!("{} m", self.rect.width()),
                         font_id,
                         Color32::WHITE,
                     )
@@ -337,6 +337,26 @@ impl GizmoComponent for RectWall {
                     galley.size(),
                 );
                 painter.add(TextShape::new(rect.min, galley, Color32::WHITE));
+
+                let galley = {
+                    let font_id = FontId::default();
+                    painter.layout_no_wrap(
+                        format!("{} m", self.rect.height()),
+                        font_id,
+                        Color32::WHITE,
+                    )
+                };
+                let rect = Align2::LEFT_BOTTOM.anchor_size(
+                    grid_to_image(
+                        Pos2 {
+                            y: (self.get_center().x - self.rect.width() / 2) as f32,
+                            x: self.get_center().y as f32,
+                        },
+                        image_rect,
+                    ),
+                    galley.size(),
+                );
+                painter.add(TextShape::new(rect.min, galley, Color32::WHITE).with_angle(-std::f32::consts::FRAC_PI_2));
             }
             ToolType::MoveWall => {
                 for pos in self.get_gizmo_positions(tool_type) {
