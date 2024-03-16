@@ -20,7 +20,8 @@ impl Gradient {
         Self(Color32::from_rgb(0, 0, 0), Color32::from_rgb(255, 255, 255))
     }
 
-    pub fn at(&self, percent: f32) -> Color32 {
+    pub fn at(&self, percent: f32, contrast: f32) -> Color32 {
+        let percent = percent * contrast;
         let result_red = self.0.r() as f32 + percent * (self.1.r() as f32 - self.0.r() as f32);
         let result_green = self.0.g() as f32 + percent * (self.1.g() as f32 - self.0.g() as f32);
         let result_blue = self.0.b() as f32 + percent * (self.1.b() as f32 - self.0.b() as f32);
@@ -67,7 +68,7 @@ pub fn draw_pixels(
 
         let p = grid.pressure[current_index];
 
-        let color = gradient.at(p);
+        let color = gradient.at(p, ui_state.gradient_contrast);
         Pixel {
             r: color.r(),
             g: color.g(),

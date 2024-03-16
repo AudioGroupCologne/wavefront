@@ -84,6 +84,7 @@ pub struct UiState {
     pub tools_enabled: bool,
     pub reset_on_change: bool,
     pub tool_use_enabled: bool,
+    pub gradient_contrast: f32,
 }
 
 impl Default for UiState {
@@ -108,6 +109,7 @@ impl Default for UiState {
             tools_enabled: true,
             reset_on_change: true,
             tool_use_enabled: true,
+            gradient_contrast: 1.,
         }
     }
 }

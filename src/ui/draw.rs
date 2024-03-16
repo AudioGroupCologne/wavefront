@@ -188,7 +188,8 @@ pub fn draw_egui(
                                     } else {
                                         let pressure = grid.pressure[current_index];
 
-                                        let color = gradient.at(pressure);
+                                        let color =
+                                            gradient.at(pressure, ui_state.gradient_contrast);
 
                                         pixels.push(color.r());
                                         pixels.push(color.g());
@@ -600,6 +601,11 @@ pub fn draw_egui(
                     ui.color_edit_button_srgba(&mut gradient.0);
                     ui.color_edit_button_srgba(&mut gradient.1);
                 });
+
+                ui.add(
+                    egui::Slider::new(&mut ui_state.gradient_contrast, 0.0..=5.0)
+                        .text("Gradient Contrast"),
+                );
 
                 if ui
                     .checkbox(&mut ui_state.show_plots, "Show Plots")
