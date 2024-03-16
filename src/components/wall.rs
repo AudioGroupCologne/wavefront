@@ -476,7 +476,8 @@ impl Wall for CircWall {
         // very crude implementation
         let r_squared = self.radius * self.radius;
 
-        (self.center.x - x).pow(2) + (self.center.y - y).pow(2) < r_squared
+        (self.center.x as i32 - x as i32).pow(2) + (self.center.y as i32 - y as i32).pow(2)
+            < r_squared as i32
     }
 
     fn edge_contains(&self, x: u32, y: u32) -> bool {
