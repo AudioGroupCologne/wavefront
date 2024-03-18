@@ -10,11 +10,9 @@ use crate::ui::state::UiState;
 /// The spectrum is calculated using the FFT algorithm and a Hann window. The corresponding window size is specified in [`FFT_WINDOW_SIZE`].
 /// The spectrum is then mapped to a logarithmic scale and returned.
 /// * `microphone` - The microphone to calculate the spectrum for.
-/// * `delta_t` - The time between two samples.
 /// * `ui_state` - The current state of the UI.
 pub fn calc_mic_spectrum(
     microphone: &mut Microphone,
-    delta_t: f32,
     ui_state: &UiState,
 ) -> Vec<[f64; 2]> {
     let samples = if microphone.record.len() < FFT_WINDOW_SIZE {
@@ -29,7 +27,10 @@ pub fn calc_mic_spectrum(
     // always returns frequencies up to sampling_rate/2
     let spectrum_hann_window = samples_fft_to_spectrum(
         &hann_window,
-        (1. / delta_t) as u32,
+        // "Normally" the sample rate should be calculated as: (1. / delta_t) as u32
+        // But because the rate of samples provided does not actually change when changing delta_l,
+        // we can just use the constant value. Calculated as 1/(0.001 / 343) = 343200
+        343200,
         FrequencyLimit::All,
         Some(&scale_to_zero_to_one),
     )

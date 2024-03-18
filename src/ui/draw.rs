@@ -895,7 +895,7 @@ pub fn draw_egui(
                                         == ui_state.current_fft_microphone.expect("no mic selected")
                                 }) {
                                     let mapped_spectrum =
-                                        calc_mic_spectrum(&mut mic, grid.delta_t, &ui_state);
+                                        calc_mic_spectrum(&mut mic, &ui_state);
                                     // remove the first element, because of log it is at x=-inf
                                     let mapped_spectrum = &mapped_spectrum[1..];
 
