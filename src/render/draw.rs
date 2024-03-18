@@ -94,6 +94,7 @@ pub fn draw_pixels(
                     let gray = if len_y > 1 && coords.y < len_y as u32 {
                         spectrum[coords.y as usize]
                             //TODO: is 120 hardcoded <- doesn't work when frequency range changes and linear
+                            //TODO: the spectrum is now log scaled, the spectrum does not consider this
                             [u32_map_range(0, (ui_state.spectrum_size.x) as u32, 0, 120, coords.x) as usize]
                             [1]
                             * 255.
@@ -125,7 +126,6 @@ pub fn draw_overlays(
     for wall in rect_walls_overlay.iter() {
         for x in wall.rect.min.x..=wall.rect.max.x {
             for y in wall.rect.min.y..=wall.rect.max.y {
-                // no out of bounds check
                 let index = x + y * SIMULATION_WIDTH;
 
                 let r = raw_pixles[index as usize].r;
@@ -148,7 +148,6 @@ pub fn draw_overlays(
             for x in 0..SIMULATION_WIDTH {
                 for y in 0..SIMULATION_HEIGHT {
                     if wall.contains(x, y) {
-                        // no out of bounds check
                         let index = x + y * SIMULATION_WIDTH;
 
                         let r = raw_pixles[index as usize].r;
@@ -188,7 +187,6 @@ pub fn draw_overlays(
                     let g = raw_pixles[index as usize].g;
                     let b = raw_pixles[index as usize].b;
 
-                    // make more visible
                     raw_pixles[index as usize] = Pixel {
                         r: u32_map_range(0, 255, 80, 255, r as u32) as u8,
                         g: u32_map_range(0, 255, 80, 255, g as u32) as u8,

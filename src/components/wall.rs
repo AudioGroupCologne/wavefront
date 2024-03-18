@@ -457,7 +457,7 @@ impl Wall for CircWall {
                 }
 
                 UVec2 {
-                    // here I want to implement offset
+                    // TODO: here I want to implement offset
                     // either left or right depending on radius size
                     x: self.center.x,
                     y: self.center.y,
@@ -473,45 +473,14 @@ impl Wall for CircWall {
         if self.is_hollow {
             return false;
         }
-        // very crude implementation
         let r_squared = self.radius * self.radius;
 
         (self.center.x as i32 - x as i32).pow(2) + (self.center.y as i32 - y as i32).pow(2)
             < r_squared as i32
     }
 
-    fn edge_contains(&self, x: u32, y: u32) -> bool {
-        // This works but adds many unnecessary calculations.
-        // DO NOT USE! only for debugging
-        let mut b_x = 0i32;
-        let mut b_y = self.radius as i32;
-        let mut d = 1 - self.radius as i32;
-        while b_x <= b_y {
-            if [
-                (self.center.x as i32 + b_x, self.center.y as i32 + b_y),
-                (self.center.x as i32 + b_x, self.center.y as i32 - b_y),
-                (self.center.x as i32 - b_x, self.center.y as i32 + b_y),
-                (self.center.x as i32 - b_x, self.center.y as i32 - b_y),
-                (self.center.x as i32 + b_y, self.center.y as i32 + b_x),
-                (self.center.x as i32 + b_y, self.center.y as i32 - b_x),
-                (self.center.x as i32 - b_y, self.center.y as i32 + b_x),
-                (self.center.x as i32 - b_y, self.center.y as i32 - b_x),
-            ]
-            .contains(&(x as i32, y as i32))
-            {
-                return true;
-            }
-            if d < 0 {
-                d = d + 2 * b_x + 3;
-                b_x += 1;
-            } else {
-                d = d + 2 * (b_x - b_y) + 5;
-                b_x += 1;
-                b_y -= 1;
-            }
-        }
-
-        false
+    fn edge_contains(&self, _x: u32, _y: u32) -> bool {
+        panic!("use bresenham's algorithm to draw circular walls")
     }
 
     fn is_deletable(&self) -> bool {
