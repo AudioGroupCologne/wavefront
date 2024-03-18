@@ -22,7 +22,6 @@ impl Plugin for RenderPlugin {
                 Startup,
                 (
                     setup_buffers,
-                    setup_window,
                     Source::spawn_initial_sources,
                     Microphone::spawn_initial_microphones,
                 ),
@@ -49,9 +48,4 @@ fn insert_pixel_buffer(commands: &mut Commands, images: &mut Assets<Image>, size
         .with_render(false)
         .with_size(size)
         .spawn(commands, images);
-}
-
-fn setup_window(mut windows: Query<&mut Window>) {
-    let mut window = windows.single_mut();
-    window.set_maximized(true);
 }
