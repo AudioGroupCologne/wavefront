@@ -82,6 +82,15 @@ impl Grid {
         ];
     }
 
+    // this needs to be called when changing the boundary_width
+    pub fn reset_walls(&mut self, boundary_width: u32) {
+        self.wall_cache = vec![
+            WallCell::default();
+            ((SIMULATION_WIDTH + 2 * boundary_width) * (SIMULATION_HEIGHT + 2 * boundary_width))
+                as usize
+        ];
+    }
+
     pub fn update_cells(&mut self) {
         self.cur_cells
             .par_iter_mut()
