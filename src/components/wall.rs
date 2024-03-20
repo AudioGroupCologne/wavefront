@@ -403,6 +403,7 @@ impl RectWall {
 pub struct CircWall {
     pub center: UVec2,
     /// Radius excludes center point
+    /// r = 1 creates a three pixel wide/tall circle
     pub radius: u32,
     pub is_hollow: bool,
     pub reflection_factor: f32,
@@ -506,7 +507,33 @@ impl Wall for CircWall {
     }
 
     fn boundary_delete(&self, x: u32, y: u32, boundary_width: u32) -> bool {
-        todo!()
+        let b_center_x = self.center.x + boundary_width;
+        let b_center_y = self.center.y + boundary_width;
+
+        if x < boundary_width
+            && y == b_center_y
+            && (b_center_x as i32 - self.radius as i32) < boundary_width as i32
+        {
+            return true;
+        } else if x >= SIMULATION_WIDTH + boundary_width
+            && y == b_center_y
+            && b_center_x + self.radius >= SIMULATION_WIDTH + boundary_width
+        {
+            return true;
+        }
+
+        if y < boundary_width
+            && x == b_center_x
+            && (b_center_y as i32 - self.radius as i32) < boundary_width as i32
+        {
+            return true;
+        } else if y >= SIMULATION_HEIGHT + boundary_width
+            && x == b_center_x
+            && b_center_y + self.radius >= SIMULATION_HEIGHT + boundary_width
+        {
+            return true;
+        }
+        false
     }
 }
 

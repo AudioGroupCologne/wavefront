@@ -120,8 +120,10 @@ impl Grid {
             .enumerate()
             .for_each(|(index, wall_cell)| {
                 let (x, y) = index_to_coords(index as u32, boundary_width);
-                let x = x.saturating_sub(boundary_width);
-                let y = y.saturating_sub(boundary_width);
+                // let x = x.saturating_sub(boundary_width);
+                // let y = y.saturating_sub(boundary_width);
+                let x = x - boundary_width;
+                let y = y - boundary_width;
 
                 for wall in rect_walls {
                     if wall.edge_contains(x, y) {
@@ -140,7 +142,13 @@ impl Grid {
                 }
 
                 for wall in circ_walls {
-                    if wall.contains(x, y) {
+                    if wall.contains(x, y)
+                        || wall.boundary_delete(
+                            x + boundary_width,
+                            y + boundary_width,
+                            boundary_width,
+                        )
+                    {
                         wall_cell.is_wall = true;
                         wall_cell.reflection_factor = 0.;
                     }
@@ -162,17 +170,13 @@ impl Grid {
                     (wall.center.x as i32 - b_y, wall.center.y as i32 + b_x),
                     (wall.center.x as i32 - b_y, wall.center.y as i32 - b_x),
                 ] {
-                    if x >= 0
-                        && x < SIMULATION_WIDTH as i32
-                        && y >= 0
-                        && y < SIMULATION_HEIGHT as i32
+                    let x = x as u32 + boundary_width;
+                    let y = y as u32 + boundary_width;
+                    if x < SIMULATION_WIDTH + 2 * boundary_width
+                        && y < SIMULATION_HEIGHT + 2 * boundary_width
                     {
                         // x and y in 0..SIM_WIDTH/HEIGHT
-                        let index = coords_to_index(
-                            x as u32 + boundary_width,
-                            y as u32 + boundary_width,
-                            boundary_width,
-                        );
+                        let index = coords_to_index(x, y, boundary_width);
                         self.wall_cache[index].is_wall = true;
                         self.wall_cache[index].reflection_factor = wall.get_reflection_factor();
                     }
