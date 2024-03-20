@@ -261,24 +261,28 @@ pub fn draw_egui(
                                     reset_ev.send(Reset);
                                 }
                             });
-                            if source.source_type != SourceType::WhiteNoise && ui
+                            if source.source_type != SourceType::WhiteNoise
+                                && ui
                                     .add(
                                         egui::Slider::new(&mut source.frequency, 0.0..=20000.0)
                                             .text("Frequency (Hz)"),
                                     )
-                                    .changed() {
+                                    .changed()
+                            {
                                 reset_ev.send(Reset);
                             }
                             ui.add(
                                 egui::Slider::new(&mut source.amplitude, 0.0..=25.0)
                                     .text("Amplitude"),
                             );
-                            if source.source_type == SourceType::Sin && ui
+                            if source.source_type == SourceType::Sin
+                                && ui
                                     .add(
                                         egui::Slider::new(&mut source.phase, 0.0..=360.0)
                                             .text("Phase (°)"),
                                     )
-                                    .changed() {
+                                    .changed()
+                            {
                                 reset_ev.send(Reset);
                             }
 
@@ -653,50 +657,6 @@ pub fn draw_egui(
                             pixel_size: UVec2::new(1, 1),
                         };
                     }
-
-                    egui::ComboBox::from_label("Attenuation Type")
-                        .selected_text(format!("{:?}", ui_state.at_type))
-                        .show_ui(ui, |ui| {
-                            ui.selectable_value(
-                                &mut ui_state.at_type,
-                                AttenuationType::Power,
-                                "Power",
-                            );
-                            ui.selectable_value(
-                                &mut ui_state.at_type,
-                                AttenuationType::OriginalOneWay,
-                                "OriginalOneWay",
-                            );
-                            ui.selectable_value(
-                                &mut ui_state.at_type,
-                                AttenuationType::Linear,
-                                "Linear",
-                            );
-                            ui.selectable_value(
-                                &mut ui_state.at_type,
-                                AttenuationType::Old,
-                                "Old (ThTank) NOT WORKING",
-                            );
-                            ui.selectable_value(
-                                &mut ui_state.at_type,
-                                AttenuationType::DoNothing,
-                                "Nothing NOT WORKING",
-                            );
-                        });
-
-                    match ui_state.at_type {
-                        AttenuationType::OriginalOneWay => ui.add(
-                            egui::Slider::new(&mut ui_state.epsilon, 0.000001..=1.0)
-                                .text("Epsilon")
-                                .logarithmic(true),
-                        ),
-                        AttenuationType::Power => ui.add(
-                            egui::Slider::new(&mut ui_state.power_order, 1..=10)
-                                .text("Power")
-                                .logarithmic(true),
-                        ),
-                        _other => ui.label("Nothing to change here"),
-                    }
                 });
 
                 ui.add_space(10.);
@@ -888,8 +848,7 @@ pub fn draw_egui(
                                     m.1.id
                                         == ui_state.current_fft_microphone.expect("no mic selected")
                                 }) {
-                                    let mapped_spectrum =
-                                        calc_mic_spectrum(&mut mic, &ui_state);
+                                    let mapped_spectrum = calc_mic_spectrum(&mut mic, &ui_state);
                                     // remove the first element, because of log it is at x=-inf
                                     let mapped_spectrum = &mapped_spectrum[1..];
 

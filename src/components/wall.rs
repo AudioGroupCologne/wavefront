@@ -228,21 +228,33 @@ impl Wall for RectWall {
     // x and y: 0..SIM_WIDTH/HEIGHT + 2 * B_W
     // can be optimized
     fn boundary_delete(&self, x: u32, y: u32, boundary_width: u32) -> bool {
-        if self.rect.min.x == 0 && x < self.rect.min.x + boundary_width
-                && y >= self.rect.min.y + boundary_width && y <= self.rect.max.y + boundary_width {
+        if self.rect.min.x == 0
+            && x < self.rect.min.x + boundary_width
+            && y >= self.rect.min.y + boundary_width
+            && y <= self.rect.max.y + boundary_width
+        {
             return true;
         }
-        if self.rect.max.x == SIMULATION_WIDTH - 1 && x > self.rect.max.x + boundary_width
-                && y >= self.rect.min.y + boundary_width && y <= self.rect.max.y + boundary_width {
+        if self.rect.max.x == SIMULATION_WIDTH - 1
+            && x > self.rect.max.x + boundary_width
+            && y >= self.rect.min.y + boundary_width
+            && y <= self.rect.max.y + boundary_width
+        {
             return true;
         }
 
-        if self.rect.min.y == 0 && y < self.rect.min.y + boundary_width
-                && x >= self.rect.min.x + boundary_width && x <= self.rect.max.x + boundary_width {
+        if self.rect.min.y == 0
+            && y < self.rect.min.y + boundary_width
+            && x >= self.rect.min.x + boundary_width
+            && x <= self.rect.max.x + boundary_width
+        {
             return true;
         }
-        if self.rect.max.y == SIMULATION_HEIGHT - 1 && y > self.rect.max.y + boundary_width
-                && x >= self.rect.min.x + boundary_width && x <= self.rect.max.x + boundary_width {
+        if self.rect.max.y == SIMULATION_HEIGHT - 1
+            && y > self.rect.max.y + boundary_width
+            && x >= self.rect.min.x + boundary_width
+            && x <= self.rect.max.x + boundary_width
+        {
             return true;
         }
         false

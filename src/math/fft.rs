@@ -11,10 +11,7 @@ use crate::ui::state::UiState;
 /// The spectrum is then mapped to a logarithmic scale and returned.
 /// * `microphone` - The microphone to calculate the spectrum for.
 /// * `ui_state` - The current state of the UI.
-pub fn calc_mic_spectrum(
-    microphone: &mut Microphone,
-    ui_state: &UiState,
-) -> Vec<[f64; 2]> {
+pub fn calc_mic_spectrum(microphone: &mut Microphone, ui_state: &UiState) -> Vec<[f64; 2]> {
     let samples = if microphone.record.len() < FFT_WINDOW_SIZE {
         let mut s = microphone.record.clone();
         s.resize(FFT_WINDOW_SIZE, [0.0, 0.0]);

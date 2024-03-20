@@ -4,7 +4,7 @@ use egui::util::undoer::Undoer;
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::components::wall::{CircWall, RectWall};
-use crate::events::{UpdateWalls, Reset};
+use crate::events::{Reset, UpdateWalls};
 use crate::grid::plugin::ComponentIDs;
 use crate::ui::state::UiState;
 

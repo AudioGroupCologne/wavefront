@@ -6,7 +6,7 @@ use crate::components::source::Source;
 use crate::components::wall::{CircWall, RectWall, Wall, WallCell};
 use crate::math::constants::*;
 use crate::math::transformations::{coords_to_index, index_to_coords};
-use crate::ui::state::{AttenuationType, UiState};
+use crate::ui::state::UiState;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Cell {
@@ -277,27 +277,14 @@ impl Grid {
         }
     }
 
-    pub fn apply_boundaries(
-        &mut self,
-        at_type: AttenuationType,
-        epsilon: f32,
-        boundary_width: u32,
-        power_order: u32,
-    ) {
-        let b = (boundary_width * boundary_width) as f32 / epsilon.ln();
+    pub fn apply_boundaries(&mut self, boundary_width: u32, power_order: u32) {
         // going in 'rings' from outer to inner
         // every ring shares an attenuation factor
         for r in 1..boundary_width {
             // there was a '?' in front of ui_state, that's not needed right?
             // also distance could be just r -> need to redo att_fac calcs
-            let attenuation_factor = Grid::attenuation_factor(
-                at_type,
-                epsilon,
-                boundary_width,
-                power_order,
-                boundary_width - r,
-                b,
-            );
+            let attenuation_factor =
+                Grid::attenuation_factor(boundary_width, power_order, boundary_width - r);
 
             // bottom
             for x in r..(SIMULATION_WIDTH + 2 * boundary_width - r) {
@@ -402,31 +389,7 @@ impl Grid {
         }
     }
 
-    fn attenuation_factor(
-        at_type: AttenuationType,
-        epsilon: f32,
-        boundary_width: u32,
-        power_order: u32,
-        distance: u32,
-        b: f32,
-    ) -> f32 {
-        match at_type {
-            AttenuationType::OriginalOneWay => {
-                1.0 - ((1. + epsilon) - ((distance * distance) as f32 / b).exp())
-            }
-            AttenuationType::Linear => 1.0 - (distance as f32 / boundary_width as f32).powi(1),
-            AttenuationType::Power => {
-                1.0 - (distance as f32 / boundary_width as f32).powi(power_order as i32)
-            }
-            // doesn't work
-            AttenuationType::Old => {
-                if distance == 1 {
-                    -0.17157287525
-                } else {
-                    0.
-                }
-            }
-            AttenuationType::DoNothing => 0.0,
-        }
+    fn attenuation_factor(boundary_width: u32, power_order: u32, distance: u32) -> f32 {
+        1.0 - (distance as f32 / boundary_width as f32).powi(power_order as i32)
     }
 }
