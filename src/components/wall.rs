@@ -60,6 +60,7 @@ pub struct RectWall {
     pub is_hollow: bool,
     pub reflection_factor: f32,
     pub id: usize,
+    draw_pin: UVec2,
 }
 
 impl Wall for RectWall {
@@ -210,23 +211,28 @@ impl Wall for RectWall {
                 self.rect.max.y = y;
             }
             WResize::Draw => {
-                // I want to be able to drag into each quadrant here
-                if x < self.rect.min.x {
-                    x = self.rect.min.x;
-                }
-                if y < self.rect.min.y {
-                    y = self.rect.min.y;
+                if x >= self.draw_pin.x {
+                    self.rect.min.x = self.draw_pin.x;
+                    self.rect.max.x = x;
+                } else {
+                    self.rect.min.x = x;
+                    self.rect.max.x = self.draw_pin.x;
                 }
 
-                self.rect.max.x = x;
-                self.rect.max.y = y;
+                if y >= self.draw_pin.y {
+                    self.rect.min.y = self.draw_pin.y;
+                    self.rect.max.y = y;
+                } else {
+                    self.rect.min.y = y;
+                    self.rect.max.y = self.draw_pin.y;
+                }
             }
             WResize::Radius => unreachable!(),
         }
     }
 
     // x and y: 0..SIM_WIDTH/HEIGHT + 2 * B_W
-    // can be optimized
+    //TODO: can be optimized
     fn boundary_delete(&self, x: u32, y: u32, boundary_width: u32) -> bool {
         if self.rect.min.x == 0
             && x < self.rect.min.x + boundary_width
@@ -349,6 +355,7 @@ impl RectWall {
             is_hollow,
             reflection_factor,
             id,
+            draw_pin: UVec2 { x: x0, y: y0 },
         }
     }
 
