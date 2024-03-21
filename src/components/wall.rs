@@ -19,6 +19,7 @@ pub struct WallCell {
 
 #[derive(Component, PartialEq)]
 pub enum WResize {
+    Menu,
     Draw,
     TopLeft,
     TopRight,
@@ -80,6 +81,7 @@ impl Wall for RectWall {
             WResize::BottomRight => self.rect.max,
             WResize::BottomLeft => UVec2::new(self.rect.min.x, self.rect.max.y),
             WResize::Radius => unreachable!(),
+            WResize::Menu => self.rect.center(),
         }
     }
 
@@ -227,6 +229,7 @@ impl Wall for RectWall {
                     self.rect.max.y = self.draw_pin.y;
                 }
             }
+            WResize::Menu => {}
             WResize::Radius => unreachable!(),
         }
     }
@@ -510,8 +513,9 @@ impl Wall for CircWall {
                 let y_offset = self.center.y as i32 - y as i32;
                 self.radius = ((x_offset.pow(2) + y_offset.pow(2)) as f32).sqrt() as u32;
             }
+            WResize::Menu => {}
             _ => {
-                panic!("Circular walls cannot be resized by radius.");
+                panic!("Circular walls can only be resized by radius.");
             }
         }
     }

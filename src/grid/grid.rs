@@ -182,6 +182,7 @@ impl Grid {
                     if x < SIMULATION_WIDTH + 2 * boundary_width
                         && y < SIMULATION_HEIGHT + 2 * boundary_width
                     {
+                        //TODO: Rotation??
                         let angle = if (x as i32 - wall.center.x as i32 - boundary_width as i32) > 0
                         {
                             ((y as i32 - wall.center.y as i32 - boundary_width as i32) as f32

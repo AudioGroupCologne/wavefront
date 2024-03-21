@@ -12,7 +12,7 @@ use crate::components::gizmo::GizmoComponent;
 use crate::components::microphone::*;
 use crate::components::source::*;
 use crate::components::states::{MenuSelected, Selected};
-use crate::components::wall::{CircWall, RectWall, Wall};
+use crate::components::wall::{CircWall, RectWall, WResize, Wall};
 use crate::events::{Reset, UpdateWalls};
 use crate::grid::grid::Grid;
 use crate::math::constants::*;
@@ -400,25 +400,30 @@ pub fn draw_egui(
                                     .add(
                                         egui::DragValue::new(&mut wall.rect.min.x)
                                             .speed(1)
-                                            .clamp_range(0.0..=SIMULATION_WIDTH as f32 - 1.),
+                                            .clamp_range(0..=SIMULATION_WIDTH - 1),
                                     )
                                     .changed()
                                 {
-                                    if wall.rect.min.x > wall.rect.max.x {
-                                        wall.rect.min.x = wall.rect.max.x;
+                                    commands.entity(*entity).try_insert(WResize::Menu);
+                                    if wall.rect.min.x > wall.rect.max.x - 1 {
+                                        wall.rect.min.x = wall.rect.max.x - 1;
                                     }
                                     reset_ev.send(Reset);
                                 }
                                 ui.add_space(10.);
-                                ui.label("Top Corner x:");
+                                ui.label("Top Corner y:");
                                 if ui
                                     .add(
                                         egui::DragValue::new(&mut wall.rect.min.y)
                                             .speed(1)
-                                            .clamp_range(0.0..=SIMULATION_WIDTH as f32 - 1.),
+                                            .clamp_range(0..=SIMULATION_HEIGHT - 1),
                                     )
                                     .changed()
                                 {
+                                    commands.entity(*entity).try_insert(WResize::Menu);
+                                    if wall.rect.min.y > wall.rect.max.y - 1 {
+                                        wall.rect.min.y = wall.rect.max.y - 1;
+                                    }
                                     reset_ev.send(Reset);
                                 }
                             });
@@ -429,10 +434,14 @@ pub fn draw_egui(
                                     .add(
                                         egui::DragValue::new(&mut wall.rect.max.x)
                                             .speed(1)
-                                            .clamp_range(0.0..=SIMULATION_WIDTH as f32 - 1.),
+                                            .clamp_range(0..=SIMULATION_WIDTH - 1),
                                     )
                                     .changed()
                                 {
+                                    commands.entity(*entity).try_insert(WResize::Menu);
+                                    if wall.rect.max.x < wall.rect.min.x + 1 {
+                                        wall.rect.max.x = wall.rect.min.x + 1;
+                                    }
                                     reset_ev.send(Reset);
                                 }
                                 ui.add_space(10.);
@@ -441,10 +450,14 @@ pub fn draw_egui(
                                     .add(
                                         egui::DragValue::new(&mut wall.rect.max.y)
                                             .speed(1)
-                                            .clamp_range(0.0..=SIMULATION_HEIGHT as f32 - 1.),
+                                            .clamp_range(0..=SIMULATION_HEIGHT - 1),
                                     )
                                     .changed()
                                 {
+                                    commands.entity(*entity).try_insert(WResize::Menu);
+                                    if wall.rect.max.y < wall.rect.min.y + 1 {
+                                        wall.rect.max.y = wall.rect.min.y + 1;
+                                    }
                                     reset_ev.send(Reset);
                                 }
                             });
@@ -509,13 +522,61 @@ pub fn draw_egui(
                     wall_vec.iter_mut().for_each(|(entity, ref mut wall)| {
                         let collapse = ui.collapsing(format!("CircWall {}", wall.id), |ui| {
                             ui.horizontal(|ui| {
-                                ui.label(format!("Center: {:?} m", wall.get_center()));
+                                ui.label("Center x:");
+                                if ui
+                                    .add(
+                                        egui::DragValue::new(&mut wall.center.x)
+                                            .speed(1)
+                                            .clamp_range(0..=SIMULATION_WIDTH - 1),
+                                    )
+                                    .changed()
+                                {
+                                    commands.entity(*entity).try_insert(WResize::Menu);
+                                    reset_ev.send(Reset);
+                                }
+                                ui.add_space(10.);
+                                ui.label("Center y:");
+                                if ui
+                                    .add(
+                                        egui::DragValue::new(&mut wall.center.y)
+                                            .speed(1)
+                                            .clamp_range(0..=SIMULATION_HEIGHT - 1),
+                                    )
+                                    .changed()
+                                {
+                                    commands.entity(*entity).try_insert(WResize::Menu);
+                                    reset_ev.send(Reset);
+                                }
+                            });
+
+                            ui.horizontal(|ui| {
+                                ui.label("Radius:");
+                                if ui
+                                    .add(
+                                        egui::DragValue::new(&mut wall.radius)
+                                            .speed(1)
+                                            .clamp_range(1..=1000),
+                                    )
+                                    .changed()
+                                {
+                                    commands.entity(*entity).try_insert(WResize::Menu);
+                                    reset_ev.send(Reset);
+                                }
+                            });
+
+                            ui.horizontal(|ui| {
+                                //TODO: ugly
+                                ui.label(format!(
+                                    "Center: x: {:.3} m, y: {:.3} m",
+                                    wall.get_center().x as f32 * ui_state.delta_l,
+                                    wall.get_center().y as f32 * ui_state.delta_l
+                                ));
 
                                 ui.add_space(10.);
 
                                 ui.label(format!(
                                     "Radius: {:.3} m",
-                                    wall.radius // as f32 * ui_state.delta_l
+                                    wall.radius as f32 * ui_state.delta_l
                                 ));
                             });
 
@@ -530,6 +591,7 @@ pub fn draw_egui(
                                 )
                                 .changed()
                             {
+                                commands.entity(*entity).try_insert(WResize::Menu);
                                 reset_ev.send(Reset);
                             }
 
@@ -963,7 +1025,7 @@ pub fn draw_egui(
                     for (_, wall) in rect_wall_set.p2().iter() {
                         wall.draw_gizmo(
                             painter,
-                            &ToolType::ResizeWall,
+                            &ToolType::MoveWall,
                             true,
                             &ui_state.image_rect,
                             ui_state.delta_l,
@@ -972,7 +1034,7 @@ pub fn draw_egui(
                     for (_, wall) in circ_wall_set.p2().iter() {
                         wall.draw_gizmo(
                             painter,
-                            &ToolType::ResizeWall,
+                            &ToolType::MoveWall,
                             true,
                             &ui_state.image_rect,
                             ui_state.delta_l,

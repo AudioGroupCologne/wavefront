@@ -133,8 +133,8 @@ pub fn draw_overlays(
                 let b = raw_pixles[index as usize].b;
 
                 raw_pixles[index as usize] = Pixel {
-                    r: u32_map_range(0, 255, 80, 255, r as u32) as u8,
-                    g: u32_map_range(0, 255, 80, 255, g as u32) as u8,
+                    r: u32_map_range(0, 255, 80, 200, r as u32) as u8,
+                    g: u32_map_range(0, 255, 80, 200, g as u32) as u8,
                     b: u32_map_range(0, 255, 80, 255, b as u32) as u8,
                     a: 255,
                 };
@@ -155,8 +155,8 @@ pub fn draw_overlays(
                         let b = raw_pixles[index as usize].b;
 
                         raw_pixles[index as usize] = Pixel {
-                            r: u32_map_range(0, 255, 80, 255, r as u32) as u8,
-                            g: u32_map_range(0, 255, 80, 255, g as u32) as u8,
+                            r: u32_map_range(0, 255, 80, 200, r as u32) as u8,
+                            g: u32_map_range(0, 255, 80, 200, g as u32) as u8,
                             b: u32_map_range(0, 255, 80, 255, b as u32) as u8,
                             a: 255,
                         };
@@ -182,17 +182,31 @@ pub fn draw_overlays(
                 (wall.center.x as i32 - b_y, wall.center.y as i32 - b_x),
             ] {
                 if x >= 0 && x < SIMULATION_WIDTH as i32 && y >= 0 && y < SIMULATION_HEIGHT as i32 {
-                    let index = x as u32 + y as u32 * SIMULATION_WIDTH;
-                    let r = raw_pixles[index as usize].r;
-                    let g = raw_pixles[index as usize].g;
-                    let b = raw_pixles[index as usize].b;
-
-                    raw_pixles[index as usize] = Pixel {
-                        r: u32_map_range(0, 255, 80, 255, r as u32) as u8,
-                        g: u32_map_range(0, 255, 80, 255, g as u32) as u8,
-                        b: u32_map_range(0, 255, 80, 255, b as u32) as u8,
-                        a: 255,
+                    let angle = if (x as i32 - wall.center.x as i32) > 0 {
+                        ((y as i32 - wall.center.y as i32) as f32
+                            / (x as i32 - wall.center.x as i32) as f32)
+                            .atan()
+                    } else {
+                        180f32.to_radians()
+                            - ((y as i32 - wall.center.y as i32) as f32
+                                / (x as i32 - wall.center.x as i32) as f32)
+                                .atan()
+                                .abs()
                     };
+
+                    if angle.abs() >= wall.open_circ_segment {
+                        let index = x as u32 + y as u32 * SIMULATION_WIDTH;
+                        let r = raw_pixles[index as usize].r;
+                        let g = raw_pixles[index as usize].g;
+                        let b = raw_pixles[index as usize].b;
+
+                        raw_pixles[index as usize] = Pixel {
+                            r: u32_map_range(0, 255, 80, 150, r as u32) as u8,
+                            g: u32_map_range(0, 255, 80, 150, g as u32) as u8,
+                            b: u32_map_range(0, 255, 80, 255, b as u32) as u8,
+                            a: 255,
+                        };
+                    }
                 }
             }
 
