@@ -13,8 +13,8 @@ use crate::math::constants::*;
 use crate::math::transformations::grid_to_image;
 use crate::ui::state::ToolType;
 
-#[derive(Debug, Default, Component, Serialize, Deserialize, Clone, PartialEq, Copy)]
 /// A sound source on the grid
+#[derive(Debug, Default, Component, Serialize, Deserialize, Clone, PartialEq, Copy)]
 pub struct Source {
     pub x: u32,
     pub y: u32,

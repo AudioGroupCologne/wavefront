@@ -8,8 +8,8 @@ use crate::grid::plugin::ComponentIDs;
 use crate::math::transformations::grid_to_image;
 use crate::ui::state::ToolType;
 
-#[derive(Debug, Default, Component, Serialize, Deserialize, Clone, PartialEq)]
 /// A microphone on the grid that records the pressure at its position
+#[derive(Debug, Default, Component, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Microphone {
     pub x: u32,
     pub y: u32,
