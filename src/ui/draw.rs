@@ -5,7 +5,7 @@ use bevy_pixel_buffer::bevy_egui::egui::{Color32, Frame, Margin, Vec2};
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::prelude::*;
 use egui_plot::{GridMark, Legend, Line, Plot, PlotPoints};
-use image::{DynamicImage, ImageEncoder};
+use image::DynamicImage;
 
 use super::dialog::SaveFileContents;
 use crate::components::gizmo::GizmoComponent;
