@@ -129,10 +129,8 @@ impl Grid {
             .enumerate()
             .for_each(|(index, wall_cell)| {
                 let (x, y) = index_to_coords(index as u32, boundary_width);
-                // let x = x.saturating_sub(boundary_width);
-                // let y = y.saturating_sub(boundary_width);
-                let x = x - boundary_width;
-                let y = y - boundary_width;
+                let x = x.saturating_sub(boundary_width);
+                let y = y.saturating_sub(boundary_width);
 
                 for wall in rect_walls {
                     if wall.edge_contains(x, y) {
