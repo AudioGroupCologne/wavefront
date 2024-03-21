@@ -177,8 +177,8 @@ impl Grid {
                     (wall.center.x as i32 - b_y, wall.center.y as i32 + b_x),
                     (wall.center.x as i32 - b_y, wall.center.y as i32 - b_x),
                 ] {
-                    let x = x as u32 + boundary_width;
-                    let y = y as u32 + boundary_width;
+                    let x = (x as u32).saturating_add(boundary_width);
+                    let y = (y as u32).saturating_add(boundary_width);
                     if x < SIMULATION_WIDTH + 2 * boundary_width
                         && y < SIMULATION_HEIGHT + 2 * boundary_width
                     {
