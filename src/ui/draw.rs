@@ -192,9 +192,15 @@ pub fn draw_egui(
                                         let color =
                                             gradient.at(pressure, ui_state.gradient_contrast);
 
-                                        pixels.push(color.r());
-                                        pixels.push(color.g());
-                                        pixels.push(color.b());
+                                        pixels.push(
+                                            ((color.r() as f32 / 255.).powf(1. / 2.2) * 255.) as u8,
+                                        );
+                                        pixels.push(
+                                            ((color.g() as f32 / 255.).powf(1. / 2.2) * 255.) as u8,
+                                        );
+                                        pixels.push(
+                                            ((color.b() as f32 / 255.).powf(1. / 2.2) * 255.) as u8,
+                                        );
                                     }
                                 }
                             }
