@@ -5,6 +5,7 @@ use bevy_pixel_buffer::bevy_egui::egui::{Color32, Frame, Margin, Vec2};
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::prelude::*;
 use egui_plot::{GridMark, Legend, Line, Plot, PlotPoints};
+use image::{DynamicImage, ImageEncoder};
 
 use super::dialog::SaveFileContents;
 use crate::components::gizmo::GizmoComponent;
@@ -200,12 +201,18 @@ pub fn draw_egui(
 
                             let mut data = Vec::new();
                             let encoder = image::codecs::png::PngEncoder::new(&mut data);
+
                             let image = image::RgbImage::from_raw(
                                 SIMULATION_WIDTH,
                                 SIMULATION_HEIGHT,
                                 pixels,
                             )
                             .expect("could not create image");
+
+                            let image = DynamicImage::ImageRgb8(image);
+                            // image.brighten(40);
+                            // image.adjust_contrast(40.);
+
                             image
                                 .write_with_encoder(encoder)
                                 .expect("could not write image");
