@@ -79,7 +79,7 @@ impl Source {
     }
 
     fn sin(&self, time: f32) -> f32 {
-        self.amplitude * (2. * PI * self.frequency * (time - self.phase * PI / 180.)).sin()
+        self.amplitude * (2. * PI * self.frequency * time - self.phase.to_radians()).sin()
     }
 
     fn periodic_gaussian(&self, time: f32, period: f32, mean: f32, standard_deviation: f32) -> f32 {
