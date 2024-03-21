@@ -9,7 +9,7 @@ use crate::components::states::Drag;
 use crate::components::wall::{CircWall, RectWall, WResize, Wall};
 use crate::grid::grid::Grid;
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
-use crate::math::transformations::{coords_to_index, map_range, u32_map_range};
+use crate::math::transformations::{coords_to_index, map_range};
 use crate::ui::state::{FftMicrophone, UiState};
 
 #[derive(Resource)]
@@ -170,9 +170,9 @@ pub fn draw_overlays(
                 let b = raw_pixles[index as usize].b;
 
                 raw_pixles[index as usize] = Pixel {
-                    r: u32_map_range(0, 255, 80, 200, r as u32) as u8,
-                    g: u32_map_range(0, 255, 80, 200, g as u32) as u8,
-                    b: u32_map_range(0, 255, 80, 255, b as u32) as u8,
+                    r: map_range(0, 255, 80, 200, r as u32) as u8,
+                    g: map_range(0, 255, 80, 200, g as u32) as u8,
+                    b: map_range(0, 255, 80, 255, b as u32) as u8,
                     a: 255,
                 };
             }
@@ -192,9 +192,9 @@ pub fn draw_overlays(
                         let b = raw_pixles[index as usize].b;
 
                         raw_pixles[index as usize] = Pixel {
-                            r: u32_map_range(0, 255, 80, 200, r as u32) as u8,
-                            g: u32_map_range(0, 255, 80, 200, g as u32) as u8,
-                            b: u32_map_range(0, 255, 80, 255, b as u32) as u8,
+                            r: map_range(0, 255, 80, 200, r as u32) as u8,
+                            g: map_range(0, 255, 80, 200, g as u32) as u8,
+                            b: map_range(0, 255, 80, 255, b as u32) as u8,
                             a: 255,
                         };
                     }
@@ -238,9 +238,9 @@ pub fn draw_overlays(
                         let b = raw_pixles[index as usize].b;
 
                         raw_pixles[index as usize] = Pixel {
-                            r: u32_map_range(0, 255, 80, 150, r as u32) as u8,
-                            g: u32_map_range(0, 255, 80, 150, g as u32) as u8,
-                            b: u32_map_range(0, 255, 80, 255, b as u32) as u8,
+                            r: map_range(0, 255, 80, 150, r as u32) as u8,
+                            g: map_range(0, 255, 80, 150, g as u32) as u8,
+                            b: map_range(0, 255, 80, 255, b as u32) as u8,
                             a: 255,
                         };
                     }
