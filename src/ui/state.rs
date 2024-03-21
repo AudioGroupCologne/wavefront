@@ -1,9 +1,6 @@
 use std::fmt;
 
 use bevy::prelude::*;
-use egui::Vec2;
-
-use crate::components::microphone::Microphone;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum WallType {
@@ -58,8 +55,7 @@ impl fmt::Display for ToolType {
 
 #[derive(Default, Resource)]
 pub struct FftMicrophone {
-    pub mic: Option<Microphone>,
-    pub spectrum_size: Vec2,
+    pub mic_id: Option<usize>,
 }
 
 #[derive(Resource, PartialEq, Clone, Copy)]

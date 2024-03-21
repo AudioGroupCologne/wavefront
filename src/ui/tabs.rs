@@ -76,20 +76,21 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
             }
             Tab::Frequency => {
                 egui::ComboBox::from_label("FFT Microphone")
-                    .selected_text(if let Some(mic) = &self.fft_microphone.mic {
-                        format!("Microphone {}", mic.id)
+                    .selected_text(if let Some(index) = self.fft_microphone.mic_id {
+                        format!("Microphone {index}")
                     } else {
                         "No Microphone Selected".to_string()
                     })
                     .show_ui(ui, |ui| {
-                        for &mic in self.mics {
+                        for mic in self.mics {
                             ui.selectable_value(
-                                &mut self.fft_microphone.mic,
-                                Some(mic.clone()),
+                                &mut self.fft_microphone.mic_id,
+                                Some(mic.id),
                                 format!("Microphone {}", mic.id),
                             );
                         }
                     });
+
                 ui.separator();
                 Plot::new("fft_plot")
                     .allow_zoom([false, false])
@@ -120,11 +121,15 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                         )
                     })
                     .show(ui, |plot_ui| {
-                        if self.fft_microphone.mic.is_none() {
+                        if self.fft_microphone.mic_id.is_none() {
                             return;
                         }
 
-                        if let Some(mic) = &self.fft_microphone.mic {
+                        if let Some(mic) = self
+                            .mics
+                            .iter()
+                            .find(|m| m.id == self.fft_microphone.mic_id.expect("no mic selected"))
+                        {
                             let mapped_spectrum = calc_mic_spectrum(&mic);
                             // remove the first element, because of log it is at x=-inf
                             let mapped_spectrum = &mapped_spectrum[1..];
@@ -137,22 +142,22 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
             }
             Tab::Spectogram => {
                 egui::ComboBox::from_label("FFT Microphone")
-                    .selected_text(if let Some(mic) = &self.fft_microphone.mic {
-                        format!("Microphone {}", mic.id)
+                    .selected_text(if let Some(index) = self.fft_microphone.mic_id {
+                        format!("Microphone {index}")
                     } else {
                         "No Microphone Selected".to_string()
                     })
                     .show_ui(ui, |ui| {
-                        for &mic in self.mics {
+                        for mic in self.mics {
                             ui.selectable_value(
-                                &mut self.fft_microphone.mic,
-                                Some(mic.clone()),
+                                &mut self.fft_microphone.mic_id,
+                                Some(mic.id),
                                 format!("Microphone {}", mic.id),
                             );
                         }
                     });
 
-                self.fft_microphone.spectrum_size = ui.available_size();
+                let spectrum_size = ui.available_size();
                 let texture = self.pixel_buffer.egui_texture();
                 ui.add(
                     egui::Image::new(egui::load::SizedTexture::new(texture.id, texture.size))
@@ -160,11 +165,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                 );
 
                 self.pixel_buffer.pixel_buffer.size = PixelBufferSize {
-                    size: UVec2::new(
-                        self.fft_microphone.spectrum_size.x as u32,
-                        self.fft_microphone.spectrum_size.y as u32,
-                    ),
-
+                    size: UVec2::new(spectrum_size.x as u32, spectrum_size.y as u32),
                     pixel_size: UVec2::new(1, 1),
                 };
             }

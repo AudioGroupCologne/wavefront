@@ -364,9 +364,9 @@ pub fn draw_egui(
                                 );
                             });
                             if ui.add(egui::Button::new("Delete")).clicked() {
-                                if let Some(current) = &fft_mic.mic {
-                                    if current.id == mic.id {
-                                        fft_mic.mic = None;
+                                if let Some(current_id) = fft_mic.mic_id {
+                                    if current_id == mic.id {
+                                        fft_mic.mic_id = None;
                                     }
                                 }
                                 commands.entity(*entity).despawn();
@@ -664,7 +664,7 @@ pub fn draw_egui(
                             commands.entity(e).despawn();
                         }
 
-                        fft_mic.mic = None;
+                        fft_mic.mic_id = None;
 
                         grid.reset_cells(ui_state.boundary_width);
                         wall_update_ev.send(UpdateWalls);

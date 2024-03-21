@@ -4,6 +4,7 @@ use bevy_pixel_buffer::pixel::Pixel;
 use bevy_pixel_buffer::query::QueryPixelBuffer;
 use egui::Color32;
 
+use crate::components::microphone::Microphone;
 use crate::components::states::Drag;
 use crate::components::wall::{CircWall, RectWall, WResize, Wall};
 use crate::grid::grid::Grid;
@@ -34,6 +35,7 @@ pub fn draw_pixels(
     gradient: Res<Gradient>,
     ui_state: Res<UiState>,
     fft_microphone: Res<FftMicrophone>,
+    microphones: Query<&Microphone>,
 ) {
     let (query, mut images) = pixel_buffers.split();
     let mut items = query.iter();
@@ -77,11 +79,14 @@ pub fn draw_pixels(
     });
 
     // draw spectrum
-    if ui_state.show_plots && fft_microphone.mic.is_some() {
+    if ui_state.show_plots && fft_microphone.mic_id.is_some() {
         let mut frame = images.frame(items.next().expect("two pixel buffers"));
 
         // the mic that is selected might have been deleted, so we need to check if it still exists
-        if let Some(mic) = &fft_microphone.mic {
+        if let Some(mic) = microphones
+            .iter()
+            .find(|m| m.id == fft_microphone.mic_id.expect("no mic selected"))
+        {
             // let spectrum = &mic.spectrum;
             // let len_y = spectrum.len();
 
@@ -109,8 +114,11 @@ pub fn draw_pixels(
             // and then write the result to the pixel buffer (and shift the previous values to the left)
             // this way we do not have to save all the values in a vec.
 
+            // TODO: maybe reset the frame each time the mic changes
+
             let new_spectrum = crate::math::fft::calc_mic_spectrum(&mic);
             let frame_size = frame.size();
+
             // shift the old values to the left
             for y in 0..frame_size.y {
                 for x in 0..frame_size.x - 1 {
@@ -120,9 +128,9 @@ pub fn draw_pixels(
             }
 
             // write the new values to the right
-            // the spectrum is log scaled, so we need to map the x values to the log scale
             let spectrum_len = new_spectrum.len();
             for y in 0..frame_size.y as usize {
+                // TODO: log scale the y values
                 let mapped_y = map_range(0, frame_size.y as usize, 0, spectrum_len, y);
                 let gray = if spectrum_len > 1 && y < spectrum_len {
                     new_spectrum[mapped_y as usize][1] * 255.

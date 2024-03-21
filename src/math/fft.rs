@@ -45,10 +45,5 @@ pub fn calc_mic_spectrum(microphone: &Microphone) -> Vec<[f64; 2]> {
         })
         .collect::<Vec<_>>();
 
-    // microphone.spectrum.push(mapped_spectrum.clone());
-    // if microphone.spectrum.len() > ui_state.spectrum_size.y as usize {
-    //     microphone.spectrum.remove(0);
-    // }
-
     mapped_spectrum
 }
