@@ -966,7 +966,6 @@ pub fn draw_egui(
         .show(ctx, |ui| {
             ui.set_enabled(ui_state.tools_enabled);
 
-            ui_state.tool_use_enabled = !ui.rect_contains_pointer(ui.available_rect_before_wrap());
             for (tool_type, icon) in images {
                 if ui
                     .add(
@@ -1002,6 +1001,8 @@ pub fn draw_egui(
                 .fill(Color32::from_rgb(25, 25, 25)),
         )
         .show(ctx, |ui| {
+            ui_state.tool_use_enabled = ui.rect_contains_pointer(ui.min_rect().expand(20.));
+
             ui.set_min_width(100.);
             // Main Simulation Area
 
