@@ -419,7 +419,6 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    // wall.update_calc_rect(ui_state.boundary_width);
                                     reset_ev.send(Reset);
                                 }
                             });
@@ -434,7 +433,6 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    // wall.update_calc_rect(ui_state.boundary_width);
                                     reset_ev.send(Reset);
                                 }
                                 ui.add_space(10.);
@@ -447,7 +445,6 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    // wall.update_calc_rect(ui_state.boundary_width);
                                     reset_ev.send(Reset);
                                 }
                             });
@@ -521,6 +518,20 @@ pub fn draw_egui(
                                     wall.radius // as f32 * ui_state.delta_l
                                 ));
                             });
+
+                            if ui
+                                .add(
+                                    // 0.01 because rendering then draws white
+                                    egui::Slider::new(
+                                        &mut wall.open_circ_segment,
+                                        0f32..=180f32.to_radians(),
+                                    )
+                                    .text("Open Circle Arc"),
+                                )
+                                .changed()
+                            {
+                                reset_ev.send(Reset);
+                            }
 
                             if ui
                                 .add(

@@ -414,6 +414,9 @@ pub struct CircWall {
     pub radius: u32,
     pub is_hollow: bool,
     pub reflection_factor: f32,
+    //TODO: Better description
+    /// open segment from x-axis (mirrored) in radians
+    pub open_circ_segment: f32,
     pub id: usize,
 }
 
@@ -558,6 +561,7 @@ impl CircWall {
             radius,
             is_hollow,
             reflection_factor,
+            open_circ_segment: 0.,
             id,
         }
     }
