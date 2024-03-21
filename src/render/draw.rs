@@ -4,13 +4,12 @@ use bevy_pixel_buffer::pixel::Pixel;
 use bevy_pixel_buffer::query::QueryPixelBuffer;
 use egui::Color32;
 
-use crate::components::microphone::Microphone;
 use crate::components::states::Drag;
 use crate::components::wall::{CircWall, RectWall, WResize, Wall};
 use crate::grid::grid::Grid;
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
-use crate::math::transformations::{coords_to_index, u32_map_range};
-use crate::ui::state::{PlotType, UiState};
+use crate::math::transformations::{coords_to_index, map_range, u32_map_range};
+use crate::ui::state::{FftMicrophone, UiState};
 
 #[derive(Resource)]
 pub struct Gradient(pub Color32, pub Color32);
@@ -34,7 +33,7 @@ pub fn draw_pixels(
     grid: Res<Grid>,
     gradient: Res<Gradient>,
     ui_state: Res<UiState>,
-    microphones: Query<&Microphone>,
+    fft_microphone: Res<FftMicrophone>,
 ) {
     let (query, mut images) = pixel_buffers.split();
     let mut items = query.iter();
@@ -78,37 +77,67 @@ pub fn draw_pixels(
     });
 
     // draw spectrum
-    if ui_state.plot_type == PlotType::FrequencyDomain && ui_state.current_fft_microphone.is_some()
-    {
+    if ui_state.show_plots && fft_microphone.mic.is_some() {
         let mut frame = images.frame(items.next().expect("two pixel buffers"));
 
         // the mic that is selected might have been deleted, so we need to check if it still exists
-        if let Some(mic) = microphones
-            .iter()
-            .find(|m| m.id == ui_state.current_fft_microphone.expect("no mic selected"))
-        {
-            let spectrum = &mic.spectrum;
-            let len_y = spectrum.len();
+        if let Some(mic) = &fft_microphone.mic {
+            // let spectrum = &mic.spectrum;
+            // let len_y = spectrum.len();
 
-            frame.per_pixel_par(|coords, _| {
-                    let gray = if len_y > 1 && coords.y < len_y as u32 {
-                        spectrum[coords.y as usize]
-                            //TODO: is 120 hardcoded <- doesn't work when frequency range changes and linear
-                            //TODO: the spectrum is now log scaled, the spectrum does not consider this
-                            [u32_map_range(0, (ui_state.spectrum_size.x) as u32, 0, 120, coords.x) as usize]
-                            [1]
-                            * 255.
-                    } else {
-                        0.
-                    } as u8;
+            // frame.per_pixel_par(|coords, _| {
+            //         let gray = if len_y > 1 && coords.y < len_y as u32 {
+            //             spectrum[coords.y as usize]
+            //                 //TODO: is 120 hardcoded <- doesn't work when frequency range changes and linear
+            //                 //TODO: the spectrum is now log scaled, the spectrum does not consider this
+            //                 [u32_map_range(0, (fft_microphone.spectrum_size.x) as u32, 0, 120, coords.x) as usize]
+            //                 [1]
+            //                 * 255.
+            //         } else {
+            //             0.
+            //         } as u8;
 
-                    Pixel {
-                        r: gray,
-                        g: gray,
-                        b: gray,
-                        a: 255,
-                    }
-                });
+            //         Pixel {
+            //             r: gray,
+            //             g: gray,
+            //             b: gray,
+            //             a: 255,
+            //         }
+            //     });
+
+            // TODO: instead of the previous implementation, do the fft each frame (like in the freq plot)
+            // and then write the result to the pixel buffer (and shift the previous values to the left)
+            // this way we do not have to save all the values in a vec.
+
+            let new_spectrum = crate::math::fft::calc_mic_spectrum(&mic);
+            let frame_size = frame.size();
+            // shift the old values to the left
+            for y in 0..frame_size.y {
+                for x in 0..frame_size.x - 1 {
+                    let index = x + y * frame_size.x;
+                    frame.raw_mut()[index as usize] = frame.raw()[(index + 1) as usize];
+                }
+            }
+
+            // write the new values to the right
+            // the spectrum is log scaled, so we need to map the x values to the log scale
+            let spectrum_len = new_spectrum.len();
+            for y in 0..frame_size.y as usize {
+                let mapped_y = map_range(0, frame_size.y as usize, 0, spectrum_len, y);
+                let gray = if spectrum_len > 1 && y < spectrum_len {
+                    new_spectrum[mapped_y as usize][1] * 255.
+                } else {
+                    0.
+                } as u8;
+
+                let index = frame_size.x - 1 + y as u32 * frame_size.x;
+                frame.raw_mut()[index as usize] = Pixel {
+                    r: gray,
+                    g: gray,
+                    b: gray,
+                    a: 255,
+                };
+            }
         }
     }
 }

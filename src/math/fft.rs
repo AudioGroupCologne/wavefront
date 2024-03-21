@@ -4,14 +4,13 @@ use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
 
 use crate::components::microphone::Microphone;
 use crate::math::constants::*;
-use crate::ui::state::UiState;
 
 /// Calculate the spectrum of a [`Microphone`] based on the record field.
 /// The spectrum is calculated using the FFT algorithm and a Hann window. The corresponding window size is specified in [`FFT_WINDOW_SIZE`].
 /// The spectrum is then mapped to a logarithmic scale and returned.
 /// * `microphone` - The microphone to calculate the spectrum for.
 /// * `ui_state` - The current state of the UI.
-pub fn calc_mic_spectrum(microphone: &mut Microphone, ui_state: &UiState) -> Vec<[f64; 2]> {
+pub fn calc_mic_spectrum(microphone: &Microphone) -> Vec<[f64; 2]> {
     let samples = if microphone.record.len() < FFT_WINDOW_SIZE {
         let mut s = microphone.record.clone();
         s.resize(FFT_WINDOW_SIZE, [0.0, 0.0]);
@@ -46,10 +45,10 @@ pub fn calc_mic_spectrum(microphone: &mut Microphone, ui_state: &UiState) -> Vec
         })
         .collect::<Vec<_>>();
 
-    microphone.spectrum.push(mapped_spectrum.clone());
-    if microphone.spectrum.len() > ui_state.spectrum_size.y as usize {
-        microphone.spectrum.remove(0);
-    }
+    // microphone.spectrum.push(mapped_spectrum.clone());
+    // if microphone.spectrum.len() > ui_state.spectrum_size.y as usize {
+    //     microphone.spectrum.remove(0);
+    // }
 
     mapped_spectrum
 }

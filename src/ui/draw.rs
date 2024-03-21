@@ -4,10 +4,10 @@ use bevy_file_dialog::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::{Color32, Frame, Margin, Vec2};
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::prelude::*;
-use egui_plot::{GridMark, Legend, Line, Plot, PlotPoints};
 use image::DynamicImage;
 
 use super::dialog::SaveFileContents;
+use super::tabs::{DockState, PlotTabs};
 use crate::components::gizmo::GizmoComponent;
 use crate::components::microphone::*;
 use crate::components::source::*;
@@ -16,7 +16,6 @@ use crate::components::wall::{CircWall, RectWall, WResize, Wall};
 use crate::events::{Reset, UpdateWalls};
 use crate::grid::grid::Grid;
 use crate::math::constants::*;
-use crate::math::fft::calc_mic_spectrum;
 use crate::math::transformations::coords_to_index;
 use crate::render::draw::Gradient;
 use crate::ui::state::*;
@@ -55,6 +54,8 @@ pub fn draw_egui(
         Query<(Entity, &Microphone), With<MenuSelected>>,
         Query<&Microphone>,
     )>,
+    mut dock_state: ResMut<DockState>,
+    mut fft_mic: ResMut<FftMicrophone>,
 ) {
     let ctx = egui_context.ctx_mut();
     egui_extras::install_image_loaders(ctx);
@@ -363,8 +364,10 @@ pub fn draw_egui(
                                 );
                             });
                             if ui.add(egui::Button::new("Delete")).clicked() {
-                                if ui_state.current_fft_microphone == Some(mic.id) {
-                                    ui_state.current_fft_microphone = None;
+                                if let Some(current) = &fft_mic.mic {
+                                    if current.id == mic.id {
+                                        fft_mic.mic = None;
+                                    }
                                 }
                                 commands.entity(*entity).despawn();
                             }
@@ -661,7 +664,7 @@ pub fn draw_egui(
                             commands.entity(e).despawn();
                         }
 
-                        ui_state.current_fft_microphone = None;
+                        fft_mic.mic = None;
 
                         grid.reset_cells(ui_state.boundary_width);
                         wall_update_ev.send(UpdateWalls);
@@ -791,161 +794,27 @@ pub fn draw_egui(
             });
         });
 
-    // FFT Heatmap
-    if ui_state.plot_type == PlotType::FrequencyDomain && ui_state.show_plots {
-        egui::SidePanel::right("spectrum_panel")
-            .frame(Frame::default().inner_margin(Margin {
-                left: 0.,
-                right: 0.,
-                top: 0.,
-                bottom: 0.,
-            }))
-            .default_width(400.)
-            // .resizable(false)
-            .show(ctx, |ui| {
-                ui_state.spectrum_size = ui.available_size();
-                let mut pb = pixel_buffers
-                    .iter_mut()
-                    .nth(1)
-                    .expect("second pixel buffer");
-
-                let texture = pb.egui_texture();
-                ui.add(
-                    egui::Image::new(egui::load::SizedTexture::new(texture.id, texture.size))
-                        .shrink_to_fit(),
-                );
-
-                pb.pixel_buffer.size = PixelBufferSize {
-                    size: UVec2::new(
-                        ui_state.spectrum_size.x as u32,
-                        ui_state.spectrum_size.y as u32,
-                    ),
-
-                    pixel_size: UVec2::new(1, 1),
-                };
-            });
-    }
-
-    //Plot Panel
+    // Plot tabs
     if ui_state.show_plots {
-        egui::TopBottomPanel::bottom("bottom_panel")
+        egui::TopBottomPanel::bottom("dsad")
             .resizable(true)
-            .default_height(400.0)
+            .default_height(400.)
             .max_height(700.)
             .show(ctx, |ui| {
-                ui.add_space(5.);
-                ui.heading("Microphone Plot");
-
-                egui::ComboBox::from_label("Select Plot Type")
-                    .selected_text(format!("{}", ui_state.plot_type))
-                    .show_ui(ui, |ui| {
-                        ui.style_mut().wrap = Some(false);
-                        ui.selectable_value(
-                            &mut ui_state.plot_type,
-                            PlotType::TimeDomain,
-                            "Time Domain",
-                        );
-                        ui.selectable_value(
-                            &mut ui_state.plot_type,
-                            PlotType::FrequencyDomain,
-                            "Frequency Domain",
-                        );
-                    });
-
-                match ui_state.plot_type {
-                    PlotType::TimeDomain => {
-                        ui.separator();
-                        Plot::new("mic_plot")
-                            .allow_zoom([true, false])
-                            // .allow_scroll(false)
-                            .x_axis_label("Time (s)")
-                            .y_axis_label("Amplitude")
-                            .legend(Legend::default())
-                            .show(ui, |plot_ui| {
-                                let mut binding = mic_set.p0();
-                                let mut mic_vec = binding.iter_mut().collect::<Vec<_>>();
-                                mic_vec.sort_by_cached_key(|(_, mic)| mic.id);
-                                for (_, mic) in mic_vec {
-                                    //TODO: because of this clone, the app is getting slower as time goes on (because the vec is getting bigger)
-                                    let points: PlotPoints = PlotPoints::new(mic.record.clone());
-                                    let line = Line::new(points);
-                                    plot_ui.line(line.name(format!(
-                                        "Microphone {} (x: {}, y: {})",
-                                        mic.id, mic.x, mic.y
-                                    )));
-                                }
-                            });
-                    }
-
-                    PlotType::FrequencyDomain => {
-                        egui::ComboBox::from_label("FFT Microphone")
-                            .selected_text(if let Some(index) = ui_state.current_fft_microphone {
-                                format!("Microphone {index}")
-                            } else {
-                                "No Microphone Selected".to_string()
-                            })
-                            .show_ui(ui, |ui| {
-                                for (_, mic) in mic_set.p0().iter() {
-                                    ui.selectable_value(
-                                        &mut ui_state.current_fft_microphone,
-                                        Some(mic.id),
-                                        format!("Microphone {}", mic.id),
-                                    );
-                                }
-                            });
-                        ui.separator();
-                        Plot::new("fft_plot")
-                            .allow_zoom([false, false])
-                            .allow_scroll(false)
-                            .allow_drag(false)
-                            .allow_boxed_zoom(false)
-                            .x_axis_label("Frequency (Hz)")
-                            .y_axis_label("Intensity (dB)")
-                            .x_grid_spacer(|input| {
-                                let mut marks = Vec::with_capacity(
-                                    input.bounds.1 as usize - input.bounds.0 as usize + 1,
-                                );
-
-                                for i in input.bounds.0 as u32 + 1..=input.bounds.1 as u32 {
-                                    marks.push(GridMark {
-                                        value: i as f64,
-                                        step_size: 1.,
-                                    });
-                                }
-                                marks
-                            })
-                            .x_axis_formatter(|mark, _, _| {
-                                format!("{:.0}", 10_f64.powf(mark.value))
-                            })
-                            .label_formatter(|_, value| {
-                                format!(
-                                    "Intensity: {:.2} dB\nFrequency: {:.2} Hz",
-                                    value.y,
-                                    10_f64.powf(value.x)
-                                )
-                            })
-                            .show(ui, |plot_ui| {
-                                if ui_state.current_fft_microphone.is_none() {
-                                    return;
-                                }
-
-                                let mut binding = mic_set.p0();
-
-                                if let Some((_, mut mic)) = binding.iter_mut().find(|m| {
-                                    m.1.id
-                                        == ui_state.current_fft_microphone.expect("no mic selected")
-                                }) {
-                                    let mapped_spectrum = calc_mic_spectrum(&mut mic, &ui_state);
-                                    // remove the first element, because of log it is at x=-inf
-                                    let mapped_spectrum = &mapped_spectrum[1..];
-
-                                    let points = PlotPoints::new(mapped_spectrum.to_vec());
-                                    let line = Line::new(points);
-                                    plot_ui.line(line);
-                                }
-                            });
-                    }
-                }
+                let mut binding = mic_set.p3();
+                let mics = binding.iter_mut().map(|m| m).collect::<Vec<_>>();
+                let mut pb = pixel_buffers.iter_mut().nth(1).expect("two pixel buffers");
+                egui_dock::DockArea::new(&mut dock_state.tree)
+                    .allowed_splits(egui_dock::AllowedSplits::None)
+                    .draggable_tabs(false)
+                    .show_inside(
+                        ui,
+                        &mut PlotTabs {
+                            mics: &mics[..],
+                            pixel_buffer: &mut pb,
+                            fft_microphone: &mut fft_mic,
+                        },
+                    );
             });
     }
 

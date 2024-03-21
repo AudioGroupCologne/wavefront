@@ -1,3 +1,5 @@
+use std::ops::{Add, Div, Mul, Sub};
+
 use egui::{Pos2, Rect};
 
 use super::constants::*;
@@ -17,6 +19,14 @@ pub fn index_to_coords(i: u32, boundary_width: u32) -> (u32, u32) {
 
 /// Maps u32 s from range a1 to a2 to b1 to b2
 pub fn u32_map_range(a1: u32, a2: u32, b1: u32, b2: u32, s: u32) -> u32 {
+    b1 + ((s - a1) * (b2 - b1) / (a2 - a1))
+}
+
+/// Maps T s from range (a1..a2) to (b1..b2)
+pub fn map_range<T: Sub + Mul>(a1: T, a2: T, b1: T, b2: T, s: T) -> T
+where
+    T: Mul<Output = T> + Sub<Output = T> + Div<Output = T> + Add<Output = T> + Copy,
+{
     b1 + ((s - a1) * (b2 - b1) / (a2 - a1))
 }
 

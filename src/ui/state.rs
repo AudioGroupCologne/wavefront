@@ -3,6 +3,8 @@ use std::fmt;
 use bevy::prelude::*;
 use egui::Vec2;
 
+use crate::components::microphone::Microphone;
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum WallType {
     Rectangle,
@@ -54,6 +56,12 @@ impl fmt::Display for ToolType {
     }
 }
 
+#[derive(Default, Resource)]
+pub struct FftMicrophone {
+    pub mic: Option<Microphone>,
+    pub spectrum_size: Vec2,
+}
+
 #[derive(Resource, PartialEq, Clone, Copy)]
 pub struct UiState {
     pub is_running: bool,
@@ -63,9 +71,6 @@ pub struct UiState {
     pub power_order: u32,
     pub image_rect: egui::Rect,
     pub show_plots: bool,
-    pub current_fft_microphone: Option<usize>,
-    pub spectrum_size: Vec2,
-    pub plot_type: PlotType,
     pub current_tool: ToolType,
     pub wall_reflection_factor: f32,
     pub wall_type: WallType,
@@ -86,9 +91,6 @@ impl Default for UiState {
             power_order: 5,
             image_rect: egui::Rect::NOTHING,
             show_plots: false,
-            current_fft_microphone: None,
-            spectrum_size: Vec2 { x: 250., y: 500. }, // random init values
-            plot_type: PlotType::TimeDomain,
             current_tool: ToolType::MoveSource,
             wall_reflection_factor: 1.,
             wall_type: WallType::Rectangle,
