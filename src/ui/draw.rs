@@ -802,7 +802,7 @@ pub fn draw_egui(
             .max_height(700.)
             .show(ctx, |ui| {
                 let mut binding = mic_set.p3();
-                let mics = binding.iter_mut().map(|m| m).collect::<Vec<_>>();
+                let mics = binding.iter_mut().collect::<Vec<_>>();
                 let mut pb = pixel_buffers.iter_mut().nth(1).expect("two pixel buffers");
                 egui_dock::DockArea::new(&mut dock_state.tree)
                     .allowed_splits(egui_dock::AllowedSplits::None)

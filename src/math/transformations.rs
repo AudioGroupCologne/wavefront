@@ -18,7 +18,7 @@ pub fn index_to_coords(i: u32, boundary_width: u32) -> (u32, u32) {
 }
 
 /// Maps T s from range (a1..a2) to (b1..b2)
-pub fn map_range<T: Sub + Mul>(a1: T, a2: T, b1: T, b2: T, s: T) -> T
+pub fn map_range<T>(a1: T, a2: T, b1: T, b2: T, s: T) -> T
 where
     T: Mul<Output = T> + Sub<Output = T> + Div<Output = T> + Add<Output = T> + Copy,
 {

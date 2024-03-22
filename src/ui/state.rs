@@ -14,21 +14,6 @@ pub struct GameTicks {
 }
 
 #[derive(Debug, PartialEq, Copy, Clone)]
-pub enum PlotType {
-    TimeDomain,
-    FrequencyDomain,
-}
-
-impl fmt::Display for PlotType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            PlotType::TimeDomain => write!(f, "Time Domain"),
-            PlotType::FrequencyDomain => write!(f, "Frequency Domain"),
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum ToolType {
     PlaceSource,
     MoveSource,

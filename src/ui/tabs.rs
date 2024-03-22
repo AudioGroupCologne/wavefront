@@ -130,7 +130,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             .iter()
                             .find(|m| m.id == self.fft_microphone.mic_id.expect("no mic selected"))
                         {
-                            let mapped_spectrum = calc_mic_spectrum(&mic);
+                            let mapped_spectrum = calc_mic_spectrum(mic);
                             // remove the first element, because of log it is at x=-inf
                             let mapped_spectrum = &mapped_spectrum[1..];
 

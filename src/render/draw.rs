@@ -116,7 +116,7 @@ pub fn draw_pixels(
 
             // TODO: maybe reset the frame each time the mic changes
 
-            let new_spectrum = crate::math::fft::calc_mic_spectrum(&mic);
+            let new_spectrum = crate::math::fft::calc_mic_spectrum(mic);
             let frame_size = frame.size();
 
             // shift the old values to the left
@@ -219,14 +219,13 @@ pub fn draw_overlays(
                 (wall.center.x as i32 - b_y, wall.center.y as i32 - b_x),
             ] {
                 if x >= 0 && x < SIMULATION_WIDTH as i32 && y >= 0 && y < SIMULATION_HEIGHT as i32 {
-                    let angle = if (x as i32 - wall.center.x as i32) > 0 {
-                        ((y as i32 - wall.center.y as i32) as f32
-                            / (x as i32 - wall.center.x as i32) as f32)
+                    let angle = if (x - wall.center.x as i32) > 0 {
+                        ((y - wall.center.y as i32) as f32 / (x - wall.center.x as i32) as f32)
                             .atan()
                     } else {
                         180f32.to_radians()
-                            - ((y as i32 - wall.center.y as i32) as f32
-                                / (x as i32 - wall.center.x as i32) as f32)
+                            - ((y - wall.center.y as i32) as f32
+                                / (x - wall.center.x as i32) as f32)
                                 .atan()
                                 .abs()
                     };
