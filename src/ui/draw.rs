@@ -633,12 +633,25 @@ pub fn draw_egui(
 
                             if ui
                                 .add(
-                                    // 0.01 because rendering then draws white
                                     egui::Slider::new(
                                         &mut wall.open_circ_segment,
                                         0f32..=180f32.to_radians(),
                                     )
                                     .text("Open Circle Arc"),
+                                )
+                                .changed()
+                            {
+                                commands.entity(*entity).try_insert(WResize::Menu);
+                                reset_ev.send(Reset);
+                            }
+
+                            if ui
+                                .add(
+                                    egui::Slider::new(
+                                        &mut wall.rotation_angle,
+                                        0f32..=360f32.to_radians(),
+                                    )
+                                    .text("Rotation Angle"),
                                 )
                                 .changed()
                             {

@@ -428,6 +428,8 @@ pub struct CircWall {
     //TODO: Better description
     /// open segment from x-axis (mirrored) in radians
     pub open_circ_segment: f32,
+    /// rotation angle in radians
+    pub rotation_angle: f32,
     pub id: usize,
 }
 
@@ -574,6 +576,7 @@ impl CircWall {
             is_hollow,
             reflection_factor,
             open_circ_segment: 0.,
+            rotation_angle: 0.,
             id,
         }
     }

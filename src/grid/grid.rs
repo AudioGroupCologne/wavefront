@@ -1,3 +1,5 @@
+use std::f32::consts::{PI, TAU};
+
 use bevy::prelude::*;
 use rayon::iter::{IndexedParallelIterator, IntoParallelRefMutIterator, ParallelIterator};
 
@@ -182,22 +184,22 @@ impl Grid {
                     if x < SIMULATION_WIDTH + 2 * boundary_width
                         && y < SIMULATION_HEIGHT + 2 * boundary_width
                     {
-                        //TODO: Rotation??
-                        let angle = if (x as i32 - wall.center.x as i32 - boundary_width as i32) > 0
-                        {
-                            ((y as i32 - wall.center.y as i32 - boundary_width as i32) as f32
-                                / (x as i32 - wall.center.x as i32 - boundary_width as i32) as f32)
-                                .atan()
-                        } else {
-                            180f32.to_radians()
-                                - ((y as i32 - wall.center.y as i32 - boundary_width as i32) as f32
-                                    / (x as i32 - wall.center.x as i32 - boundary_width as i32)
-                                        as f32)
-                                    .atan()
-                                    .abs()
-                        };
+                        // angle in [0, 2pi)
+                        let mut angle =
+                            if (y as i32 - wall.center.y as i32 - boundary_width as i32) <= 0 {
+                                ((x as f32 - wall.center.x as f32 - boundary_width as f32)
+                                    / wall.radius as f32)
+                                    .acos()
+                            } else {
+                                TAU - ((x as f32 - wall.center.x as f32 - boundary_width as f32)
+                                    / wall.radius as f32)
+                                    .acos()
+                            };
 
-                        if angle.abs() >= wall.open_circ_segment {
+                        angle = (angle + wall.rotation_angle) % TAU;
+
+                        if angle >= wall.open_circ_segment && angle <= TAU - wall.open_circ_segment
+                        {
                             let index = coords_to_index(x, y, boundary_width);
                             self.wall_cache[index].is_wall = true;
                             self.wall_cache[index].reflection_factor = wall.get_reflection_factor();

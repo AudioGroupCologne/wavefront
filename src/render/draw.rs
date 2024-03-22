@@ -1,3 +1,5 @@
+use std::f32::consts::TAU;
+
 use bevy::prelude::*;
 use bevy_pixel_buffer::frame::GetFrameFromImages;
 use bevy_pixel_buffer::pixel::Pixel;
@@ -212,18 +214,16 @@ pub fn draw_overlays(
                 (wall.center.x as i32 - b_y, wall.center.y as i32 - b_x),
             ] {
                 if x >= 0 && x < SIMULATION_WIDTH as i32 && y >= 0 && y < SIMULATION_HEIGHT as i32 {
-                    let angle = if (x - wall.center.x as i32) > 0 {
-                        ((y - wall.center.y as i32) as f32 / (x - wall.center.x as i32) as f32)
-                            .atan()
+                    // angle in [0, 2pi)
+                    let mut angle = if (y as i32 - wall.center.y as i32) <= 0 {
+                        ((x as f32 - wall.center.x as f32) / wall.radius as f32).acos()
                     } else {
-                        180f32.to_radians()
-                            - ((y - wall.center.y as i32) as f32
-                                / (x - wall.center.x as i32) as f32)
-                                .atan()
-                                .abs()
+                        TAU - ((x as f32 - wall.center.x as f32) / wall.radius as f32).acos()
                     };
 
-                    if angle.abs() >= wall.open_circ_segment {
+                    angle = (angle + wall.rotation_angle) % TAU;
+
+                    if angle >= wall.open_circ_segment && angle <= TAU - wall.open_circ_segment {
                         let index = x as u32 + y as u32 * SIMULATION_WIDTH;
                         let r = raw_pixles[index as usize].r;
                         let g = raw_pixles[index as usize].g;
