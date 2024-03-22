@@ -4,7 +4,6 @@ use bevy_file_dialog::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::{Color32, Frame, Margin, Vec2};
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::prelude::*;
-use image::DynamicImage;
 
 use super::dialog::SaveFileContents;
 use super::tabs::{DockState, PlotTabs};
@@ -96,7 +95,6 @@ pub fn draw_egui(
         .default_width(450.)
         .resizable(false)
         .show(ctx, |ui| {
-            // not a perfect solution -> when resizing this will set tools_enabled to true
             ui_state.tools_enabled = !ui.rect_contains_pointer(ui.available_rect_before_wrap())
                 && !ui_state.render_abc_area;
 
@@ -215,10 +213,6 @@ pub fn draw_egui(
                                 pixels,
                             )
                             .expect("could not create image");
-
-                            let image = DynamicImage::ImageRgb8(image);
-                            // image.brighten(40);
-                            // image.adjust_contrast(40.);
 
                             image
                                 .write_with_encoder(encoder)
