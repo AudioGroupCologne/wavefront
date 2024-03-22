@@ -79,7 +79,7 @@ impl Default for UiState {
             tools_enabled: true,
             reset_on_change: true,
             tool_use_enabled: true,
-            gradient_contrast: 1.,
+            gradient_contrast: 5.,
         }
     }
 }

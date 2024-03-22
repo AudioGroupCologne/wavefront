@@ -67,6 +67,7 @@ impl GizmoComponent for Microphone {
         highlight: bool,
         image_rect: &Rect,
         _delta_l: f32,
+        _text_color: Color32,
     ) {
         match tool_type {
             ToolType::PlaceMic | ToolType::MoveMic => {

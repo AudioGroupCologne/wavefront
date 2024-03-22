@@ -1,2 +1,3 @@
 pub mod draw;
+pub mod gradient;
 pub mod plugin;

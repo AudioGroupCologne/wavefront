@@ -2,8 +2,8 @@ use bevy::prelude::*;
 use bevy_pixel_buffer::frame::GetFrameFromImages;
 use bevy_pixel_buffer::pixel::Pixel;
 use bevy_pixel_buffer::query::QueryPixelBuffer;
-use egui::Color32;
 
+use super::gradient::Gradient;
 use crate::components::microphone::Microphone;
 use crate::components::states::Drag;
 use crate::components::wall::{CircWall, RectWall, WResize, Wall};
@@ -11,29 +11,6 @@ use crate::grid::grid::Grid;
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::transformations::{coords_to_index, map_range};
 use crate::ui::state::{FftMicrophone, UiState};
-
-#[derive(Resource)]
-pub struct Gradient(pub Color32, pub Color32);
-
-impl Gradient {
-    pub fn new(start: Color32, end: Color32) -> Self {
-        Self(start, end)
-    }
-
-    pub fn at(&self, percent: f32, contrast: f32) -> Color32 {
-        let percent = percent * contrast;
-        let result_red = self.0.r() as f32 + percent * (self.1.r() as f32 - self.0.r() as f32);
-        let result_green = self.0.g() as f32 + percent * (self.1.g() as f32 - self.0.g() as f32);
-        let result_blue = self.0.b() as f32 + percent * (self.1.b() as f32 - self.0.b() as f32);
-        Color32::from_rgb(result_red as u8, result_green as u8, result_blue as u8)
-    }
-}
-
-impl Default for Gradient {
-    fn default() -> Self {
-        Self(Color32::BLACK, Color32::WHITE)
-    }
-}
 
 pub fn draw_pixels(
     pixel_buffers: QueryPixelBuffer,

@@ -16,7 +16,7 @@ use crate::events::{Reset, UpdateWalls};
 use crate::grid::grid::Grid;
 use crate::math::constants::*;
 use crate::math::transformations::coords_to_index;
-use crate::render::draw::Gradient;
+use crate::render::gradient::Gradient;
 use crate::ui::state::*;
 
 pub fn draw_egui(
@@ -682,6 +682,7 @@ pub fn draw_egui(
                 ui.horizontal(|ui| {
                     ui.color_edit_button_srgba(&mut gradient.0);
                     ui.color_edit_button_srgba(&mut gradient.1);
+                    ui.color_edit_button_srgba(&mut gradient.2);
                 });
 
                 ui.add(
@@ -885,6 +886,7 @@ pub fn draw_egui(
 
             if !ui_state.render_abc_area {
                 let painter = ui.painter();
+                let text_color = gradient.get_average();
                 //menu gizmos
                 if !ui_state.tools_enabled {
                     for (_, wall) in rect_wall_set.p2().iter() {
@@ -894,6 +896,7 @@ pub fn draw_egui(
                             true,
                             &ui_state.image_rect,
                             ui_state.delta_l,
+                            text_color,
                         );
                     }
                     for (_, wall) in circ_wall_set.p2().iter() {
@@ -903,6 +906,7 @@ pub fn draw_egui(
                             true,
                             &ui_state.image_rect,
                             ui_state.delta_l,
+                            text_color,
                         );
                     }
                     // all mics
@@ -913,6 +917,7 @@ pub fn draw_egui(
                             true,
                             &ui_state.image_rect,
                             ui_state.delta_l,
+                            text_color,
                         );
                     }
                     // all sources
@@ -923,6 +928,7 @@ pub fn draw_egui(
                             true,
                             &ui_state.image_rect,
                             ui_state.delta_l,
+                            text_color,
                         );
                     }
                 } else {
@@ -935,6 +941,7 @@ pub fn draw_egui(
                             false,
                             &ui_state.image_rect,
                             ui_state.delta_l,
+                            text_color,
                         );
                     }
                     // selected walls
@@ -945,6 +952,7 @@ pub fn draw_egui(
                             true,
                             &ui_state.image_rect,
                             ui_state.delta_l,
+                            text_color,
                         );
                     }
                     // all circ walls
@@ -955,6 +963,7 @@ pub fn draw_egui(
                             false,
                             &ui_state.image_rect,
                             ui_state.delta_l,
+                            text_color,
                         );
                     }
                     // selected circ walls
@@ -965,6 +974,7 @@ pub fn draw_egui(
                             true,
                             &ui_state.image_rect,
                             ui_state.delta_l,
+                            text_color,
                         );
                     }
                     // all mics
@@ -975,6 +985,7 @@ pub fn draw_egui(
                             false,
                             &ui_state.image_rect,
                             ui_state.delta_l,
+                            text_color,
                         );
                     }
                     // selected mics
@@ -985,6 +996,7 @@ pub fn draw_egui(
                             true,
                             &ui_state.image_rect,
                             ui_state.delta_l,
+                            text_color,
                         );
                     }
                     // all sources
@@ -995,6 +1007,7 @@ pub fn draw_egui(
                             false,
                             &ui_state.image_rect,
                             ui_state.delta_l,
+                            text_color,
                         );
                     }
                     // selected sources
@@ -1005,6 +1018,7 @@ pub fn draw_egui(
                             true,
                             &ui_state.image_rect,
                             ui_state.delta_l,
+                            text_color,
                         );
                     }
                 }

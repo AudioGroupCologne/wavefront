@@ -137,6 +137,7 @@ impl GizmoComponent for Source {
         highlight: bool,
         image_rect: &Rect,
         _delta_l: f32,
+        _text_color: Color32,
     ) {
         match tool_type {
             ToolType::PlaceSource | ToolType::MoveSource => {

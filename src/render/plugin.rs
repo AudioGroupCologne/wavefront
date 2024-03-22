@@ -2,7 +2,8 @@ use bevy::prelude::*;
 use bevy_pixel_buffer::builder::PixelBufferBuilder;
 use bevy_pixel_buffer::pixel_buffer::PixelBufferSize;
 
-use super::draw::{draw_overlays, draw_pixels, Gradient};
+use super::draw::{draw_overlays, draw_pixels};
+use super::gradient::Gradient;
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::math::constants::*;

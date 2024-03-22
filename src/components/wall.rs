@@ -313,6 +313,7 @@ impl GizmoComponent for RectWall {
         highlight: bool,
         image_rect: &Rect,
         delta_l: f32,
+        text_color: Color32,
     ) {
         match tool_type {
             ToolType::ResizeWall => {
@@ -577,19 +578,19 @@ impl CircWall {
         }
     }
 
-    fn draw_scale_text(&self, painter: &egui::Painter, image_rect: &Rect, delta_l: f32) {
+    fn draw_scale_text(
+        &self,
+        painter: &egui::Painter,
+        image_rect: &Rect,
+        delta_l: f32,
+        text_color: Color32,
+    ) {
         let galley = {
             let font_id = FontId::default();
             painter.layout_no_wrap(
                 format!("{:.3} m", self.radius as f32 * delta_l),
                 font_id,
-                if self.is_hollow {
-                    // possibly different hollow color
-                    // maybe use complementary color from gradient
-                    Color32::WHITE
-                } else {
-                    Color32::BLACK
-                },
+                text_color,
             )
         };
         let rect = Align2::CENTER_CENTER.anchor_size(
@@ -635,6 +636,7 @@ impl GizmoComponent for CircWall {
         highlight: bool,
         image_rect: &Rect,
         delta_l: f32,
+        text_color: Color32,
     ) {
         match tool_type {
             ToolType::ResizeWall | ToolType::MoveWall => {
@@ -645,10 +647,10 @@ impl GizmoComponent for CircWall {
                         Color32::LIGHT_RED,
                     )));
                 }
-                self.draw_scale_text(painter, image_rect, delta_l);
+                self.draw_scale_text(painter, image_rect, delta_l, text_color);
             }
             ToolType::DrawWall => {
-                self.draw_scale_text(painter, image_rect, delta_l);
+                self.draw_scale_text(painter, image_rect, delta_l, text_color);
             }
             _ => {}
         }
