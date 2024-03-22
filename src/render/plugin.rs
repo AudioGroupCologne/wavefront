@@ -12,12 +12,8 @@ pub struct RenderPlugin;
 
 impl Plugin for RenderPlugin {
     fn build(&self, app: &mut App) {
-        let game_ticks = GameTicks::default();
-
-        let gradient = Gradient::new();
-
-        app.insert_resource(gradient)
-            .insert_resource(game_ticks)
+        app.init_resource::<Gradient>()
+            .init_resource::<GameTicks>()
             .add_systems(
                 Startup,
                 (
