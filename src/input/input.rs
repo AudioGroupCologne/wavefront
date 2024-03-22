@@ -116,10 +116,7 @@ pub fn button_input(
                         commands.spawn(Source::new(
                             x,
                             y,
-                            10.,
-                            0.0,
-                            10_000.0,
-                            SourceType::Sin,
+                            SourceType::default(),
                             component_ids.get_new_source_id(),
                         ));
                     }

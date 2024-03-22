@@ -65,7 +65,10 @@ pub struct UiState {
 impl Default for UiState {
     fn default() -> Self {
         Self {
+            #[cfg(debug_assertions)]
             is_running: true,
+            #[cfg(not(debug_assertions))]
+            is_running: false,
             delta_l: 0.001,
             boundary_width: 50,
             render_abc_area: false,

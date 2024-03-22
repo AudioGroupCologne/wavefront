@@ -16,8 +16,6 @@ pub struct Microphone {
     pub id: usize,
     #[serde(skip_serializing, skip_deserializing)]
     pub record: Vec<[f64; 2]>,
-    #[serde(skip_serializing, skip_deserializing)]
-    pub spectrum: Vec<Vec<[f64; 2]>>,
 }
 
 impl Microphone {
@@ -27,7 +25,6 @@ impl Microphone {
             y,
             id,
             record: vec![[0., 0.]],
-            spectrum: vec![],
         }
     }
 
