@@ -14,9 +14,9 @@ impl Gradient {
     pub fn at(&self, percent: f32, contrast: f32) -> Color32 {
         let percent = percent * contrast;
         if percent >= 0. {
-            return self.upper(map_range(0., 5., 0., 1., percent));
+            self.upper(map_range(0., 5., 0., 1., percent))
         } else {
-            return self.lower(map_range(-5., 0., 0., 1., percent));
+            self.lower(map_range(-5., 0., 0., 1., percent))
         }
     }
 

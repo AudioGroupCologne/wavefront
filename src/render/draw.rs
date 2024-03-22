@@ -212,7 +212,7 @@ pub fn draw_overlays(
             ] {
                 if x >= 0 && x < SIMULATION_WIDTH as i32 && y >= 0 && y < SIMULATION_HEIGHT as i32 {
                     // angle in [0, 2pi)
-                    let mut angle = if (y as i32 - wall.center.y as i32) <= 0 {
+                    let mut angle = if (y - wall.center.y as i32) <= 0 {
                         ((x as f32 - wall.center.x as f32) / wall.radius as f32).acos()
                     } else {
                         TAU - ((x as f32 - wall.center.x as f32) / wall.radius as f32).acos()
