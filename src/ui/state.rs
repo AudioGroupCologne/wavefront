@@ -75,7 +75,7 @@ impl Default for UiState {
             power_order: 5,
             image_rect: egui::Rect::NOTHING,
             show_plots: false,
-            current_tool: ToolType::MoveSource,
+            current_tool: ToolType::PlaceSource,
             wall_reflection_factor: 1.,
             wall_type: WallType::Rectangle,
             wall_is_hollow: false,
