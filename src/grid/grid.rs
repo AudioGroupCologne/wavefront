@@ -138,6 +138,7 @@ impl Grid {
                     if wall.edge_contains(x, y) {
                         wall_cell.is_wall = true;
                         wall_cell.reflection_factor = wall.get_reflection_factor();
+                        wall_cell.draw_reflection_factor = wall.get_reflection_factor();
                     } else if wall.contains(x, y)
                         || wall.boundary_delete(
                             x + boundary_width,
@@ -147,6 +148,7 @@ impl Grid {
                     {
                         wall_cell.is_wall = true;
                         wall_cell.reflection_factor = 0.;
+                        wall_cell.draw_reflection_factor = wall.get_reflection_factor();
                     }
                 }
 
@@ -160,6 +162,7 @@ impl Grid {
                     {
                         wall_cell.is_wall = true;
                         wall_cell.reflection_factor = 0.;
+                        wall_cell.draw_reflection_factor = wall.get_reflection_factor();
                     }
                 }
             });
@@ -203,6 +206,8 @@ impl Grid {
                             let index = coords_to_index(x, y, boundary_width);
                             self.wall_cache[index].is_wall = true;
                             self.wall_cache[index].reflection_factor = wall.get_reflection_factor();
+                            self.wall_cache[index].draw_reflection_factor =
+                                wall.get_reflection_factor();
                         }
                     }
                 }

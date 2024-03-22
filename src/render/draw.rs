@@ -50,10 +50,7 @@ pub fn draw_pixels(
         }
 
         if grid.wall_cache[current_index].is_wall {
-            let mut reflection_factor = grid.wall_cache[current_index].reflection_factor;
-            if reflection_factor == 0. {
-                reflection_factor = 1.;
-            }
+            let reflection_factor = grid.wall_cache[current_index].draw_reflection_factor;
             return Pixel {
                 r: (reflection_factor * 255.) as u8,
                 g: (reflection_factor * 255.) as u8,

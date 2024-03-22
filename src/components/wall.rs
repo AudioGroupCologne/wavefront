@@ -15,6 +15,7 @@ use crate::ui::state::ToolType;
 pub struct WallCell {
     pub is_wall: bool,
     pub reflection_factor: f32,
+    pub draw_reflection_factor: f32,
 }
 
 #[derive(Component, PartialEq)]
