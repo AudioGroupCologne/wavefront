@@ -376,7 +376,7 @@ impl RectWall {
                 Pos2 {
                     x: self.get_center().x as f32,
                     // +2. for some padding
-                    y: self.get_center().y as f32 - self.rect.height() as f32 / 2. + 2.,
+                    y: self.rect.min.y as f32 + 2.,
                 },
                 image_rect,
             ),
@@ -392,10 +392,10 @@ impl RectWall {
                 Color32::BLACK,
             )
         };
-        let rect = Align2::CENTER_TOP.anchor_size(
+        let rect = Align2::LEFT_CENTER.anchor_size(
             grid_to_image(
                 Pos2 {
-                    x: self.get_center().x as f32 - self.rect.width() as f32 / 2. - 10.,
+                    x: self.rect.min.x as f32,
                     y: self.get_center().y as f32,
                 },
                 image_rect,
@@ -403,8 +403,15 @@ impl RectWall {
             galley.size(),
         );
         painter.add(
-            TextShape::new(rect.max, galley, Color32::BLACK)
-                .with_angle(-std::f32::consts::FRAC_PI_2),
+            TextShape::new(
+                Pos2 {
+                    x: rect.min.x + 2.,
+                    y: rect.center().y as f32 + rect.width() / 2.,
+                },
+                galley,
+                Color32::BLACK,
+            )
+            .with_angle(-std::f32::consts::FRAC_PI_2),
         );
     }
 }
