@@ -31,7 +31,7 @@ impl Gradient {
 
 impl Default for Gradient {
     fn default() -> Self {
-        Self(Color32::WHITE, Color32::BLACK)
+        Self(Color32::BLACK, Color32::WHITE)
     }
 }
 
