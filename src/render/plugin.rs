@@ -18,7 +18,9 @@ impl Plugin for RenderPlugin {
                 Startup,
                 (
                     setup_buffers,
+                    #[cfg(debug_assertions)]
                     Source::spawn_initial_sources,
+                    #[cfg(debug_assertions)]
                     Microphone::spawn_initial_microphones,
                 ),
             )

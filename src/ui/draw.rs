@@ -270,47 +270,100 @@ pub fn draw_egui(
                                     reset_ev.send(Reset);
                                 }
                             });
-                            if source.source_type != SourceType::WhiteNoise
-                                && ui
-                                    .add(
-                                        egui::Slider::new(&mut source.frequency, 0.0..=20000.0)
-                                            .text("Frequency (Hz)"),
-                                    )
-                                    .changed()
-                            {
-                                reset_ev.send(Reset);
-                            }
-                            ui.add(
-                                egui::Slider::new(&mut source.amplitude, 0.0..=25.0)
-                                    .text("Amplitude"),
-                            );
-                            if source.source_type == SourceType::Sin
-                                && ui
-                                    .add(
-                                        egui::Slider::new(&mut source.phase, 0.0..=360.0)
-                                            .text("Phase (°)"),
-                                    )
-                                    .changed()
-                            {
-                                reset_ev.send(Reset);
-                            }
 
+                            match &mut source.source_type {
+                                SourceType::Sin {
+                                    phase,
+                                    frequency,
+                                    amplitude,
+                                } => {
+                                    if ui
+                                        .add(
+                                            egui::Slider::new(frequency, 0.0..=20000.0)
+                                                .text("Frequency (Hz)"),
+                                        )
+                                        .changed()
+                                    {
+                                        reset_ev.send(Reset);
+                                    }
+                                    if ui
+                                        .add(
+                                            egui::Slider::new(amplitude, 0.0..=25.0)
+                                                .text("Amplitude"),
+                                        )
+                                        .changed()
+                                    {
+                                        reset_ev.send(Reset);
+                                    }
+                                    if ui
+                                        .add(
+                                            egui::Slider::new(phase, 0.0..=360.0).text("Phase (°)"),
+                                        )
+                                        .changed()
+                                    {
+                                        reset_ev.send(Reset);
+                                    }
+                                }
+                                SourceType::Gauss {
+                                    phase,
+                                    frequency,
+                                    amplitude,
+                                } => {
+                                    if ui
+                                        .add(
+                                            egui::Slider::new(frequency, 0.0..=20000.0)
+                                                .text("Frequency (Hz)"),
+                                        )
+                                        .changed()
+                                    {
+                                        reset_ev.send(Reset);
+                                    }
+                                    if ui
+                                        .add(
+                                            egui::Slider::new(amplitude, 0.0..=25.0)
+                                                .text("Amplitude"),
+                                        )
+                                        .changed()
+                                    {
+                                        reset_ev.send(Reset);
+                                    }
+                                    if ui
+                                        .add(
+                                            egui::Slider::new(phase, 0.0..=360.0).text("Phase (°)"),
+                                        )
+                                        .changed()
+                                    {
+                                        reset_ev.send(Reset);
+                                    }
+                                }
+                                SourceType::WhiteNoise { amplitude } => {
+                                    if ui
+                                        .add(
+                                            egui::Slider::new(amplitude, 0.0..=25.0)
+                                                .text("Amplitude"),
+                                        )
+                                        .changed()
+                                    {
+                                        reset_ev.send(Reset);
+                                    }
+                                }
+                            }
                             egui::ComboBox::from_label("Waveform")
                                 .selected_text(format!("{}", source.source_type))
                                 .show_ui(ui, |ui| {
                                     ui.selectable_value(
                                         &mut source.source_type,
-                                        SourceType::Sin,
+                                        SourceType::default_sin(),
                                         "Sinus",
                                     );
                                     ui.selectable_value(
                                         &mut source.source_type,
-                                        SourceType::Gauss,
+                                        SourceType::default_gauss(),
                                         "Gauss",
                                     );
                                     ui.selectable_value(
                                         &mut source.source_type,
-                                        SourceType::WhiteNoise,
+                                        SourceType::default_noise(),
                                         "White Noise",
                                     );
                                 });
