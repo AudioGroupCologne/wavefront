@@ -191,6 +191,7 @@ pub fn draw_egui(
                                         let color =
                                             gradient.at(pressure, ui_state.gradient_contrast);
 
+                                        // gamma correction to match the brightness/contrast of the simulation
                                         pixels.push(
                                             ((color.r() as f32 / 255.).powf(1. / 2.2) * 255.) as u8,
                                         );
