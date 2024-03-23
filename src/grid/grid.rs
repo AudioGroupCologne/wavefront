@@ -25,6 +25,7 @@ pub struct Grid {
     pub next_cells: Vec<Cell>,
     pub pressure: Vec<f32>,
     pub wall_cache: Vec<WallCell>,
+    boundary_cache: Vec<[f32; 4]>,
     /// Delta s in seconds
     pub delta_t: f32,
 }
@@ -52,6 +53,12 @@ impl Default for Grid {
             ],
             wall_cache: vec![
                 WallCell::default();
+                ((SIMULATION_WIDTH + 2 * INIT_BOUNDARY_WIDTH)
+                    * (SIMULATION_HEIGHT + 2 * INIT_BOUNDARY_WIDTH))
+                    as usize
+            ],
+            boundary_cache: vec![
+                [0_f32; 4];
                 ((SIMULATION_WIDTH + 2 * INIT_BOUNDARY_WIDTH)
                     * (SIMULATION_HEIGHT + 2 * INIT_BOUNDARY_WIDTH))
                     as usize
@@ -269,100 +276,26 @@ impl Grid {
                     } else {
                         // this pixels is in the boundary
 
-                        // decide which radius to use
-                        let radius = if x < boundary_width {
-                            x
-                        } else if x >= SIMULATION_WIDTH + boundary_width {
-                            SIMULATION_WIDTH + 2 * boundary_width - x
-                        } else if y < boundary_width {
-                            y
-                        } else {
-                            SIMULATION_HEIGHT + 2 * boundary_width - y
-                        };
+                        let factors = self.boundary_cache[index];
 
-                        // this might now actually be worth precomputing (fixed power) (once_cell or phf?)
-                        let attenuation_factor =
-                            Grid::attenuation_factor(boundary_width, 5, boundary_width - radius);
-
-                        // decide on which side the pixel is
-                        if x < boundary_width {
-                            // left
-                            next_cell.bottom = 0.5
-                                * (-bottom_cell.top
-                                    + left_cell.right
-                                    + top_cell.bottom
-                                    + attenuation_factor * right_cell.left);
-                            next_cell.left = 0.5
-                                * (bottom_cell.top - left_cell.right
-                                    + top_cell.bottom
-                                    + attenuation_factor * right_cell.left);
-                            next_cell.top = 0.5
-                                * (bottom_cell.top + left_cell.right - top_cell.bottom
-                                    + attenuation_factor * right_cell.left);
-                            next_cell.right = 0.5
-                                * (bottom_cell.top + left_cell.right + top_cell.bottom
-                                    - attenuation_factor * right_cell.left);
-                        } else if x >= SIMULATION_WIDTH + boundary_width {
-                            // right
-                            next_cell.bottom = 0.5
-                                * (-bottom_cell.top
-                                    + attenuation_factor * left_cell.right
-                                    + top_cell.bottom
-                                    + right_cell.left);
-                            next_cell.left = 0.5
-                                * (bottom_cell.top - attenuation_factor * left_cell.right
-                                    + top_cell.bottom
-                                    + right_cell.left);
-                            next_cell.top = 0.5
-                                * (bottom_cell.top + attenuation_factor * left_cell.right
-                                    - top_cell.bottom
-                                    + right_cell.left);
-                            next_cell.right = 0.5
-                                * (bottom_cell.top
-                                    + attenuation_factor * left_cell.right
-                                    + top_cell.bottom
-                                    - right_cell.left);
-                        } else if y < boundary_width {
-                            // top
-                            next_cell.bottom = 0.5
-                                * (attenuation_factor * -bottom_cell.top
-                                    + left_cell.right
-                                    + top_cell.bottom
-                                    + right_cell.left);
-                            next_cell.left = 0.5
-                                * (attenuation_factor * bottom_cell.top - left_cell.right
-                                    + top_cell.bottom
-                                    + right_cell.left);
-                            next_cell.top = 0.5
-                                * (attenuation_factor * bottom_cell.top + left_cell.right
-                                    - top_cell.bottom
-                                    + right_cell.left);
-                            next_cell.right = 0.5
-                                * (attenuation_factor * bottom_cell.top
-                                    + left_cell.right
-                                    + top_cell.bottom
-                                    - right_cell.left);
-                        } else {
-                            // bottom
-                            next_cell.bottom = 0.5
-                                * (-bottom_cell.top
-                                    + left_cell.right
-                                    + attenuation_factor * top_cell.bottom
-                                    + right_cell.left);
-                            next_cell.left = 0.5
-                                * (bottom_cell.top - left_cell.right
-                                    + attenuation_factor * top_cell.bottom
-                                    + right_cell.left);
-                            next_cell.top = 0.5
-                                * (bottom_cell.top + left_cell.right
-                                    - attenuation_factor * top_cell.bottom
-                                    + right_cell.left);
-                            next_cell.right = 0.5
-                                * (bottom_cell.top
-                                    + left_cell.right
-                                    + attenuation_factor * top_cell.bottom
-                                    - right_cell.left);
-                        }
+                        next_cell.bottom = 0.5
+                            * (-factors[0] * bottom_cell.top
+                                + factors[1] * left_cell.right
+                                + factors[2] * top_cell.bottom
+                                + factors[3] * right_cell.left);
+                        next_cell.left = 0.5
+                            * (factors[0] * bottom_cell.top - factors[1] * left_cell.right
+                                + factors[2] * top_cell.bottom
+                                + factors[3] * right_cell.left);
+                        next_cell.top = 0.5
+                            * (factors[0] * bottom_cell.top + factors[1] * left_cell.right
+                                - factors[2] * top_cell.bottom
+                                + factors[3] * right_cell.left);
+                        next_cell.right = 0.5
+                            * (factors[0] * bottom_cell.top
+                                + factors[1] * left_cell.right
+                                + factors[2] * top_cell.bottom
+                                - factors[3] * right_cell.left);
                     }
                 }
             });
@@ -408,7 +341,12 @@ impl Grid {
         }
     }
 
-    pub fn apply_boundaries(&mut self, boundary_width: u32) {
+    pub fn cache_boundaries(&mut self, boundary_width: u32) {
+        self.boundary_cache = vec![
+            [0_f32; 4];
+            ((SIMULATION_WIDTH + 2 * boundary_width) * (SIMULATION_HEIGHT + 2 * boundary_width))
+                as usize
+        ];
         // going in 'rings' from outer to inner
         // every ring shares an attenuation factor
         for r in 1..boundary_width {
@@ -421,101 +359,37 @@ impl Grid {
             for x in r..(SIMULATION_WIDTH + 2 * boundary_width - r) {
                 let y = SIMULATION_HEIGHT + 2 * boundary_width - r - 1;
                 let current_cell_index = coords_to_index(x, y, boundary_width);
-                let bottom_cell = self.cur_cells[coords_to_index(x, y + 1, boundary_width)];
-                let left_cell = self.cur_cells[coords_to_index(x - 1, y, boundary_width)];
-                let top_cell = self.cur_cells[coords_to_index(x, y - 1, boundary_width)];
-                let right_cell = self.cur_cells[coords_to_index(x + 1, y, boundary_width)];
 
-                self.next_cells[current_cell_index].bottom = 0.5
-                    * (-bottom_cell.top
-                        + left_cell.right
-                        + attenuation_factor * top_cell.bottom
-                        + right_cell.left);
-                self.next_cells[current_cell_index].left = 0.5
-                    * (bottom_cell.top - left_cell.right
-                        + attenuation_factor * top_cell.bottom
-                        + right_cell.left);
-                self.next_cells[current_cell_index].top = 0.5
-                    * (bottom_cell.top + left_cell.right - attenuation_factor * top_cell.bottom
-                        + right_cell.left);
-                self.next_cells[current_cell_index].right = 0.5
-                    * (bottom_cell.top + left_cell.right + attenuation_factor * top_cell.bottom
-                        - right_cell.left);
+                self.boundary_cache[current_cell_index] = [1., 1., attenuation_factor, 1.];
+
+                // [1., 1., at, 1.]
             }
             // left
             for y in r..(SIMULATION_HEIGHT + 2 * boundary_width - r) {
                 let x = r;
                 let current_cell_index = coords_to_index(x, y, boundary_width);
-                let bottom_cell = self.cur_cells[coords_to_index(x, y + 1, boundary_width)];
-                let left_cell = self.cur_cells[coords_to_index(x - 1, y, boundary_width)];
-                let top_cell = self.cur_cells[coords_to_index(x, y - 1, boundary_width)];
-                let right_cell = self.cur_cells[coords_to_index(x + 1, y, boundary_width)];
 
-                self.next_cells[current_cell_index].bottom = 0.5
-                    * (-bottom_cell.top
-                        + left_cell.right
-                        + top_cell.bottom
-                        + attenuation_factor * right_cell.left);
-                self.next_cells[current_cell_index].left = 0.5
-                    * (bottom_cell.top - left_cell.right
-                        + top_cell.bottom
-                        + attenuation_factor * right_cell.left);
-                self.next_cells[current_cell_index].top = 0.5
-                    * (bottom_cell.top + left_cell.right - top_cell.bottom
-                        + attenuation_factor * right_cell.left);
-                self.next_cells[current_cell_index].right = 0.5
-                    * (bottom_cell.top + left_cell.right + top_cell.bottom
-                        - attenuation_factor * right_cell.left);
+                self.boundary_cache[current_cell_index] = [1., 1., 1., attenuation_factor];
+
+                // [1., 1., 1., at]
             }
             // top
             for x in r..(SIMULATION_WIDTH + 2 * boundary_width - r) {
                 let y = r;
                 let current_cell_index = coords_to_index(x, y, boundary_width);
-                let bottom_cell = self.cur_cells[coords_to_index(x, y + 1, boundary_width)];
-                let left_cell = self.cur_cells[coords_to_index(x - 1, y, boundary_width)];
-                let top_cell = self.cur_cells[coords_to_index(x, y - 1, boundary_width)];
-                let right_cell = self.cur_cells[coords_to_index(x + 1, y, boundary_width)];
 
-                self.next_cells[current_cell_index].bottom = 0.5
-                    * (attenuation_factor * -bottom_cell.top
-                        + left_cell.right
-                        + top_cell.bottom
-                        + right_cell.left);
-                self.next_cells[current_cell_index].left = 0.5
-                    * (attenuation_factor * bottom_cell.top - left_cell.right
-                        + top_cell.bottom
-                        + right_cell.left);
-                self.next_cells[current_cell_index].top = 0.5
-                    * (attenuation_factor * bottom_cell.top + left_cell.right - top_cell.bottom
-                        + right_cell.left);
-                self.next_cells[current_cell_index].right = 0.5
-                    * (attenuation_factor * bottom_cell.top + left_cell.right + top_cell.bottom
-                        - right_cell.left);
+                self.boundary_cache[current_cell_index] = [attenuation_factor, 1., 1., 1.];
+
+                // [at, 1., 1., 1.]
             }
             // right
             for y in r..(SIMULATION_HEIGHT + 2 * boundary_width - r) {
                 let x = SIMULATION_WIDTH + 2 * boundary_width - r - 1;
                 let current_cell_index = coords_to_index(x, y, boundary_width);
-                let bottom_cell = self.cur_cells[coords_to_index(x, y + 1, boundary_width)];
-                let left_cell = self.cur_cells[coords_to_index(x - 1, y, boundary_width)];
-                let top_cell = self.cur_cells[coords_to_index(x, y - 1, boundary_width)];
-                let right_cell = self.cur_cells[coords_to_index(x + 1, y, boundary_width)];
 
-                self.next_cells[current_cell_index].bottom = 0.5
-                    * (-bottom_cell.top
-                        + attenuation_factor * left_cell.right
-                        + top_cell.bottom
-                        + right_cell.left);
-                self.next_cells[current_cell_index].left = 0.5
-                    * (bottom_cell.top - attenuation_factor * left_cell.right
-                        + top_cell.bottom
-                        + right_cell.left);
-                self.next_cells[current_cell_index].top = 0.5
-                    * (bottom_cell.top + attenuation_factor * left_cell.right - top_cell.bottom
-                        + right_cell.left);
-                self.next_cells[current_cell_index].right = 0.5
-                    * (bottom_cell.top + attenuation_factor * left_cell.right + top_cell.bottom
-                        - right_cell.left);
+                self.boundary_cache[current_cell_index] = [1., attenuation_factor, 1., 1.];
+
+                // [1., at, 1., 1.]
             }
         }
     }

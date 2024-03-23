@@ -796,6 +796,7 @@ pub fn draw_egui(
                     {
                         grid.reset_cells(ui_state.boundary_width);
                         grid.reset_walls(ui_state.boundary_width);
+                        grid.cache_boundaries(ui_state.boundary_width);
                         let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
                         pb.pixel_buffer.size = PixelBufferSize {
                             size: if ui_state.render_abc_area {

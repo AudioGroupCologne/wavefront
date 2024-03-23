@@ -4,12 +4,16 @@ use bevy::ecs::system::Resource;
 
 use super::grid::Grid;
 use super::systems::{apply_system, calc_system, update_system};
+use crate::math::constants::INIT_BOUNDARY_WIDTH;
 
 pub struct GridPlugin;
 
 impl Plugin for GridPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<Grid>()
+        let mut grid = Grid::default();
+        grid.cache_boundaries(INIT_BOUNDARY_WIDTH);
+
+        app.insert_resource(grid)
             .init_resource::<ComponentIDs>()
             .add_systems(Update, (calc_system, apply_system, update_system).chain());
     }
