@@ -17,16 +17,16 @@ impl Plugin for GridPlugin {
 
         app.insert_resource(grid)
             .init_resource::<ComponentIDs>()
-            .add_systems(
-                Startup,
-                (
-                    #[cfg(debug_assertions)]
-                    Source::spawn_initial_sources,
-                    #[cfg(debug_assertions)]
-                    Microphone::spawn_initial_microphones,
-                ),
-            )
             .add_systems(Update, (calc_system, apply_system, update_system).chain());
+
+        #[cfg(debug_assertions)]
+        app.add_systems(
+            Startup,
+            (
+                Source::spawn_initial_sources,
+                Microphone::spawn_initial_microphones,
+            ),
+        );
     }
 }
 
