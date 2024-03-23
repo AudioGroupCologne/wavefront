@@ -314,7 +314,7 @@ impl GizmoComponent for RectWall {
         highlight: bool,
         image_rect: &Rect,
         delta_l: f32,
-        _text_color: Color32,
+        text_color: Color32,
     ) {
         match tool_type {
             ToolType::ResizeWall => {
@@ -326,7 +326,7 @@ impl GizmoComponent for RectWall {
                     )));
                 }
 
-                self.draw_scale_text(painter, image_rect, delta_l);
+                self.draw_scale_text(painter, image_rect, delta_l, text_color);
             }
             ToolType::MoveWall => {
                 for pos in self.get_gizmo_positions(tool_type) {
@@ -338,7 +338,7 @@ impl GizmoComponent for RectWall {
                 }
             }
             ToolType::DrawWall => {
-                self.draw_scale_text(painter, image_rect, delta_l);
+                self.draw_scale_text(painter, image_rect, delta_l, text_color);
             }
             _ => {}
         }
@@ -364,13 +364,19 @@ impl RectWall {
         }
     }
 
-    fn draw_scale_text(&self, painter: &egui::Painter, image_rect: &Rect, delta_l: f32) {
+    fn draw_scale_text(
+        &self,
+        painter: &egui::Painter,
+        image_rect: &Rect,
+        delta_l: f32,
+        text_color: Color32,
+    ) {
         let galley = {
             let font_id = FontId::default();
             painter.layout_no_wrap(
                 format!("{:.3} m", self.rect.width() as f32 * delta_l),
                 font_id,
-                Color32::BLACK,
+                text_color,
             )
         };
         let rect = Align2::CENTER_TOP.anchor_size(
@@ -391,7 +397,7 @@ impl RectWall {
             painter.layout_no_wrap(
                 format!("{:.3} m", self.rect.height() as f32 * delta_l),
                 font_id,
-                Color32::BLACK,
+                text_color,
             )
         };
         let rect = Align2::LEFT_CENTER.anchor_size(

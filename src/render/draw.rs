@@ -220,7 +220,9 @@ pub fn draw_overlays(
 
                     angle = (angle + wall.rotation_angle) % TAU;
 
-                    if angle >= wall.open_circ_segment && angle <= TAU - wall.open_circ_segment {
+                    if angle >= wall.open_circ_segment && angle <= TAU - wall.open_circ_segment
+                        || !wall.is_hollow
+                    {
                         let index = x as u32 + y as u32 * SIMULATION_WIDTH;
                         let r = raw_pixles[index as usize].r;
                         let g = raw_pixles[index as usize].g;

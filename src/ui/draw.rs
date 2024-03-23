@@ -631,32 +631,34 @@ pub fn draw_egui(
                                 ));
                             });
 
-                            if ui
-                                .add(
-                                    egui::Slider::new(
-                                        &mut wall.open_circ_segment,
-                                        0f32..=180f32.to_radians(),
+                            if wall.is_hollow {
+                                if ui
+                                    .add(
+                                        egui::Slider::new(
+                                            &mut wall.open_circ_segment,
+                                            0f32..=180f32.to_radians(),
+                                        )
+                                        .text("Open Circle Arc"),
                                     )
-                                    .text("Open Circle Arc"),
-                                )
-                                .changed()
-                            {
-                                commands.entity(*entity).try_insert(WResize::Menu);
-                                reset_ev.send(Reset);
-                            }
+                                    .changed()
+                                {
+                                    commands.entity(*entity).try_insert(WResize::Menu);
+                                    reset_ev.send(Reset);
+                                }
 
-                            if ui
-                                .add(
-                                    egui::Slider::new(
-                                        &mut wall.rotation_angle,
-                                        0f32..=360f32.to_radians(),
+                                if ui
+                                    .add(
+                                        egui::Slider::new(
+                                            &mut wall.rotation_angle,
+                                            0f32..=360f32.to_radians(),
+                                        )
+                                        .text("Rotation Angle"),
                                     )
-                                    .text("Rotation Angle"),
-                                )
-                                .changed()
-                            {
-                                commands.entity(*entity).try_insert(WResize::Menu);
-                                reset_ev.send(Reset);
+                                    .changed()
+                                {
+                                    commands.entity(*entity).try_insert(WResize::Menu);
+                                    reset_ev.send(Reset);
+                                }
                             }
 
                             if ui
@@ -785,32 +787,30 @@ pub fn draw_egui(
                         pixel_size: UVec2::new(1, 1),
                     };
                 }
-                ui.collapsing("ABC", |ui| {
-                    ui.set_enabled(ui_state.render_abc_area);
-                    if ui
-                        .add(
-                            egui::Slider::new(&mut ui_state.boundary_width, 2..=200)
-                                .text("boundary_width"),
-                        )
-                        .changed()
-                    {
-                        grid.reset_cells(ui_state.boundary_width);
-                        grid.reset_walls(ui_state.boundary_width);
-                        grid.cache_boundaries(ui_state.boundary_width);
-                        let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
-                        pb.pixel_buffer.size = PixelBufferSize {
-                            size: if ui_state.render_abc_area {
-                                UVec2::new(
-                                    SIMULATION_WIDTH + 2 * ui_state.boundary_width,
-                                    SIMULATION_HEIGHT + 2 * ui_state.boundary_width,
-                                )
-                            } else {
-                                UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
-                            },
-                            pixel_size: UVec2::new(1, 1),
-                        };
-                    }
-                });
+
+                if ui
+                    .add(
+                        egui::Slider::new(&mut ui_state.boundary_width, 2..=200)
+                            .text("Boundary Width"),
+                    )
+                    .changed()
+                {
+                    grid.reset_cells(ui_state.boundary_width);
+                    grid.reset_walls(ui_state.boundary_width);
+                    grid.cache_boundaries(ui_state.boundary_width);
+                    let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
+                    pb.pixel_buffer.size = PixelBufferSize {
+                        size: if ui_state.render_abc_area {
+                            UVec2::new(
+                                SIMULATION_WIDTH + 2 * ui_state.boundary_width,
+                                SIMULATION_HEIGHT + 2 * ui_state.boundary_width,
+                            )
+                        } else {
+                            UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
+                        },
+                        pixel_size: UVec2::new(1, 1),
+                    };
+                }
 
                 ui.add_space(10.);
             });

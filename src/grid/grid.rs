@@ -208,7 +208,9 @@ impl Grid {
 
                         angle = (angle + wall.rotation_angle) % TAU;
 
-                        if angle >= wall.open_circ_segment && angle <= TAU - wall.open_circ_segment
+                        if (angle >= wall.open_circ_segment
+                            && angle <= TAU - wall.open_circ_segment)
+                            || !wall.is_hollow
                         {
                             let index = coords_to_index(x, y, boundary_width);
                             self.wall_cache[index].is_wall = true;
@@ -277,6 +279,8 @@ impl Grid {
                         // this pixels is in the boundary
 
                         let factors = self.boundary_cache[index];
+
+                        //TODO: Maybe better encoding for at_factors (lookup table, index pos?)
 
                         next_cell.bottom = 0.5
                             * (-factors[0] * bottom_cell.top
