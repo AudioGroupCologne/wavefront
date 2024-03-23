@@ -4,8 +4,6 @@ use bevy_pixel_buffer::pixel_buffer::PixelBufferSize;
 
 use super::draw::{draw_overlays, draw_pixels};
 use super::gradient::Gradient;
-use crate::components::microphone::Microphone;
-use crate::components::source::Source;
 use crate::math::constants::*;
 use crate::ui::state::GameTicks;
 
@@ -15,16 +13,7 @@ impl Plugin for RenderPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Gradient>()
             .init_resource::<GameTicks>()
-            .add_systems(
-                Startup,
-                (
-                    setup_buffers,
-                    #[cfg(debug_assertions)]
-                    Source::spawn_initial_sources,
-                    #[cfg(debug_assertions)]
-                    Microphone::spawn_initial_microphones,
-                ),
-            )
+            .add_systems(Startup, (setup_buffers,))
             .add_systems(Update, (draw_pixels, draw_overlays).chain());
     }
 }
