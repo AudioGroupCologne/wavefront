@@ -266,6 +266,103 @@ impl Grid {
                         next_cell.right = 0.5
                             * (bottom_cell.top + left_cell.right + top_cell.bottom
                                 - right_cell.left);
+                    } else {
+                        // this pixels is in the boundary
+
+                        // decide which radius to use
+                        let radius = if x < boundary_width {
+                            x
+                        } else if x >= SIMULATION_WIDTH + boundary_width {
+                            SIMULATION_WIDTH + 2 * boundary_width - x
+                        } else if y < boundary_width {
+                            y
+                        } else {
+                            SIMULATION_HEIGHT + 2 * boundary_width - y
+                        };
+
+                        // this might now actually be worth precomputing (fixed power) (once_cell or phf?)
+                        let attenuation_factor =
+                            Grid::attenuation_factor(boundary_width, 5, boundary_width - radius);
+
+                        // decide on which side the pixel is
+                        if x < boundary_width {
+                            // left
+                            next_cell.bottom = 0.5
+                                * (-bottom_cell.top
+                                    + left_cell.right
+                                    + top_cell.bottom
+                                    + attenuation_factor * right_cell.left);
+                            next_cell.left = 0.5
+                                * (bottom_cell.top - left_cell.right
+                                    + top_cell.bottom
+                                    + attenuation_factor * right_cell.left);
+                            next_cell.top = 0.5
+                                * (bottom_cell.top + left_cell.right - top_cell.bottom
+                                    + attenuation_factor * right_cell.left);
+                            next_cell.right = 0.5
+                                * (bottom_cell.top + left_cell.right + top_cell.bottom
+                                    - attenuation_factor * right_cell.left);
+                        } else if x >= SIMULATION_WIDTH + boundary_width {
+                            // right
+                            next_cell.bottom = 0.5
+                                * (-bottom_cell.top
+                                    + attenuation_factor * left_cell.right
+                                    + top_cell.bottom
+                                    + right_cell.left);
+                            next_cell.left = 0.5
+                                * (bottom_cell.top - attenuation_factor * left_cell.right
+                                    + top_cell.bottom
+                                    + right_cell.left);
+                            next_cell.top = 0.5
+                                * (bottom_cell.top + attenuation_factor * left_cell.right
+                                    - top_cell.bottom
+                                    + right_cell.left);
+                            next_cell.right = 0.5
+                                * (bottom_cell.top
+                                    + attenuation_factor * left_cell.right
+                                    + top_cell.bottom
+                                    - right_cell.left);
+                        } else if y < boundary_width {
+                            // top
+                            next_cell.bottom = 0.5
+                                * (attenuation_factor * -bottom_cell.top
+                                    + left_cell.right
+                                    + top_cell.bottom
+                                    + right_cell.left);
+                            next_cell.left = 0.5
+                                * (attenuation_factor * bottom_cell.top - left_cell.right
+                                    + top_cell.bottom
+                                    + right_cell.left);
+                            next_cell.top = 0.5
+                                * (attenuation_factor * bottom_cell.top + left_cell.right
+                                    - top_cell.bottom
+                                    + right_cell.left);
+                            next_cell.right = 0.5
+                                * (attenuation_factor * bottom_cell.top
+                                    + left_cell.right
+                                    + top_cell.bottom
+                                    - right_cell.left);
+                        } else {
+                            // bottom
+                            next_cell.bottom = 0.5
+                                * (-bottom_cell.top
+                                    + left_cell.right
+                                    + attenuation_factor * top_cell.bottom
+                                    + right_cell.left);
+                            next_cell.left = 0.5
+                                * (bottom_cell.top - left_cell.right
+                                    + attenuation_factor * top_cell.bottom
+                                    + right_cell.left);
+                            next_cell.top = 0.5
+                                * (bottom_cell.top + left_cell.right
+                                    - attenuation_factor * top_cell.bottom
+                                    + right_cell.left);
+                            next_cell.right = 0.5
+                                * (bottom_cell.top
+                                    + left_cell.right
+                                    + attenuation_factor * top_cell.bottom
+                                    - right_cell.left);
+                        }
                     }
                 }
             });
@@ -311,14 +408,14 @@ impl Grid {
         }
     }
 
-    pub fn apply_boundaries(&mut self, boundary_width: u32, power_order: u32) {
+    pub fn apply_boundaries(&mut self, boundary_width: u32) {
         // going in 'rings' from outer to inner
         // every ring shares an attenuation factor
         for r in 1..boundary_width {
             // there was a '?' in front of ui_state, that's not needed right?
             // also distance could be just r -> need to redo att_fac calcs
             let attenuation_factor =
-                Grid::attenuation_factor(boundary_width, power_order, boundary_width - r);
+                Grid::attenuation_factor(boundary_width, 5, boundary_width - r);
 
             // bottom
             for x in r..(SIMULATION_WIDTH + 2 * boundary_width - r) {
