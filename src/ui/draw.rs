@@ -862,7 +862,17 @@ pub fn draw_egui(
         egui::TopBottomPanel::bottom("dsad")
             .resizable(true)
             .default_height(400.)
-            .max_height(700.)
+            .max_height(ctx.screen_rect().height() / 2.)
+            .frame(
+                Frame::default()
+                    .inner_margin(Margin {
+                        left: -1.,
+                        right: 0.,
+                        top: 0.,
+                        bottom: 0.,
+                    })
+                    .fill(Color32::from_rgb(25, 25, 25)),
+            )
             .show(ctx, |ui| {
                 let mut binding = mic_set.p3();
                 let mics = binding.iter_mut().collect::<Vec<_>>();
