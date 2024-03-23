@@ -863,23 +863,24 @@ pub fn draw_egui(
             .resizable(true)
             .default_height(400.)
             .max_height(ctx.screen_rect().height() / 2.)
-            .frame(
-                Frame::default()
-                    .inner_margin(Margin {
-                        left: -1.,
-                        right: 0.,
-                        top: 0.,
-                        bottom: 0.,
-                    })
-                    .fill(Color32::from_rgb(25, 25, 25)),
-            )
+            .frame(Frame::default().inner_margin(Margin {
+                left: -1.,
+                right: 0.,
+                top: 0.,
+                bottom: 0.,
+            }))
             .show(ctx, |ui| {
                 let mut binding = mic_set.p3();
                 let mics = binding.iter_mut().collect::<Vec<_>>();
                 let mut pb = pixel_buffers.iter_mut().nth(1).expect("two pixel buffers");
+
+                let mut style = egui_dock::Style::from_egui(ui.style());
+                style.tab_bar.bg_fill = Color32::from_rgb(27, 27, 27);
+
                 egui_dock::DockArea::new(&mut dock_state.tree)
                     .allowed_splits(egui_dock::AllowedSplits::None)
                     .draggable_tabs(false)
+                    .style(style)
                     .show_inside(
                         ui,
                         &mut PlotTabs {
