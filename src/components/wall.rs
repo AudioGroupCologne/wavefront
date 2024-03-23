@@ -314,7 +314,7 @@ impl GizmoComponent for RectWall {
         highlight: bool,
         image_rect: &Rect,
         delta_l: f32,
-        text_color: Color32,
+        _text_color: Color32,
     ) {
         match tool_type {
             ToolType::ResizeWall => {

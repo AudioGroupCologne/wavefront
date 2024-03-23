@@ -752,7 +752,7 @@ pub fn draw_egui(
                 });
 
                 ui.add(
-                    egui::Slider::new(&mut ui_state.gradient_contrast, 0.0..=50.0)
+                    egui::Slider::new(&mut ui_state.gradient_contrast, 0.0..=10.0)
                         .text("Gradient Contrast"),
                 );
 
