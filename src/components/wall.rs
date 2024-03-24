@@ -645,7 +645,7 @@ impl GizmoComponent for CircWall {
         text_color: Color32,
     ) {
         match tool_type {
-            ToolType::ResizeWall | ToolType::MoveWall => {
+            ToolType::ResizeWall => {
                 for pos in self.get_gizmo_positions(tool_type) {
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         grid_to_image(pos, image_rect),
@@ -654,6 +654,15 @@ impl GizmoComponent for CircWall {
                     )));
                 }
                 self.draw_scale_text(painter, image_rect, delta_l, text_color);
+            }
+            ToolType::MoveWall => {
+                for pos in self.get_gizmo_positions(tool_type) {
+                    painter.add(egui::Shape::Circle(CircleShape::filled(
+                        grid_to_image(pos, image_rect),
+                        if highlight { 10. } else { 5. },
+                        Color32::LIGHT_RED,
+                    )));
+                }
             }
             ToolType::DrawWall => {
                 self.draw_scale_text(painter, image_rect, delta_l, text_color);
