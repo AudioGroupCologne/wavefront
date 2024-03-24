@@ -58,6 +58,9 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                     // .allow_scroll(false)
                     .x_axis_label("Time (s)")
                     .y_axis_label("Amplitude")
+                    .label_formatter(|_, value| {
+                        format!("Amplitude: {:.2}\nTime: {:.4} s", value.y, value.x)
+                    })
                     .legend(egui_plot::Legend::default())
                     .show(ui, |plot_ui| {
                         // TODO: allocation here is not very nice
