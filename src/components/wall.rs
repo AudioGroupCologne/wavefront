@@ -2,7 +2,8 @@ use std::cmp::Ordering;
 
 use bevy::prelude::*;
 use egui::epaint::{CircleShape, TextShape};
-use egui::{Align2, Color32, FontId, Pos2, Rect};
+use egui::text::LayoutJob;
+use egui::{Align, Align2, Color32, FontId, Pos2, Rect, Stroke, TextFormat};
 use serde::{Deserialize, Serialize};
 
 use super::gizmo::GizmoComponent;
@@ -372,12 +373,21 @@ impl RectWall {
         text_color: Color32,
     ) {
         let galley = {
-            let font_id = FontId::default();
-            painter.layout_no_wrap(
+            let layout_job = LayoutJob::single_section(
                 format!("{:.3} m", self.rect.width() as f32 * delta_l),
-                font_id,
-                text_color,
-            )
+                TextFormat {
+                    font_id: FontId::default(),
+                    extra_letter_spacing: 0.0,
+                    line_height: None,
+                    color: text_color,
+                    background: Color32::BLACK.gamma_multiply(0.75),
+                    italics: false,
+                    underline: Stroke::NONE,
+                    strikethrough: Stroke::NONE,
+                    valign: Align::BOTTOM,
+                },
+            );
+            painter.layout_job(layout_job)
         };
         let rect = Align2::CENTER_TOP.anchor_size(
             grid_to_image(
