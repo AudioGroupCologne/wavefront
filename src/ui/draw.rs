@@ -90,6 +90,21 @@ pub fn draw_egui(
         ),
     ];
 
+    if ui_state.show_help {
+        egui::Window::new("Help")
+            .open(&mut ui_state.show_help)
+            .default_size(Vec2::new(400., 400.))
+            .resizable(true)
+            .collapsible(false)
+            .constrain(true)
+            .show(ctx, |ui| {
+                ui.label("- put keybinds here");
+                ui.label("- link to manual/docs");
+                ui.label("- credits (link to yt?)");
+                ui.label("- experimental settings (spectrogram)");
+            });
+    }
+
     // Side Panel (Sources, Mic, Walls, Tool Options, Settings)
     egui::SidePanel::left("left_panel")
         .default_width(400.)
@@ -159,6 +174,13 @@ pub fn draw_egui(
                                     .set_directory("./")
                                     .set_title("Select a file to load")
                                     .load_file::<SaveFileContents>();
+                            }
+
+                            if ui
+                                .button("Help")
+                                .clicked()
+                            {
+                                ui_state.show_help = true;
                             }
                         });
                         if ui
