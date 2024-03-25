@@ -386,7 +386,9 @@ pub fn draw_egui(
                     });
                 });
 
-            ui.separator();
+            if !source_set.p0().is_empty() {
+                ui.separator();
+            }
 
             // Microphones
             egui::ScrollArea::vertical()
@@ -438,7 +440,9 @@ pub fn draw_egui(
                     });
                 });
 
-            ui.separator();
+                if !mic_set.p0().is_empty() {
+                    ui.separator();
+                }
 
             // Rect Walls
             egui::ScrollArea::vertical()
