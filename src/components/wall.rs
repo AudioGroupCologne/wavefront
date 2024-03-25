@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 use bevy::prelude::*;
 use egui::epaint::{CircleShape, TextShape};
 use egui::text::LayoutJob;
-use egui::{Align2, Color32, FontId, Pos2, Rect, TextFormat};
+use egui::{Align2, Color32, Pos2, Rect, TextFormat};
 use serde::{Deserialize, Serialize};
 
 use super::gizmo::GizmoComponent;
