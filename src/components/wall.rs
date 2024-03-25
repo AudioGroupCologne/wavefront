@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 use bevy::prelude::*;
 use egui::epaint::{CircleShape, TextShape};
 use egui::text::LayoutJob;
-use egui::{Align, Align2, Color32, FontId, Pos2, Rect, Stroke, TextFormat};
+use egui::{Align2, Color32, FontId, Pos2, Rect, TextFormat};
 use serde::{Deserialize, Serialize};
 
 use super::gizmo::GizmoComponent;
@@ -237,7 +237,6 @@ impl Wall for RectWall {
     }
 
     // x and y: 0..SIM_WIDTH/HEIGHT + 2 * B_W
-    //TODO: can be optimized
     fn boundary_delete(&self, x: u32, y: u32, boundary_width: u32) -> bool {
         if self.rect.min.x == 0
             && x < self.rect.min.x + boundary_width
@@ -376,15 +375,9 @@ impl RectWall {
             let layout_job = LayoutJob::single_section(
                 format!("{:.3} m", self.rect.width() as f32 * delta_l),
                 TextFormat {
-                    font_id: FontId::default(),
-                    extra_letter_spacing: 0.0,
-                    line_height: None,
                     color: text_color,
                     background: Color32::BLACK.gamma_multiply(0.75),
-                    italics: false,
-                    underline: Stroke::NONE,
-                    strikethrough: Stroke::NONE,
-                    valign: Align::BOTTOM,
+                    ..Default::default()
                 },
             );
             painter.layout_job(layout_job)
@@ -394,7 +387,7 @@ impl RectWall {
                 Pos2 {
                     x: self.get_center().x as f32,
                     // +2. for some padding
-                    y: self.rect.min.y as f32 + 2.,
+                    y: self.rect.min.y as f32 + 6.,
                 },
                 image_rect,
             ),
@@ -403,17 +396,20 @@ impl RectWall {
         painter.add(TextShape::new(rect.min, galley, Color32::BLACK));
 
         let galley = {
-            let font_id = FontId::default();
-            painter.layout_no_wrap(
+            let layout_job = LayoutJob::single_section(
                 format!("{:.3} m", self.rect.height() as f32 * delta_l),
-                font_id,
-                text_color,
-            )
+                TextFormat {
+                    color: text_color,
+                    background: Color32::BLACK.gamma_multiply(0.75),
+                    ..Default::default()
+                },
+            );
+            painter.layout_job(layout_job)
         };
         let rect = Align2::LEFT_CENTER.anchor_size(
             grid_to_image(
                 Pos2 {
-                    x: self.rect.min.x as f32,
+                    x: self.rect.min.x as f32 + 4.,
                     y: self.get_center().y as f32,
                 },
                 image_rect,
@@ -494,8 +490,6 @@ impl Wall for CircWall {
                 }
 
                 UVec2 {
-                    // TODO: here I want to implement offset
-                    // either left or right depending on radius size
                     x: self.center.x,
                     y: self.center.y,
                 }
@@ -602,12 +596,15 @@ impl CircWall {
         text_color: Color32,
     ) {
         let galley = {
-            let font_id = FontId::default();
-            painter.layout_no_wrap(
-                format!("{:.3} m", self.radius as f32 * delta_l),
-                font_id,
-                text_color,
-            )
+            let layout_job = LayoutJob::single_section(
+                format!("\u{00D8} = {:.3} m", 2. * self.radius as f32 * delta_l),
+                TextFormat {
+                    color: text_color,
+                    background: Color32::BLACK.gamma_multiply(0.75),
+                    ..Default::default()
+                },
+            );
+            painter.layout_job(layout_job)
         };
         let rect = Align2::CENTER_CENTER.anchor_size(
             grid_to_image(
