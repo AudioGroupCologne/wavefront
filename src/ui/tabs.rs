@@ -1,9 +1,14 @@
-use bevy::ecs::system::Resource;
+use bevy::ecs::system::{Commands, Resource};
 use bevy::math::UVec2;
+use bevy_file_dialog::FileDialogExt;
 use bevy_pixel_buffer::pixel_buffer::PixelBufferSize;
 use bevy_pixel_buffer::query::PixelBuffersItem;
 use egui_plot::{GridMark, Line, Plot, PlotPoints};
+use plotlib::page::Page;
+use plotlib::style::{LineJoin, LineStyle};
+use plotlib::view::ContinuousView;
 
+use super::dialog::SaveFileContents;
 use super::state::FftMicrophone;
 use crate::components::microphone::Microphone;
 use crate::math::fft::calc_mic_spectrum;
@@ -30,6 +35,7 @@ pub struct PlotTabs<'a> {
     pub mics: &'a [&'a Microphone],
     pub pixel_buffer: &'a mut PixelBuffersItem<'a>,
     pub fft_microphone: &'a mut FftMicrophone,
+    pub commands: &'a mut Commands<'a, 'a>,
 }
 
 impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
@@ -53,6 +59,164 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
     fn ui(&mut self, ui: &mut egui::Ui, tab: &mut Self::Tab) {
         match tab {
             Tab::Volume => {
+                ui.with_layout(egui::Layout::top_down(egui::Align::RIGHT), |ui| {
+                    if ui
+                        .button("Screenshot Plot")
+                        .on_hover_text("Save a screenshot of the plot")
+                        .clicked()
+                    {
+                        let colors = [
+                            "aqua",
+                            "aquamarine",
+                            "blue",
+                            "blueviolet",
+                            "brown",
+                            "burlywood",
+                            "cadetblue",
+                            "chartreuse",
+                            "chocolate",
+                            "coral",
+                            "cornflowerblue",
+                            "crimson",
+                            "cyan",
+                            "darkblue",
+                            "darkcyan",
+                            "darkgoldenrod",
+                            "darkgray",
+                            "darkgreen",
+                            "darkkhaki",
+                            "darkmagenta",
+                            "darkolivegreen",
+                            "darkorange",
+                            "darkorchid",
+                            "darkred",
+                            "darksalmon",
+                            "darkseagreen",
+                            "darkslateblue",
+                            "darkslategray",
+                            "darkslategrey",
+                            "darkturquoise",
+                            "darkviolet",
+                            "deeppink",
+                            "deepskyblue",
+                            "dimgray",
+                            "dimgrey",
+                            "dodgerblue",
+                            "firebrick",
+                            "forestgreen",
+                            "fuchsia",
+                            "gold",
+                            "goldenrod",
+                            "gray",
+                            "green",
+                            "greenyellow",
+                            "hotpink",
+                            "indianred",
+                            "indigo",
+                            "khaki",
+                            "lawngreen",
+                            "lightblue",
+                            "lightcoral",
+                            "lightgreen",
+                            "lightpink",
+                            "lightsalmon",
+                            "lightseagreen",
+                            "lightskyblue",
+                            "lightsteelblue",
+                            "lime",
+                            "limegreen",
+                            "magenta",
+                            "maroon",
+                            "mediumaquamarine",
+                            "mediumblue",
+                            "mediumorchid",
+                            "mediumpurple",
+                            "mediumseagreen",
+                            "mediumslateblue",
+                            "mediumspringgreen",
+                            "mediumturquoise",
+                            "mediumvioletred",
+                            "midnightblue",
+                            "navy",
+                            "olive",
+                            "olivedrab",
+                            "orange",
+                            "orangered",
+                            "orchid",
+                            "palegreen",
+                            "paleturquoise",
+                            "palevioletred",
+                            "peru",
+                            "pink",
+                            "plum",
+                            "powderblue",
+                            "purple",
+                            "rebeccapurple",
+                            "red",
+                            "rosybrown",
+                            "royalblue",
+                            "saddlebrown",
+                            "salmon",
+                            "sandybrown",
+                            "seagreen",
+                            "sienna",
+                            "skyblue",
+                            "slateblue",
+                            "slategray",
+                            "springgreen",
+                            "steelblue",
+                            "tan",
+                            "teal",
+                            "thistle",
+                            "tomato",
+                            "turquoise",
+                            "violet",
+                            "yellow",
+                            "yellowgreen",
+                        ];
+
+                        let mut v = ContinuousView::new();
+                        let mut mics = self.mics.to_vec();
+                        mics.sort_by_cached_key(|mic| mic.id);
+                        for (index, mic) in mics.iter().enumerate() {
+                            //TODO: because of this clone, the app is getting slower as time goes on (because the vec is getting bigger)
+                            let l1 = plotlib::repr::Plot::new(
+                                mic.record.iter().map(|x| (x[0], x[1])).collect(),
+                            )
+                            .line_style(
+                                LineStyle::new()
+                                    .colour(colors[index % (colors.len() - 1)])
+                                    .linejoin(LineJoin::Round)
+                                    .width(1.),
+                            )
+                            .legend(format!(
+                                "Microphone {} (x: {}, y: {})",
+                                mic.id, mic.x, mic.y
+                            ));
+
+                            v = v.add(l1);
+                        }
+
+                        v = v.y_label("Amplitude").x_label("Time (s)");
+
+                        let data = Page::single(&v)
+                            .to_svg()
+                            .expect("correct svg")
+                            .to_string()
+                            .into_bytes();
+
+                        self.commands
+                            .dialog()
+                            .add_filter("SVG", &["svg"])
+                            .set_file_name("function.svg")
+                            .set_directory("./")
+                            .set_title("Select a file to save to")
+                            .save_file::<SaveFileContents>(data);
+                    }
+                });
+
+                ui.add_space(5.);
+
                 Plot::new("mic_plot")
                     .allow_zoom([true, false])
                     // .allow_scroll(false)

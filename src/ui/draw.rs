@@ -887,6 +887,7 @@ pub fn draw_egui(
                             mics: &mics[..],
                             pixel_buffer: &mut pb,
                             fft_microphone: &mut fft_mic,
+                            commands: &mut commands.reborrow(),
                         },
                     );
             });
