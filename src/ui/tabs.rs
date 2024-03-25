@@ -215,11 +215,10 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                     }
                 });
 
-                ui.add_space(5.);
+                ui.separator();
 
                 Plot::new("mic_plot")
-                    .allow_zoom([true, false])
-                    // .allow_scroll(false)
+                    .allow_zoom([true, true])
                     .x_axis_label("Time (s)")
                     .y_axis_label("Amplitude")
                     .label_formatter(|_, value| {
@@ -323,6 +322,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             );
                         }
                     });
+                ui.separator();
 
                 let spectrum_size = ui.available_size();
                 let texture = self.pixel_buffer.egui_texture();
