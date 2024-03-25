@@ -92,7 +92,7 @@ pub fn draw_egui(
 
     // Side Panel (Sources, Mic, Walls, Tool Options, Settings)
     egui::SidePanel::left("left_panel")
-        .default_width(450.)
+        .default_width(400.)
         .resizable(false)
         .show(ctx, |ui| {
             ui_state.tools_enabled = !ui.rect_contains_pointer(ui.available_rect_before_wrap())
@@ -102,7 +102,7 @@ pub fn draw_egui(
 
             ui.add_space(3.);
             egui::Grid::new("header_grid")
-                .min_col_width(450. / 2.)
+                .min_col_width(400. / 2.)
                 .show(ui, |ui| {
                     ui.vertical(|ui| {
                         ui.heading("Settings");
