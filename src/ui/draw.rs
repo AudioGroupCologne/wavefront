@@ -11,7 +11,7 @@ use crate::components::gizmo::GizmoComponent;
 use crate::components::microphone::*;
 use crate::components::source::*;
 use crate::components::states::{MenuSelected, Selected};
-use crate::components::wall::{CircWall, RectWall, WResize, Wall};
+use crate::components::wall::{CircWall, RectWall, WResize};
 use crate::events::{Reset, UpdateWalls};
 use crate::grid::grid::Grid;
 use crate::math::constants::*;
@@ -729,7 +729,7 @@ pub fn draw_egui(
                     }
 
                     if ui
-                        .add(egui::Button::new("Delete All").fill(Color32::DARK_RED))
+                        .add(egui::Button::new("Delete all").fill(Color32::DARK_RED))
                         .clicked()
                     {
                         for (e, _) in source_set.p0().iter() {
@@ -751,30 +751,20 @@ pub fn draw_egui(
                         wall_update_ev.send(UpdateWalls);
                     }
 
-                    ui.checkbox(&mut ui_state.reset_on_change, "Reset on Change")
+                    ui.checkbox(&mut ui_state.reset_on_change, "Reset on change")
                 });
 
                 if ui
                     .add(
                         egui::Slider::new(&mut ui_state.delta_l, 0.0..=10.0)
-                            .text("Delta L")
+                            .text("Delta L (m)")
                             .logarithmic(true),
                     )
+                    .on_hover_text("Change the size of one cell in the simulation in meters.")
                     .changed()
                 {
                     reset_ev.send(Reset);
                 }
-
-                ui.horizontal(|ui| {
-                    ui.color_edit_button_srgba(&mut gradient.0);
-                    ui.color_edit_button_srgba(&mut gradient.1);
-                    ui.color_edit_button_srgba(&mut gradient.2);
-                });
-
-                ui.add(
-                    egui::Slider::new(&mut ui_state.gradient_contrast, 0.0..=10.0)
-                        .text("Gradient Contrast"),
-                );
 
                 if ui
                     .checkbox(&mut ui_state.show_plots, "Show Plots")
@@ -785,50 +775,81 @@ pub fn draw_egui(
                     }
                 }
 
-                // ABC
-                if ui
-                    .checkbox(&mut ui_state.render_abc_area, "Render Absorbing Boundary")
-                    .clicked()
-                {
-                    ui_state.tools_enabled = !ui_state.render_abc_area;
-                    let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
+                ui.collapsing("Gradient", |ui| {
+                    ui.label("Adjust the colors used to render the simulation.");
+                    ui.add_space(5.);
 
-                    pb.pixel_buffer.size = PixelBufferSize {
-                        size: if ui_state.render_abc_area {
-                            UVec2::new(
-                                SIMULATION_WIDTH + 2 * ui_state.boundary_width,
-                                SIMULATION_HEIGHT + 2 * ui_state.boundary_width,
-                            )
-                        } else {
-                            UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
-                        },
-                        pixel_size: UVec2::new(1, 1),
-                    };
-                }
+                    ui.horizontal(|ui| {
+                        ui.color_edit_button_srgba(&mut gradient.0).on_hover_text("The color used to show negative pressure values.");
+                        ui.add_space(10.);
+                        ui.label("Negative");
+                    });
+                    ui.horizontal(|ui| {
+                        ui.color_edit_button_srgba(&mut gradient.1).on_hover_text("The color used to show neutral pressure values.");
+                        ui.add_space(10.);
+                        ui.label("Zero");
+                    });
+                    ui.horizontal(|ui| {
+                        ui.color_edit_button_srgba(&mut gradient.2).on_hover_text("The color used to show positive pressure values.");
+                        ui.add_space(10.);
+                        ui.label("Positive");
+                    });
 
-                if ui
-                    .add(
-                        egui::Slider::new(&mut ui_state.boundary_width, 2..=200)
-                            .text("Boundary Width"),
-                    )
-                    .changed()
-                {
-                    grid.reset_cells(ui_state.boundary_width);
-                    grid.reset_walls(ui_state.boundary_width);
-                    grid.cache_boundaries(ui_state.boundary_width);
-                    let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
-                    pb.pixel_buffer.size = PixelBufferSize {
-                        size: if ui_state.render_abc_area {
-                            UVec2::new(
-                                SIMULATION_WIDTH + 2 * ui_state.boundary_width,
-                                SIMULATION_HEIGHT + 2 * ui_state.boundary_width,
-                            )
-                        } else {
-                            UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
-                        },
-                        pixel_size: UVec2::new(1, 1),
-                    };
-                }
+                    ui.add(
+                        egui::Slider::new(&mut ui_state.gradient_contrast, 0.0..=10.0)
+                            .text("Gradient Contrast"),
+                    ).on_hover_text("Adjust the contrast of the gradient. (this might lead to clipping the colors)");
+                });
+
+                ui.collapsing("Boundary", |ui| {
+                    ui.label("Change the outer boundary for the free field simulation.");
+                    ui.add_space(5.);
+
+                    if ui
+                        .checkbox(&mut ui_state.render_abc_area, "Show absorbing boundary")
+                        .clicked()
+                    {
+                        ui_state.tools_enabled = !ui_state.render_abc_area;
+                        let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
+
+                        pb.pixel_buffer.size = PixelBufferSize {
+                            size: if ui_state.render_abc_area {
+                                UVec2::new(
+                                    SIMULATION_WIDTH + 2 * ui_state.boundary_width,
+                                    SIMULATION_HEIGHT + 2 * ui_state.boundary_width,
+                                )
+                            } else {
+                                UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
+                            },
+                            pixel_size: UVec2::new(1, 1),
+                        };
+                    }
+
+                    if ui
+                        .add(
+                            egui::Slider::new(&mut ui_state.boundary_width, 2..=200)
+                                .text("Boundary Width"),
+                        )
+                        .on_hover_text("Change the width of the boundary. (higher values lead to slower simulation)")
+                        .changed()
+                    {
+                        grid.reset_cells(ui_state.boundary_width);
+                        grid.reset_walls(ui_state.boundary_width);
+                        grid.cache_boundaries(ui_state.boundary_width);
+                        let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
+                        pb.pixel_buffer.size = PixelBufferSize {
+                            size: if ui_state.render_abc_area {
+                                UVec2::new(
+                                    SIMULATION_WIDTH + 2 * ui_state.boundary_width,
+                                    SIMULATION_HEIGHT + 2 * ui_state.boundary_width,
+                                )
+                            } else {
+                                UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
+                            },
+                            pixel_size: UVec2::new(1, 1),
+                        };
+                    }
+                });
 
                 ui.add_space(10.);
             });
