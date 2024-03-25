@@ -28,7 +28,7 @@ impl Default for DockState {
 pub enum Tab {
     Volume,
     Frequency,
-    Spectogram,
+    Spectrogram,
 }
 
 pub struct PlotTabs<'a> {
@@ -44,7 +44,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
         match tab {
             Tab::Volume => "Volume".into(),
             Tab::Frequency => "Frequency".into(),
-            Tab::Spectogram => "Spectogram".into(),
+            Tab::Spectrogram => "Spectrogram".into(),
         }
     }
 
@@ -306,7 +306,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                         }
                     });
             }
-            Tab::Spectogram => {
+            Tab::Spectrogram => {
                 egui::ComboBox::from_label("FFT Microphone")
                     .selected_text(if let Some(index) = self.fft_microphone.mic_id {
                         format!("Microphone {index}")
@@ -341,5 +341,5 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
 }
 
 pub fn create_tree() -> egui_dock::DockState<Tab> {
-    egui_dock::DockState::new(vec![Tab::Volume, Tab::Frequency, Tab::Spectogram])
+    egui_dock::DockState::new(vec![Tab::Volume, Tab::Frequency, Tab::Spectrogram])
 }
