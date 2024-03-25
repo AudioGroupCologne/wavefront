@@ -816,45 +816,36 @@ pub fn draw_egui(
             });
 
             // Tool Options
-            egui::TopBottomPanel::bottom("tool_options_panel").show_inside(ui, |ui| {
-                ui.heading("Tool Options");
-                ui.separator();
+            if let ToolType::DrawWall = ui_state.current_tool {
+                egui::TopBottomPanel::bottom("tool_options_panel").show_inside(ui, |ui| {
+                    ui.heading("Tool Options");
+                    ui.separator();
 
-                ui.set_enabled(!ui_state.render_abc_area);
+                    ui.set_enabled(!ui_state.render_abc_area);
+                    egui::ComboBox::from_label("Select Wall Type")
+                        .selected_text(format!("{:?}", ui_state.wall_type))
+                        .show_ui(ui, |ui| {
+                            ui.style_mut().wrap = Some(false);
+                            ui.selectable_value(
+                                &mut ui_state.wall_type,
+                                WallType::Rectangle,
+                                "Rectangle",
+                            );
+                            ui.selectable_value(
+                                &mut ui_state.wall_type,
+                                WallType::Circle,
+                                "Circle",
+                            );
+                        });
+                    ui.add(
+                        egui::Slider::new(&mut ui_state.wall_reflection_factor, 0.0..=1.0)
+                            .text("Wall Reflection Factor"),
+                    );
+                    ui.checkbox(&mut ui_state.wall_is_hollow, "Hollow");
 
-                match ui_state.current_tool {
-                    ToolType::PlaceSource => {}
-                    ToolType::MoveSource => {}
-                    ToolType::MoveWall => {}
-                    ToolType::DrawWall => {
-                        egui::ComboBox::from_label("Select Brush Type")
-                            .selected_text(format!("{:?}", ui_state.wall_type))
-                            .show_ui(ui, |ui| {
-                                ui.style_mut().wrap = Some(false);
-                                ui.selectable_value(
-                                    &mut ui_state.wall_type,
-                                    WallType::Rectangle,
-                                    "Rectangle",
-                                );
-                                ui.selectable_value(
-                                    &mut ui_state.wall_type,
-                                    WallType::Circle,
-                                    "Circle",
-                                );
-                            });
-                        ui.add(
-                            egui::Slider::new(&mut ui_state.wall_reflection_factor, 0.0..=1.0)
-                                .text("Wall Reflection Factor"),
-                        );
-                        ui.checkbox(&mut ui_state.wall_is_hollow, "Hollow Wall");
-                    }
-                    ToolType::ResizeWall => {}
-                    ToolType::MoveMic => {}
-                    ToolType::PlaceMic => {}
-                }
-
-                ui.add_space(10.);
-            });
+                    ui.add_space(10.);
+                });
+            }
         });
 
     // Plot tabs
