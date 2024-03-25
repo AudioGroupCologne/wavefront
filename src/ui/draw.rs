@@ -100,7 +100,7 @@ pub fn draw_egui(
 
             ui.spacing_mut().slider_width = 200.0;
 
-            ui.add_space(5.);
+            ui.add_space(3.);
             egui::Grid::new("header_grid")
                 .min_col_width(450. / 2.)
                 .show(ui, |ui| {
@@ -271,6 +271,26 @@ pub fn draw_egui(
                                 }
                             });
 
+                            egui::ComboBox::from_label("Waveform")
+                                .selected_text(format!("{}", source.source_type))
+                                .show_ui(ui, |ui| {
+                                    ui.selectable_value(
+                                        &mut source.source_type,
+                                        SourceType::default_sin(),
+                                        "Sinus",
+                                    );
+                                    ui.selectable_value(
+                                        &mut source.source_type,
+                                        SourceType::default_gauss(),
+                                        "Gauss",
+                                    );
+                                    ui.selectable_value(
+                                        &mut source.source_type,
+                                        SourceType::default_noise(),
+                                        "White Noise",
+                                    );
+                                });
+
                             match &mut source.source_type {
                                 SourceType::Sin {
                                     phase,
@@ -348,26 +368,11 @@ pub fn draw_egui(
                                     }
                                 }
                             }
-                            egui::ComboBox::from_label("Waveform")
-                                .selected_text(format!("{}", source.source_type))
-                                .show_ui(ui, |ui| {
-                                    ui.selectable_value(
-                                        &mut source.source_type,
-                                        SourceType::default_sin(),
-                                        "Sinus",
-                                    );
-                                    ui.selectable_value(
-                                        &mut source.source_type,
-                                        SourceType::default_gauss(),
-                                        "Gauss",
-                                    );
-                                    ui.selectable_value(
-                                        &mut source.source_type,
-                                        SourceType::default_noise(),
-                                        "White Noise",
-                                    );
-                                });
-                            if ui.add(egui::Button::new("Delete")).clicked() {
+
+                            if ui
+                                .add(egui::Button::new("Delete").fill(Color32::DARK_RED))
+                                .clicked()
+                            {
                                 commands.entity(*entity).despawn();
                             }
                         });
@@ -411,7 +416,10 @@ pub fn draw_egui(
                                         .clamp_range(0.0..=SIMULATION_HEIGHT as f32 - 1.),
                                 );
                             });
-                            if ui.add(egui::Button::new("Delete")).clicked() {
+                            if ui
+                                .add(egui::Button::new("Delete").fill(Color32::DARK_RED))
+                                .clicked()
+                            {
                                 if let Some(current_id) = fft_mic.mic_id {
                                     if current_id == mic.id {
                                         fft_mic.mic_id = None;
@@ -444,111 +452,119 @@ pub fn draw_egui(
                     wall_vec.sort_by_cached_key(|(_, wall)| wall.id);
 
                     wall_vec.iter_mut().for_each(|(entity, ref mut wall)| {
-                        let collapse = ui.collapsing(format!("RectWall {}", wall.id), |ui| {
-                            ui.horizontal(|ui| {
-                                ui.label("Top Corner x:");
+                        let collapse =
+                            ui.collapsing(format!("Rectangular Wall {}", wall.id), |ui| {
+                                ui.horizontal(|ui| {
+                                    ui.label("x:");
+                                    if ui
+                                        .add(
+                                            egui::DragValue::new(&mut wall.rect.min.x)
+                                                .speed(1)
+                                                .clamp_range(0..=SIMULATION_WIDTH - 1),
+                                        )
+                                        .changed()
+                                    {
+                                        commands.entity(*entity).try_insert(WResize::Menu);
+                                        if wall.rect.min.x > wall.rect.max.x - 1 {
+                                            wall.rect.min.x = wall.rect.max.x - 1;
+                                        }
+                                        reset_ev.send(Reset);
+                                    }
+                                    ui.add_space(10.);
+                                    ui.label("y:");
+                                    if ui
+                                        .add(
+                                            egui::DragValue::new(&mut wall.rect.min.y)
+                                                .speed(1)
+                                                .clamp_range(0..=SIMULATION_HEIGHT - 1),
+                                        )
+                                        .changed()
+                                    {
+                                        commands.entity(*entity).try_insert(WResize::Menu);
+                                        if wall.rect.min.y > wall.rect.max.y - 1 {
+                                            wall.rect.min.y = wall.rect.max.y - 1;
+                                        }
+                                        reset_ev.send(Reset);
+                                    }
+                                    ui.add_space(10.);
+                                    ui.label("Top Left Corner");
+                                });
+
+                                ui.horizontal(|ui| {
+                                    ui.label("x:");
+                                    if ui
+                                        .add(
+                                            egui::DragValue::new(&mut wall.rect.max.x)
+                                                .speed(1)
+                                                .clamp_range(0..=SIMULATION_WIDTH - 1),
+                                        )
+                                        .changed()
+                                    {
+                                        commands.entity(*entity).try_insert(WResize::Menu);
+                                        if wall.rect.max.x < wall.rect.min.x + 1 {
+                                            wall.rect.max.x = wall.rect.min.x + 1;
+                                        }
+                                        reset_ev.send(Reset);
+                                    }
+                                    ui.add_space(10.);
+                                    ui.label("y:");
+                                    if ui
+                                        .add(
+                                            egui::DragValue::new(&mut wall.rect.max.y)
+                                                .speed(1)
+                                                .clamp_range(0..=SIMULATION_HEIGHT - 1),
+                                        )
+                                        .changed()
+                                    {
+                                        commands.entity(*entity).try_insert(WResize::Menu);
+                                        if wall.rect.max.y < wall.rect.min.y + 1 {
+                                            wall.rect.max.y = wall.rect.min.y + 1;
+                                        }
+                                        reset_ev.send(Reset);
+                                    }
+                                    ui.add_space(10.);
+                                    ui.label("Bottom Right Corner");
+                                });
+
+                                ui.horizontal(|ui| {
+                                    ui.label(format!(
+                                        "Width: {:.3} m",
+                                        wall.rect.width() as f32 * ui_state.delta_l
+                                    ));
+
+                                    ui.add_space(10.);
+
+                                    ui.label(format!(
+                                        "Height: {:.3} m",
+                                        wall.rect.height() as f32 * ui_state.delta_l
+                                    ));
+                                });
+
                                 if ui
                                     .add(
-                                        egui::DragValue::new(&mut wall.rect.min.x)
-                                            .speed(1)
-                                            .clamp_range(0..=SIMULATION_WIDTH - 1),
+                                        // 0.01 because rendering then draws white
+                                        egui::Slider::new(&mut wall.reflection_factor, 0.01..=1.0)
+                                            .text("Wall Reflection Factor"),
                                     )
                                     .changed()
                                 {
-                                    commands.entity(*entity).try_insert(WResize::Menu);
-                                    if wall.rect.min.x > wall.rect.max.x - 1 {
-                                        wall.rect.min.x = wall.rect.max.x - 1;
-                                    }
                                     reset_ev.send(Reset);
                                 }
-                                ui.add_space(10.);
-                                ui.label("Top Corner y:");
+
+                                if ui.checkbox(&mut wall.is_hollow, "Hollow").changed() {
+                                    wall_update_ev.send(UpdateWalls);
+                                    reset_ev.send(Reset);
+                                };
+
                                 if ui
-                                    .add(
-                                        egui::DragValue::new(&mut wall.rect.min.y)
-                                            .speed(1)
-                                            .clamp_range(0..=SIMULATION_HEIGHT - 1),
-                                    )
-                                    .changed()
+                                    .add(egui::Button::new("Delete").fill(Color32::DARK_RED))
+                                    .clicked()
                                 {
-                                    commands.entity(*entity).try_insert(WResize::Menu);
-                                    if wall.rect.min.y > wall.rect.max.y - 1 {
-                                        wall.rect.min.y = wall.rect.max.y - 1;
-                                    }
+                                    commands.entity(*entity).despawn();
+                                    wall_update_ev.send(UpdateWalls);
                                     reset_ev.send(Reset);
                                 }
                             });
-
-                            ui.horizontal(|ui| {
-                                ui.label("Bottom Corner x:");
-                                if ui
-                                    .add(
-                                        egui::DragValue::new(&mut wall.rect.max.x)
-                                            .speed(1)
-                                            .clamp_range(0..=SIMULATION_WIDTH - 1),
-                                    )
-                                    .changed()
-                                {
-                                    commands.entity(*entity).try_insert(WResize::Menu);
-                                    if wall.rect.max.x < wall.rect.min.x + 1 {
-                                        wall.rect.max.x = wall.rect.min.x + 1;
-                                    }
-                                    reset_ev.send(Reset);
-                                }
-                                ui.add_space(10.);
-                                ui.label("Bottom Corner y:");
-                                if ui
-                                    .add(
-                                        egui::DragValue::new(&mut wall.rect.max.y)
-                                            .speed(1)
-                                            .clamp_range(0..=SIMULATION_HEIGHT - 1),
-                                    )
-                                    .changed()
-                                {
-                                    commands.entity(*entity).try_insert(WResize::Menu);
-                                    if wall.rect.max.y < wall.rect.min.y + 1 {
-                                        wall.rect.max.y = wall.rect.min.y + 1;
-                                    }
-                                    reset_ev.send(Reset);
-                                }
-                            });
-
-                            ui.horizontal(|ui| {
-                                ui.label(format!(
-                                    "Width: {:.3} m",
-                                    wall.rect.width() as f32 * ui_state.delta_l
-                                ));
-
-                                ui.add_space(10.);
-
-                                ui.label(format!(
-                                    "Height: {:.3} m",
-                                    wall.rect.height() as f32 * ui_state.delta_l
-                                ));
-                            });
-
-                            if ui
-                                .add(
-                                    // 0.01 because rendering then draws white
-                                    egui::Slider::new(&mut wall.reflection_factor, 0.01..=1.0)
-                                        .text("Wall Reflection Factor"),
-                                )
-                                .changed()
-                            {
-                                reset_ev.send(Reset);
-                            }
-
-                            if ui.checkbox(&mut wall.is_hollow, "Hollow Wall").changed() {
-                                wall_update_ev.send(UpdateWalls);
-                                reset_ev.send(Reset);
-                            };
-
-                            if ui.add(egui::Button::new("Delete")).clicked() {
-                                commands.entity(*entity).despawn();
-                                wall_update_ev.send(UpdateWalls);
-                                reset_ev.send(Reset);
-                            }
-                        });
 
                         if collapse.header_response.contains_pointer()
                             || collapse.body_response.is_some()
@@ -571,9 +587,9 @@ pub fn draw_egui(
                     wall_vec.sort_by_cached_key(|(_, wall)| wall.id);
 
                     wall_vec.iter_mut().for_each(|(entity, ref mut wall)| {
-                        let collapse = ui.collapsing(format!("CircWall {}", wall.id), |ui| {
+                        let collapse = ui.collapsing(format!("Circular Wall {}", wall.id), |ui| {
                             ui.horizontal(|ui| {
-                                ui.label("Center x:");
+                                ui.label("x:");
                                 if ui
                                     .add(
                                         egui::DragValue::new(&mut wall.center.x)
@@ -586,7 +602,7 @@ pub fn draw_egui(
                                     reset_ev.send(Reset);
                                 }
                                 ui.add_space(10.);
-                                ui.label("Center y:");
+                                ui.label("y:");
                                 if ui
                                     .add(
                                         egui::DragValue::new(&mut wall.center.y)
@@ -598,9 +614,13 @@ pub fn draw_egui(
                                     commands.entity(*entity).try_insert(WResize::Menu);
                                     reset_ev.send(Reset);
                                 }
-                            });
+                                ui.add_space(10.);
+                                ui.label("Center");
 
-                            ui.horizontal(|ui| {
+                                ui.add_space(5.);
+                                ui.add(egui::Separator::default().vertical());
+                                ui.add_space(5.);
+
                                 ui.label("Radius:");
                                 if ui
                                     .add(
@@ -616,15 +636,6 @@ pub fn draw_egui(
                             });
 
                             ui.horizontal(|ui| {
-                                //TODO: ugly
-                                ui.label(format!(
-                                    "Center: x: {:.3} m, y: {:.3} m",
-                                    wall.get_center().x as f32 * ui_state.delta_l,
-                                    wall.get_center().y as f32 * ui_state.delta_l
-                                ));
-
-                                ui.add_space(10.);
-
                                 ui.label(format!(
                                     "Radius: {:.3} m",
                                     wall.radius as f32 * ui_state.delta_l
@@ -676,7 +687,10 @@ pub fn draw_egui(
                                 reset_ev.send(Reset);
                             };
 
-                            if ui.add(egui::Button::new("Delete")).clicked() {
+                            if ui
+                                .add(egui::Button::new("Delete").fill(Color32::DARK_RED))
+                                .clicked()
+                            {
                                 commands.entity(*entity).despawn();
                                 wall_update_ev.send(UpdateWalls);
                                 reset_ev.send(Reset);
@@ -695,6 +709,7 @@ pub fn draw_egui(
 
             // General Settings
             egui::TopBottomPanel::bottom("general_settings_bottom_panel").show_inside(ui, |ui| {
+                ui.add_space(3.);
                 ui.heading("General Settings");
                 ui.separator();
 
@@ -713,7 +728,10 @@ pub fn draw_egui(
                         }
                     }
 
-                    if ui.button("Delete All").clicked() {
+                    if ui
+                        .add(egui::Button::new("Delete All").fill(Color32::DARK_RED))
+                        .clicked()
+                    {
                         for (e, _) in source_set.p0().iter() {
                             commands.entity(e).despawn();
                         }
@@ -817,49 +835,43 @@ pub fn draw_egui(
 
             // Tool Options
             egui::TopBottomPanel::bottom("tool_options_panel").show_inside(ui, |ui| {
+                ui.add_space(3.);
                 ui.heading("Tool Options");
                 ui.separator();
 
                 ui.set_enabled(!ui_state.render_abc_area);
-
-                match ui_state.current_tool {
-                    ToolType::PlaceSource => {}
-                    ToolType::MoveSource => {}
-                    ToolType::MoveWall => {}
-                    ToolType::DrawWall => {
-                        egui::ComboBox::from_label("Select Brush Type")
-                            .selected_text(format!("{:?}", ui_state.wall_type))
-                            .show_ui(ui, |ui| {
-                                ui.style_mut().wrap = Some(false);
-                                ui.selectable_value(
-                                    &mut ui_state.wall_type,
-                                    WallType::Rectangle,
-                                    "Rectangle",
-                                );
-                                ui.selectable_value(
-                                    &mut ui_state.wall_type,
-                                    WallType::Circle,
-                                    "Circle",
-                                );
-                            });
-                        ui.add(
-                            egui::Slider::new(&mut ui_state.wall_reflection_factor, 0.0..=1.0)
-                                .text("Wall Reflection Factor"),
-                        );
-                        ui.checkbox(&mut ui_state.wall_is_hollow, "Hollow Wall");
-                    }
-                    ToolType::ResizeWall => {}
-                    ToolType::MoveMic => {}
-                    ToolType::PlaceMic => {}
+                if ui_state.current_tool == ToolType::DrawWall {
+                    egui::ComboBox::from_label("Select Wall Type")
+                        .selected_text(format!("{:?}", ui_state.wall_type))
+                        .show_ui(ui, |ui| {
+                            ui.style_mut().wrap = Some(false);
+                            ui.selectable_value(
+                                &mut ui_state.wall_type,
+                                WallType::Rectangle,
+                                "Rectangle",
+                            );
+                            ui.selectable_value(
+                                &mut ui_state.wall_type,
+                                WallType::Circle,
+                                "Circle",
+                            );
+                        });
+                    ui.add(
+                        egui::Slider::new(&mut ui_state.wall_reflection_factor, 0.0..=1.0)
+                            .text("Wall Reflection Factor"),
+                    );
+                    ui.checkbox(&mut ui_state.wall_is_hollow, "Hollow");
+                } else {
+                    ui.add_space(10.);
+                    ui.vertical_centered(|ui| ui.label("Select another tool to see its options"));
                 }
-
                 ui.add_space(10.);
             });
         });
 
     // Plot tabs
     if ui_state.show_plots {
-        egui::TopBottomPanel::bottom("dsad")
+        egui::TopBottomPanel::bottom("plot_tabs")
             .resizable(true)
             .default_height(400.)
             .max_height(ctx.screen_rect().height() / 2.)

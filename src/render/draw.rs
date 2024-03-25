@@ -79,30 +79,7 @@ pub fn draw_pixels(
             .iter()
             .find(|m| m.id == fft_microphone.mic_id.expect("no mic selected"))
         {
-            // let spectrum = &mic.spectrum;
-            // let len_y = spectrum.len();
-
-            // frame.per_pixel_par(|coords, _| {
-            //         let gray = if len_y > 1 && coords.y < len_y as u32 {
-            //             spectrum[coords.y as usize]
-            //                 //TODO: is 120 hardcoded <- doesn't work when frequency range changes and linear
-            //                 //TODO: the spectrum is now log scaled, the spectrum does not consider this
-            //                 [u32_map_range(0, (fft_microphone.spectrum_size.x) as u32, 0, 120, coords.x) as usize]
-            //                 [1]
-            //                 * 255.
-            //         } else {
-            //             0.
-            //         } as u8;
-
-            //         Pixel {
-            //             r: gray,
-            //             g: gray,
-            //             b: gray,
-            //             a: 255,
-            //         }
-            //     });
-
-            // TODO: instead of the previous implementation, do the fft each frame (like in the freq plot)
+            // do the fft each frame (like in the freq plot)
             // and then write the result to the pixel buffer (and shift the previous values to the left)
             // this way we do not have to save all the values in a vec.
 
