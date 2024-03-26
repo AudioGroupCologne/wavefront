@@ -4,9 +4,8 @@ use bevy_file_dialog::FileDialogExt;
 use bevy_pixel_buffer::pixel_buffer::PixelBufferSize;
 use bevy_pixel_buffer::query::PixelBuffersItem;
 use egui_plot::{GridMark, Line, Plot, PlotPoints};
-use plotlib::page::Page;
-use plotlib::style::{LineJoin, LineStyle};
-use plotlib::view::ContinuousView;
+use plotters::prelude::*;
+use plotters::series::LineSeries;
 
 use super::dialog::SaveFileContents;
 use super::state::FftMicrophone;
@@ -175,43 +174,80 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             "yellowgreen",
                         ];
 
-                        let mut v = ContinuousView::new();
-                        let mut mics = self.mics.to_vec();
-                        mics.sort_by_cached_key(|mic| mic.id);
-                        for (index, mic) in mics.iter().enumerate() {
-                            //TODO: because of this clone, the app is getting slower as time goes on (because the vec is getting bigger)
-                            let l1 = plotlib::repr::Plot::new(
-                                mic.record.iter().map(|x| (x[0], x[1])).collect(),
-                            )
-                            .line_style(
-                                LineStyle::new()
-                                    .colour(colors[index % (colors.len() - 1)])
-                                    .linejoin(LineJoin::Round)
-                                    .width(1.),
-                            )
-                            .legend(format!(
-                                "Microphone {} (x: {}, y: {})",
-                                mic.id, mic.x, mic.y
-                            ));
+                        // let mut v = ContinuousView::new();
+                        // let mut mics = self.mics.to_vec();
+                        // mics.sort_by_cached_key(|mic| mic.id);
+                        // for (index, mic) in mics.iter().enumerate() {
+                        //     //TODO: because of this clone, the app is getting slower as time goes on (because the vec is getting bigger)
+                        //     let l1 = plotlib::repr::Plot::new(
+                        //         mic.record.iter().map(|x| (x[0], x[1])).collect(),
+                        //     )
+                        //     .line_style(
+                        //         LineStyle::new()
+                        //             .colour(colors[index % (colors.len() - 1)])
+                        //             .linejoin(LineJoin::Round)
+                        //             .width(1.),
+                        //     )
+                        //     .legend(format!(
+                        //         "Microphone {} (x: {}, y: {})",
+                        //         mic.id, mic.x, mic.y
+                        //     ));
 
-                            v = v.add(l1);
-                        }
+                        //     v = v.add(l1);
+                        // }
 
-                        v = v.y_label("Amplitude").x_label("Time (s)");
+                        // v = v.y_label("Amplitude").x_label("Time (s)");
 
-                        let data = Page::single(&v)
-                            .to_svg()
-                            .expect("correct svg")
-                            .to_string()
-                            .into_bytes();
+                        // let data = Page::single(&v)
+                        //     .to_svg()
+                        //     .expect("correct svg")
+                        //     .to_string()
+                        //     .into_bytes();
 
-                        self.commands
-                            .dialog()
-                            .add_filter("SVG", &["svg"])
-                            .set_file_name("function.svg")
-                            .set_directory("./")
-                            .set_title("Select a file to save to")
-                            .save_file::<SaveFileContents>(data);
+                        let mut string_buffer = String::new();
+                        let root = SVGBackend::with_string(&mut string_buffer, (640, 480))
+                            .into_drawing_area();
+                        root.fill(&WHITE).unwrap();
+                        let root = root.margin(10, 10, 10, 10);
+                        // After this point, we should be able to construct a chart context
+                        let mut chart = ChartBuilder::on(&root)
+                            // Set the caption of the chart
+                            .caption("This is our first plot", ("sans-serif", 40).into_font())
+                            // Set the size of the label region
+                            .x_label_area_size(20)
+                            .y_label_area_size(40)
+                            // Finally attach a coordinate on the drawing area and make a chart context
+                            .build_cartesian_2d(0f32..10f32, 0f32..10f32)
+                            .unwrap();
+
+                        // Then we can draw a mesh
+                        chart
+                            .configure_mesh()
+                            // We can customize the maximum number of labels allowed for each axis
+                            .x_labels(5)
+                            .y_labels(5)
+                            // We can also change the format of the label text
+                            .y_label_formatter(&|x| format!("{:.3}", x))
+                            .draw()
+                            .unwrap();
+
+                        // And we can draw something in the drawing area
+                        chart
+                            .draw_series(LineSeries::new(
+                                vec![(0.0, 0.0), (5.0, 5.0), (8.0, 7.0)],
+                                &RED,
+                            ))
+                            .unwrap();
+
+                        let a = string_buffer.as_bytes();
+
+                        // self.commands
+                        //     .dialog()
+                        //     .add_filter("SVG", &["svg"])
+                        //     .set_file_name("function.svg")
+                        //     .set_directory("./")
+                        //     .set_title("Select a file to save to")
+                        //     .save_file::<SaveFileContents>(a.to_vec());
                     }
                 });
 
