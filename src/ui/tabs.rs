@@ -161,13 +161,6 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                         // I don't get this
                                         PathElement::new(vec![(x, y), (x + 20, y)], &colors[index % (colors.len() - 1)])
                                     });
-
-                                // .line_style(
-                                //     LineStyle::new()
-                                //         .colour(colors[index % (colors.len() - 1)])
-                                //         .linejoin(LineJoin::Round)
-                                //         .width(1.),
-                                // )
                             }
 
                             chart
