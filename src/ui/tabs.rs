@@ -63,61 +63,38 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                         .on_hover_text("Save a screenshot of the plot")
                         .clicked()
                     {
-                        let colors = [
-                            RED, GREEN, BLUE, CYAN, MAGENTA, YELLOW, BLACK, WHITE
-                        ];
-
-                        // let mut v = ContinuousView::new();
-                        // let mut mics = self.mics.to_vec();
-                        // mics.sort_by_cached_key(|mic| mic.id);
-                        // for (index, mic) in mics.iter().enumerate() {
-                        //     //TODO: because of this clone, the app is getting slower as time goes on (because the vec is getting bigger)
-                        //     let l1 = plotlib::repr::Plot::new(
-                        //         mic.record.iter().map(|x| (x[0], x[1])).collect(),
-                        //     )
-                        //     .line_style(
-                        //         LineStyle::new()
-                        //             .colour(colors[index % (colors.len() - 1)])
-                        //             .linejoin(LineJoin::Round)
-                        //             .width(1.),
-                        //     )
-                        //     .legend(format!(
-                        //         "Microphone {} (x: {}, y: {})",
-                        //         mic.id, mic.x, mic.y
-                        //     ));
-
-                        //     v = v.add(l1);
-                        // }
-
-                        // v = v.y_label("Amplitude").x_label("Time (s)");
-
-                        // let data = Page::single(&v)
-                        //     .to_svg()
-                        //     .expect("correct svg")
-                        //     .to_string()
-                        //     .into_bytes();
+                        let colors = [RED, GREEN, BLUE, CYAN, MAGENTA, YELLOW, BLACK, WHITE];
 
                         let mut string_buffer = String::new();
                         {
                             let mut mics = self.mics.to_vec();
                             mics.sort_by_cached_key(|mic| mic.id);
-                            let highest_x = mics.iter().map(|mic| {
-                                *mic.record
-                                    .iter()
-                                    .map(|x| x[0])
-                                    .collect::<Vec<_>>()
-                                    .last()
-                                    .unwrap_or(&0.)
-                            }).reduce(f64::max).unwrap_or(0.) as f32;
+                            let highest_x = mics
+                                .iter()
+                                .map(|mic| {
+                                    *mic.record
+                                        .iter()
+                                        .map(|x| x[0])
+                                        .collect::<Vec<_>>()
+                                        .last()
+                                        .unwrap_or(&0.)
+                                })
+                                .reduce(f64::max)
+                                .unwrap_or(0.) as f32;
 
-                            let highest_y = mics.iter().map(|mic| {
-                                *mic.record
-                                    .iter()
-                                    .map(|x| x[1])
-                                    .collect::<Vec<_>>()
-                                    .last()
-                                    .unwrap_or(&0.)
-                            }).reduce(f64::max).unwrap_or(0.).abs() as f32;
+                            let highest_y = mics
+                                .iter()
+                                .map(|mic| {
+                                    *mic.record
+                                        .iter()
+                                        .map(|x| x[1])
+                                        .collect::<Vec<_>>()
+                                        .last()
+                                        .unwrap_or(&0.)
+                                })
+                                .reduce(f64::max)
+                                .unwrap_or(0.)
+                                .abs() as f32;
 
                             let root = SVGBackend::with_string(&mut string_buffer, (640, 480))
                                 .into_drawing_area();
@@ -151,7 +128,10 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                     .collect::<Vec<_>>();
                                 // draw something in the drawing area
                                 chart
-                                    .draw_series(LineSeries::new(points, &colors[index % (colors.len() - 1)]))
+                                    .draw_series(LineSeries::new(
+                                        points,
+                                        &colors[index % (colors.len() - 1)],
+                                    ))
                                     .unwrap()
                                     .label(format!(
                                         "Microphone {} (x: {}, y: {})",
@@ -159,7 +139,10 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                     ))
                                     .legend(move |(x, y)| {
                                         // I don't get this
-                                        PathElement::new(vec![(x, y), (x + 20, y)], &colors[index % (colors.len() - 1)])
+                                        PathElement::new(
+                                            vec![(x, y), (x + 20, y)],
+                                            &colors[index % (colors.len() - 1)],
+                                        )
                                     });
                             }
 

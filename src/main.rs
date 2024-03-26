@@ -15,7 +15,7 @@ fn main() {
         .add_plugins((
             DefaultPlugins.set(WindowPlugin {
                 primary_window: Some(Window {
-                    title: "TLM Demo in Rust".into(),
+                    title: "wavefront".into(),
                     // present_mode: PresentMode::AutoVsync,
                     present_mode: PresentMode::AutoNoVsync,
                     ..default()
