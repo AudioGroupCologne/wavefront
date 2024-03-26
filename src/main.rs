@@ -3,12 +3,12 @@ use bevy::prelude::*;
 use bevy::window::PresentMode;
 use bevy_pixel_buffer::bevy_egui::EguiPlugin;
 use bevy_pixel_buffer::prelude::*;
-use tlm_rs::events::EventPlugin;
-use tlm_rs::grid::plugin::GridPlugin;
-use tlm_rs::input::plugin::InputPlugin;
-use tlm_rs::render::plugin::RenderPlugin;
-use tlm_rs::ui::plugin::UiPlugin;
-use tlm_rs::undo::UndoPlugin;
+use wavefront::events::EventPlugin;
+use wavefront::grid::plugin::GridPlugin;
+use wavefront::input::plugin::InputPlugin;
+use wavefront::render::plugin::RenderPlugin;
+use wavefront::ui::plugin::UiPlugin;
+use wavefront::undo::UndoPlugin;
 
 fn main() {
     App::new()

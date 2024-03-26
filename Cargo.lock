@@ -3448,27 +3448,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
-name = "tlm_rs"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "bevy_file_dialog",
- "bevy_pixel_buffer",
- "egui",
- "egui_dock",
- "egui_extras",
- "egui_plot",
- "image 0.25.0",
- "plotlib",
- "rand",
- "rand_distr",
- "rayon",
- "serde",
- "serde_json",
- "spectrum-analyzer",
-]
-
-[[package]]
 name = "toml"
 version = "0.8.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3781,6 +3760,27 @@ name = "wasm-bindgen-shared"
 version = "0.2.91"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4f186bd2dcf04330886ce82d6f33dd75a7bfcf69ecf5763b89fcde53b6ac9838"
+
+[[package]]
+name = "wavefront"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_file_dialog",
+ "bevy_pixel_buffer",
+ "egui",
+ "egui_dock",
+ "egui_extras",
+ "egui_plot",
+ "image 0.25.0",
+ "plotlib",
+ "rand",
+ "rand_distr",
+ "rayon",
+ "serde",
+ "serde_json",
+ "spectrum-analyzer",
+]
 
 [[package]]
 name = "wayland-backend"
