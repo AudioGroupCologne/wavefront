@@ -63,7 +63,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                         .on_hover_text("Save a screenshot of the plot")
                         .clicked()
                     {
-                        let colors = [RED, GREEN, BLUE, CYAN, MAGENTA, YELLOW, BLACK, WHITE];
+                        let colors = [RED, GREEN, BLUE, CYAN, MAGENTA, BLACK, WHITE];
 
                         let mut string_buffer = String::new();
                         {
@@ -148,6 +148,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
 
                             chart
                                 .configure_series_labels()
+                                .position(SeriesLabelPosition::UpperRight)
                                 .background_style(&WHITE.mix(0.8))
                                 .border_style(&BLACK)
                                 .draw()
