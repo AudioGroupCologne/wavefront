@@ -5,7 +5,6 @@ use bevy_pixel_buffer::pixel_buffer::PixelBufferSize;
 use bevy_pixel_buffer::query::PixelBuffersItem;
 use egui_plot::{GridMark, Line, Plot, PlotPoints};
 use plotters::prelude::*;
-use plotters::series::LineSeries;
 
 use super::dialog::SaveFileContents;
 use super::state::FftMicrophone;
@@ -65,113 +64,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                         .clicked()
                     {
                         let colors = [
-                            "aqua",
-                            "aquamarine",
-                            "blue",
-                            "blueviolet",
-                            "brown",
-                            "burlywood",
-                            "cadetblue",
-                            "chartreuse",
-                            "chocolate",
-                            "coral",
-                            "cornflowerblue",
-                            "crimson",
-                            "cyan",
-                            "darkblue",
-                            "darkcyan",
-                            "darkgoldenrod",
-                            "darkgray",
-                            "darkgreen",
-                            "darkkhaki",
-                            "darkmagenta",
-                            "darkolivegreen",
-                            "darkorange",
-                            "darkorchid",
-                            "darkred",
-                            "darksalmon",
-                            "darkseagreen",
-                            "darkslateblue",
-                            "darkslategray",
-                            "darkslategrey",
-                            "darkturquoise",
-                            "darkviolet",
-                            "deeppink",
-                            "deepskyblue",
-                            "dimgray",
-                            "dimgrey",
-                            "dodgerblue",
-                            "firebrick",
-                            "forestgreen",
-                            "fuchsia",
-                            "gold",
-                            "goldenrod",
-                            "gray",
-                            "green",
-                            "greenyellow",
-                            "hotpink",
-                            "indianred",
-                            "indigo",
-                            "khaki",
-                            "lawngreen",
-                            "lightblue",
-                            "lightcoral",
-                            "lightgreen",
-                            "lightpink",
-                            "lightsalmon",
-                            "lightseagreen",
-                            "lightskyblue",
-                            "lightsteelblue",
-                            "lime",
-                            "limegreen",
-                            "magenta",
-                            "maroon",
-                            "mediumaquamarine",
-                            "mediumblue",
-                            "mediumorchid",
-                            "mediumpurple",
-                            "mediumseagreen",
-                            "mediumslateblue",
-                            "mediumspringgreen",
-                            "mediumturquoise",
-                            "mediumvioletred",
-                            "midnightblue",
-                            "navy",
-                            "olive",
-                            "olivedrab",
-                            "orange",
-                            "orangered",
-                            "orchid",
-                            "palegreen",
-                            "paleturquoise",
-                            "palevioletred",
-                            "peru",
-                            "pink",
-                            "plum",
-                            "powderblue",
-                            "purple",
-                            "rebeccapurple",
-                            "red",
-                            "rosybrown",
-                            "royalblue",
-                            "saddlebrown",
-                            "salmon",
-                            "sandybrown",
-                            "seagreen",
-                            "sienna",
-                            "skyblue",
-                            "slateblue",
-                            "slategray",
-                            "springgreen",
-                            "steelblue",
-                            "tan",
-                            "teal",
-                            "thistle",
-                            "tomato",
-                            "turquoise",
-                            "violet",
-                            "yellow",
-                            "yellowgreen",
+                            RED, GREEN, BLUE, CYAN, MAGENTA, YELLOW, BLACK, WHITE
                         ];
 
                         // let mut v = ContinuousView::new();
@@ -205,49 +98,93 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                         //     .into_bytes();
 
                         let mut string_buffer = String::new();
-                        let root = SVGBackend::with_string(&mut string_buffer, (640, 480))
-                            .into_drawing_area();
-                        root.fill(&WHITE).unwrap();
-                        let root = root.margin(10, 10, 10, 10);
-                        // After this point, we should be able to construct a chart context
-                        let mut chart = ChartBuilder::on(&root)
-                            // Set the caption of the chart
-                            .caption("This is our first plot", ("sans-serif", 40).into_font())
-                            // Set the size of the label region
-                            .x_label_area_size(20)
-                            .y_label_area_size(40)
-                            // Finally attach a coordinate on the drawing area and make a chart context
-                            .build_cartesian_2d(0f32..10f32, 0f32..10f32)
-                            .unwrap();
+                        {
+                            let mut mics = self.mics.to_vec();
+                            mics.sort_by_cached_key(|mic| mic.id);
+                            let highest_x = mics.iter().map(|mic| {
+                                *mic.record
+                                    .iter()
+                                    .map(|x| x[0])
+                                    .collect::<Vec<_>>()
+                                    .last()
+                                    .unwrap_or(&0.)
+                            }).reduce(f64::max).unwrap_or(0.) as f32;
 
-                        // Then we can draw a mesh
-                        chart
-                            .configure_mesh()
-                            // We can customize the maximum number of labels allowed for each axis
-                            .x_labels(5)
-                            .y_labels(5)
-                            // We can also change the format of the label text
-                            .y_label_formatter(&|x| format!("{:.3}", x))
-                            .draw()
-                            .unwrap();
+                            let highest_y = mics.iter().map(|mic| {
+                                *mic.record
+                                    .iter()
+                                    .map(|x| x[1])
+                                    .collect::<Vec<_>>()
+                                    .last()
+                                    .unwrap_or(&0.)
+                            }).reduce(f64::max).unwrap_or(0.).abs() as f32;
 
-                        // And we can draw something in the drawing area
-                        chart
-                            .draw_series(LineSeries::new(
-                                vec![(0.0, 0.0), (5.0, 5.0), (8.0, 7.0)],
-                                &RED,
-                            ))
-                            .unwrap();
+                            let root = SVGBackend::with_string(&mut string_buffer, (640, 480))
+                                .into_drawing_area();
+                            root.fill(&WHITE).unwrap();
+                            let root = root.margin(10, 10, 10, 10);
+                            // After this point, we should be able to construct a chart context
+                            let mut chart = ChartBuilder::on(&root)
+                                // Set the size of the label region
+                                .x_label_area_size(20)
+                                .y_label_area_size(40)
+                                // Finally attach a coordinate on the drawing area and make a chart context
+                                .build_cartesian_2d(0f32..highest_x, -highest_y..highest_y)
+                                .unwrap();
 
-                        let a = string_buffer.as_bytes();
+                            // Then we can draw a mesh
+                            chart
+                                .configure_mesh()
+                                // We can customize the maximum number of labels allowed for each axis
+                                .x_labels(5)
+                                .y_labels(5)
+                                // We can also change the format of the label text
+                                .y_label_formatter(&|x| format!("{:.3}", x))
+                                .draw()
+                                .unwrap();
 
-                        // self.commands
-                        //     .dialog()
-                        //     .add_filter("SVG", &["svg"])
-                        //     .set_file_name("function.svg")
-                        //     .set_directory("./")
-                        //     .set_title("Select a file to save to")
-                        //     .save_file::<SaveFileContents>(a.to_vec());
+                            for (index, &mic) in mics.iter().enumerate() {
+                                let points = mic
+                                    .record
+                                    .iter()
+                                    .map(|x| (x[0] as f32, x[1] as f32))
+                                    .collect::<Vec<_>>();
+                                // draw something in the drawing area
+                                chart
+                                    .draw_series(LineSeries::new(points, &colors[index % (colors.len() - 1)]))
+                                    .unwrap()
+                                    .label(format!(
+                                        "Microphone {} (x: {}, y: {})",
+                                        mic.id, mic.x, mic.y
+                                    ))
+                                    .legend(move |(x, y)| {
+                                        // I don't get this
+                                        PathElement::new(vec![(x, y), (x + 20, y)], &colors[index % (colors.len() - 1)])
+                                    });
+
+                                // .line_style(
+                                //     LineStyle::new()
+                                //         .colour(colors[index % (colors.len() - 1)])
+                                //         .linejoin(LineJoin::Round)
+                                //         .width(1.),
+                                // )
+                            }
+
+                            chart
+                                .configure_series_labels()
+                                .background_style(&WHITE.mix(0.8))
+                                .border_style(&BLACK)
+                                .draw()
+                                .unwrap();
+                        }
+
+                        self.commands
+                            .dialog()
+                            .add_filter("SVG", &["svg"])
+                            .set_file_name("function.svg")
+                            .set_directory("./")
+                            .set_title("Select a file to save to")
+                            .save_file::<SaveFileContents>(string_buffer.into_bytes());
                     }
                 });
 
