@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::window::PresentMode;
 
 use crate::components::wall::{CircWall, RectWall};
 use crate::grid::grid::Grid;
@@ -8,8 +9,9 @@ pub struct EventPlugin;
 
 impl Plugin for EventPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(PostUpdate, (update_wall_event, reset_event))
+        app.add_systems(PostUpdate, (update_wall_event, reset_event, vsync_event))
             .add_event::<UpdateWalls>()
+            .add_event::<Vsync>()
             .add_event::<Reset>();
     }
 }
@@ -43,5 +45,20 @@ pub fn reset_event(
             sim_time.time_since_start = 0f32;
             grid.reset_cells(ui_state.boundary_width);
         }
+    }
+}
+
+#[derive(Event)]
+pub struct Vsync;
+
+pub fn vsync_event(mut vsync_ev: EventReader<Vsync>, mut windows: Query<&mut Window>) {
+    for _ in vsync_ev.read() {
+        let mut window = windows.single_mut();
+
+        window.present_mode = if matches!(window.present_mode, PresentMode::AutoVsync) {
+            PresentMode::AutoNoVsync
+        } else {
+            PresentMode::AutoVsync
+        };
     }
 }
