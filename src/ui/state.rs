@@ -9,8 +9,8 @@ pub enum WallType {
 }
 
 #[derive(Default, Resource)]
-pub struct GameTicks {
-    pub ticks_since_start: u64,
+pub struct SimTime {
+    pub time_since_start: f32,
 }
 
 #[derive(Debug, PartialEq, Copy, Clone)]

@@ -55,6 +55,7 @@ pub fn draw_egui(
     )>,
     mut dock_state: ResMut<DockState>,
     mut fft_mic: ResMut<FftMicrophone>,
+    mut sim_time: ResMut<SimTime>,
 ) {
     let ctx = egui_context.ctx_mut();
     egui_extras::install_image_loaders(ctx);
@@ -749,6 +750,7 @@ pub fn draw_egui(
 
                     if ui.button("Reset").clicked() {
                         grid.reset_cells(ui_state.boundary_width);
+                        sim_time.time_since_start = 0f32;
                         for (_, mut mic) in mic_set.p0().iter_mut() {
                             mic.clear();
                         }
@@ -877,7 +879,11 @@ pub fn draw_egui(
                     }
                 });
 
-                ui.add_space(10.);
+                ui.add_space(5.);
+                
+                ui.label(format!("Simulation Time: {:.5} ms", sim_time.time_since_start * 1000.));
+
+                ui.add_space(5.);
             });
 
             // Tool Options

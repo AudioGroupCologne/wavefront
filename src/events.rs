@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::components::wall::{CircWall, RectWall};
 use crate::grid::grid::Grid;
-use crate::ui::state::UiState;
+use crate::ui::state::{SimTime, UiState};
 
 pub struct EventPlugin;
 
@@ -35,10 +35,12 @@ pub struct Reset;
 pub fn reset_event(
     mut reset_ev: EventReader<Reset>,
     mut grid: ResMut<Grid>,
+    mut sim_time: ResMut<SimTime>,
     ui_state: Res<UiState>,
 ) {
     if ui_state.reset_on_change {
         for _ in reset_ev.read() {
+            sim_time.time_since_start = 0f32;
             grid.reset_cells(ui_state.boundary_width);
         }
     }

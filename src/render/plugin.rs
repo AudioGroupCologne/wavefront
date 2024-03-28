@@ -5,14 +5,14 @@ use bevy_pixel_buffer::pixel_buffer::PixelBufferSize;
 use super::draw::{draw_overlays, draw_pixels};
 use super::gradient::Gradient;
 use crate::math::constants::*;
-use crate::ui::state::GameTicks;
+use crate::ui::state::SimTime;
 
 pub struct RenderPlugin;
 
 impl Plugin for RenderPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Gradient>()
-            .init_resource::<GameTicks>()
+            .init_resource::<SimTime>()
             .add_systems(Startup, (setup_buffers,))
             .add_systems(Update, (draw_pixels, draw_overlays).chain());
     }

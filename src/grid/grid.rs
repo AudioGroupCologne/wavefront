@@ -307,13 +307,13 @@ impl Grid {
 
     pub fn apply_sources(
         &mut self,
-        ticks_since_start: u64,
+        time_since_start: f32,
         sources: &Query<&Source>,
         boundary_width: u32,
     ) {
-        let time = self.delta_t * ticks_since_start as f32; //the cast feels wrong, but it works for now
+        //the cast feels wrong, but it works for now
         for source in sources.iter() {
-            let calc = source.calc(time);
+            let calc = source.calc(time_since_start);
             let source_pos = coords_to_index(
                 source.x + boundary_width,
                 source.y + boundary_width,
