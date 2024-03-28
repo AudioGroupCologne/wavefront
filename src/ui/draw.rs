@@ -1,6 +1,7 @@
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::ecs::system::SystemParam;
 use bevy::prelude::*;
+use bevy::window::PresentMode;
 use bevy_file_dialog::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::{Color32, Frame, Margin, Vec2};
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
@@ -13,7 +14,7 @@ use crate::components::microphone::*;
 use crate::components::source::*;
 use crate::components::states::{MenuSelected, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize};
-use crate::events::{Reset, UpdateWalls, Vsync};
+use crate::events::{Reset, UpdateWalls};
 use crate::grid::grid::Grid;
 use crate::math::constants::*;
 use crate::math::transformations::coords_to_index;
@@ -32,11 +33,11 @@ pub struct EventSystemParams<'w> {
     // EventWriter<'w, SomeEvent>
     wall_update_ev: EventWriter<'w, UpdateWalls>,
     reset_ev: EventWriter<'w, Reset>,
-    vsync_ev: EventWriter<'w, Vsync>,
 }
 
 pub fn draw_egui(
     mut commands: Commands,
+    mut windows: Query<&mut Window>,
     diagnostics: Res<DiagnosticsStore>,
     mut pixel_buffers: QueryPixelBuffer,
     mut egui_context: EguiContexts,
@@ -118,11 +119,23 @@ pub fn draw_egui(
                 ui.label("- link to manual/docs");
                 ui.label("- credits (link to yt?)");
                 ui.label("- experimental settings (spectrogram)");
+
+                let mut window = windows.single_mut();
+                
                 if ui
-                        .button("Toggle Vsync")
+                        .button(if matches!(window.present_mode, PresentMode::AutoVsync) {
+                            "Disable Vsync"
+                        } else {
+                            "Enable Vsync"
+                        })
                         .clicked()
                     {
-                        events.vsync_ev.send(Vsync);
+
+                        window.present_mode = if matches!(window.present_mode, PresentMode::AutoVsync) {
+                            PresentMode::AutoNoVsync
+                        } else {
+                            PresentMode::AutoVsync
+                        };
                     }
             });
     }
