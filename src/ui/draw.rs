@@ -108,6 +108,8 @@ pub fn draw_egui(
         ),
     ];
 
+    let mut enable_spectrogram = ui_state.enable_spectrogram;
+
     if ui_state.show_help {
         egui::Window::new("Help")
             .open(&mut ui_state.show_help)
@@ -171,15 +173,15 @@ pub fn draw_egui(
                 let mut window = windows.single_mut();
 
                 let mut is_vsync_enabled = matches!(window.present_mode, PresentMode::AutoVsync);
-                ui.checkbox(&mut is_vsync_enabled, "Vsync Enabled");
+                ui.checkbox(&mut is_vsync_enabled, "Vsync enabled");
                 window.present_mode = if is_vsync_enabled {
                     PresentMode::AutoVsync
                 } else {
                     PresentMode::AutoNoVsync
                 };
 
-                ui.checkbox(&mut is_vsync_enabled, "Vsync Enabled");
-                
+                ui.checkbox(&mut enable_spectrogram, "Spectrogram enabled");
+
                 ui.add_space(5.);
 
                 ui.heading("Created by");
@@ -187,6 +189,8 @@ pub fn draw_egui(
                 ui.hyperlink("https://github.com/ecrax");
                 // ui.hyperlink("https://github.com/nichilum/wavefront");
             });
+
+        ui_state.enable_spectrogram = enable_spectrogram;
     }
 
     // Side Panel (Sources, Mic, Walls, Tool Options, Settings)
@@ -1042,6 +1046,7 @@ pub fn draw_egui(
                             pixel_buffer: &mut pb,
                             fft_microphone: &mut fft_mic,
                             commands: &mut commands.reborrow(),
+                            enabled_spectrogram: ui_state.enable_spectrogram,
                         },
                     );
             });

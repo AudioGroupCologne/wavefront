@@ -34,6 +34,7 @@ pub struct PlotTabs<'a> {
     pub pixel_buffer: &'a mut PixelBuffersItem<'a>,
     pub fft_microphone: &'a mut FftMicrophone,
     pub commands: &'a mut Commands<'a, 'a>,
+    pub enabled_spectrogram: bool,
 }
 
 impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
@@ -256,6 +257,12 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                     });
             }
             Tab::Spectrogram => {
+                if !self.enabled_spectrogram {
+                    ui.add_space(20.);
+                    ui.vertical_centered(|ui| ui.label("Spectrogram is currently experimental. You can enable it in the settings."));
+                    return;
+                }
+
                 egui::ComboBox::from_label("FFT Microphone")
                     .selected_text(if let Some(index) = self.fft_microphone.mic_id {
                         format!("Microphone {index}")
