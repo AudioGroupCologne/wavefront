@@ -217,138 +217,134 @@ pub fn draw_egui(
                         }
                     });
                     ui.with_layout(egui::Layout::top_down(egui::Align::RIGHT), |ui| {
-                        ui.horizontal(|ui| {
-                            ui.menu_button("...", |ui|{
-                                if ui
-                                    .button("Save")
-                                    .on_hover_text("Save the current state of the simulation")
-                                    .clicked()
+                        ui.menu_button("...", |ui|{
+                            if ui
+                                .button("Save")
+                                .on_hover_text("Save the current state of the simulation")
+                                .clicked()
+                            {
+                                ui.close_menu();
+                            
+                                // TODO: not super happy with this, would like to move it to the dialog system
+                                let source_set = source_set.p3();
+                                let mic_set = mic_set.p3();
+                                let rect_wall_set = rect_wall_set.p3();
+                                let circ_wall_set = circ_wall_set.p3();
+                            
+                                let sources = source_set.iter().collect::<Vec<_>>();
+                                let mics = mic_set.iter().collect::<Vec<_>>();
+                                let rect_walls = rect_wall_set.iter().collect::<Vec<_>>();
+                                let circ_walls = circ_wall_set.iter().collect::<Vec<_>>();
+                            
+                                let data = crate::ui::saving::save(
+                                    &sources,
+                                    &mics,
+                                    &rect_walls,
+                                    &circ_walls,
+                                )
+                                .unwrap();
+                            
+                                commands
+                                    .dialog()
+                                    .add_filter("JSON", &["json"])
+                                    .set_file_name("save.json")
+                                    .set_directory("./")
+                                    .set_title("Select a file to save to")
+                                    .save_file::<SaveFileContents>(data);
+                            }
+
+                            if ui
+                                .button("Load")
+                                .on_hover_text("Load a previously saved state of the simulation")
+                                .clicked()
+                            {
+                                ui.close_menu();
+
+                                commands
+                                    .dialog()
+                                    .add_filter("JSON", &["json"])
+                                    .set_directory("./")
+                                    .set_title("Select a file to load")
+                                    .load_file::<SaveFileContents>();
+                            }
+
+                            if ui
+                                .button("Screenshot")
+                                .on_hover_text("Save a screenshot of the simulation")
+                                .clicked()
+                            {
+                                ui.close_menu();
+
+                                let mut pixels: Vec<u8> = Vec::new();
+
+                                for y in ui_state.boundary_width
+                                    ..(SIMULATION_WIDTH + ui_state.boundary_width)
                                 {
-                                    ui.close_menu();
-                                
-                                    // TODO: not super happy with this, would like to move it to the dialog system
-                                    let source_set = source_set.p3();
-                                    let mic_set = mic_set.p3();
-                                    let rect_wall_set = rect_wall_set.p3();
-                                    let circ_wall_set = circ_wall_set.p3();
-                                
-                                    let sources = source_set.iter().collect::<Vec<_>>();
-                                    let mics = mic_set.iter().collect::<Vec<_>>();
-                                    let rect_walls = rect_wall_set.iter().collect::<Vec<_>>();
-                                    let circ_walls = circ_wall_set.iter().collect::<Vec<_>>();
-                                
-                                    let data = crate::ui::saving::save(
-                                        &sources,
-                                        &mics,
-                                        &rect_walls,
-                                        &circ_walls,
-                                    )
-                                    .unwrap();
-                                
-                                    commands
-                                        .dialog()
-                                        .add_filter("JSON", &["json"])
-                                        .set_file_name("save.json")
-                                        .set_directory("./")
-                                        .set_title("Select a file to save to")
-                                        .save_file::<SaveFileContents>(data);
-                                }
-
-                                if ui
-                                    .button("Load")
-                                    .on_hover_text("Load a previously saved state of the simulation")
-                                    .clicked()
-                                {
-                                    ui.close_menu();
-
-                                    commands
-                                        .dialog()
-                                        .add_filter("JSON", &["json"])
-                                        .set_directory("./")
-                                        .set_title("Select a file to load")
-                                        .load_file::<SaveFileContents>();
-                                }
-
-                                if ui
-                                    .button("Screenshot")
-                                    .on_hover_text("Save a screenshot of the simulation")
-                                    .clicked()
-                                {
-                                    ui.close_menu();
-
-                                    let mut pixels: Vec<u8> = Vec::new();
-
-                                    for y in ui_state.boundary_width
-                                        ..(SIMULATION_WIDTH + ui_state.boundary_width)
+                                    for x in ui_state.boundary_width
+                                        ..(SIMULATION_HEIGHT + ui_state.boundary_width)
                                     {
-                                        for x in ui_state.boundary_width
-                                            ..(SIMULATION_HEIGHT + ui_state.boundary_width)
-                                        {
-                                            let current_index =
-                                                coords_to_index(x, y, ui_state.boundary_width);
-                                            if grid.wall_cache[current_index].is_wall {
-                                                let mut reflection_factor =
-                                                    grid.wall_cache[current_index].reflection_factor;
-                                                if reflection_factor == 0. {
-                                                    reflection_factor = 1.;
-                                                }
-                                                pixels.push((reflection_factor * 255.) as u8);
-                                                pixels.push((reflection_factor * 255.) as u8);
-                                                pixels.push((reflection_factor * 255.) as u8);
-                                            } else {
-                                                let pressure = grid.pressure[current_index];
-
-                                                let color =
-                                                    gradient.at(pressure, ui_state.gradient_contrast);
-
-                                                // gamma correction to match the brightness/contrast of the simulation
-                                                pixels.push(
-                                                    ((color.r() as f32 / 255.).powf(1. / 2.2) * 255.) as u8,
-                                                );
-                                                pixels.push(
-                                                    ((color.g() as f32 / 255.).powf(1. / 2.2) * 255.) as u8,
-                                                );
-                                                pixels.push(
-                                                    ((color.b() as f32 / 255.).powf(1. / 2.2) * 255.) as u8,
-                                                );
+                                        let current_index =
+                                            coords_to_index(x, y, ui_state.boundary_width);
+                                        if grid.wall_cache[current_index].is_wall {
+                                            let mut reflection_factor =
+                                                grid.wall_cache[current_index].reflection_factor;
+                                            if reflection_factor == 0. {
+                                                reflection_factor = 1.;
                                             }
+                                            pixels.push((reflection_factor * 255.) as u8);
+                                            pixels.push((reflection_factor * 255.) as u8);
+                                            pixels.push((reflection_factor * 255.) as u8);
+                                        } else {
+                                            let pressure = grid.pressure[current_index];
+
+                                            let color =
+                                                gradient.at(pressure, ui_state.gradient_contrast);
+
+                                            // gamma correction to match the brightness/contrast of the simulation
+                                            pixels.push(
+                                                ((color.r() as f32 / 255.).powf(1. / 2.2) * 255.) as u8,
+                                            );
+                                            pixels.push(
+                                                ((color.g() as f32 / 255.).powf(1. / 2.2) * 255.) as u8,
+                                            );
+                                            pixels.push(
+                                                ((color.b() as f32 / 255.).powf(1. / 2.2) * 255.) as u8,
+                                            );
                                         }
                                     }
-
-                                    let mut data = Vec::new();
-                                    let encoder = image::codecs::png::PngEncoder::new(&mut data);
-
-                                    let image = image::RgbImage::from_raw(
-                                        SIMULATION_WIDTH,
-                                        SIMULATION_HEIGHT,
-                                        pixels,
-                                    )
-                                    .expect("could not create image");
-
-                                    image
-                                        .write_with_encoder(encoder)
-                                        .expect("could not write image");
-
-                                    commands
-                                        .dialog()
-                                        .add_filter("PNG", &["png"])
-                                        .set_file_name("screenshot.png")
-                                        .set_directory("./")
-                                        .set_title("Select a file to save to")
-                                        .save_file::<SaveFileContents>(data);
                                 }
-                                if ui
-                                    .button("Help")
-                                    .clicked()
-                                {
-                                    ui_state.show_help = true;
-                                    ui.close_menu();
-                                }
-                            });
 
-                            });
+                                let mut data = Vec::new();
+                                let encoder = image::codecs::png::PngEncoder::new(&mut data);
+
+                                let image = image::RgbImage::from_raw(
+                                    SIMULATION_WIDTH,
+                                    SIMULATION_HEIGHT,
+                                    pixels,
+                                )
+                                .expect("could not create image");
+
+                                image
+                                    .write_with_encoder(encoder)
+                                    .expect("could not write image");
+
+                                commands
+                                    .dialog()
+                                    .add_filter("PNG", &["png"])
+                                    .set_file_name("screenshot.png")
+                                    .set_directory("./")
+                                    .set_title("Select a file to save to")
+                                    .save_file::<SaveFileContents>(data);
+                            }
+                            if ui
+                                .button("Help")
+                                .clicked()
+                            {
+                                ui_state.show_help = true;
+                                ui.close_menu();
+                            }
                         });
-                        
+                    });
                 });
 
             ui.separator();
