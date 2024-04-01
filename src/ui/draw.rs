@@ -121,22 +121,14 @@ pub fn draw_egui(
                 ui.label("- experimental settings (spectrogram)");
 
                 let mut window = windows.single_mut();
-                
-                if ui
-                        .button(if matches!(window.present_mode, PresentMode::AutoVsync) {
-                            "Disable Vsync"
-                        } else {
-                            "Enable Vsync"
-                        })
-                        .clicked()
-                    {
 
-                        window.present_mode = if matches!(window.present_mode, PresentMode::AutoVsync) {
-                            PresentMode::AutoNoVsync
-                        } else {
-                            PresentMode::AutoVsync
-                        };
-                    }
+                let mut is_vsync_enabled = matches!(window.present_mode, PresentMode::AutoVsync);
+                ui.checkbox(&mut is_vsync_enabled, "Vsync Enabled");
+                window.present_mode = if is_vsync_enabled {
+                    PresentMode::AutoVsync
+                } else {
+                    PresentMode::AutoNoVsync
+                };
             });
     }
 
