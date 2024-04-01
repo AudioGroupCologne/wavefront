@@ -130,7 +130,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                 chart
                                     .draw_series(LineSeries::new(
                                         points,
-                                        &colors[index % (colors.len() - 1)],
+                                        colors[index % (colors.len() - 1)],
                                     ))
                                     .unwrap()
                                     .label(format!(
@@ -138,10 +138,9 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                         mic.id, mic.x, mic.y
                                     ))
                                     .legend(move |(x, y)| {
-                                        // I don't get this
                                         PathElement::new(
                                             vec![(x, y), (x + 20, y)],
-                                            &colors[index % (colors.len() - 1)],
+                                            colors[index % (colors.len() - 1)],
                                         )
                                     });
                             }
@@ -149,8 +148,8 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             chart
                                 .configure_series_labels()
                                 .position(SeriesLabelPosition::UpperRight)
-                                .background_style(&WHITE.mix(0.8))
-                                .border_style(&BLACK)
+                                .background_style(WHITE.mix(0.8))
+                                .border_style(BLACK)
                                 .draw()
                                 .unwrap();
                         }
