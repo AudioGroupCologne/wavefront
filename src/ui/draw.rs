@@ -71,7 +71,7 @@ pub fn draw_egui(
     )>,
     mut dock_state: ResMut<DockState>,
     mut fft_mic: ResMut<FftMicrophone>,
-    mut sim_time: ResMut<SimTime>,
+    sim_time: ResMut<SimTime>,
 ) {
     let ctx = egui_context.ctx_mut();
     egui_extras::install_image_loaders(ctx);
@@ -783,11 +783,7 @@ pub fn draw_egui(
                     }
 
                     if ui.button("Reset").clicked() {
-                        grid.reset_cells(ui_state.boundary_width);
-                        sim_time.time_since_start = 0f32;
-                        for (_, mut mic) in mic_set.p0().iter_mut() {
-                            mic.clear();
-                        }
+                        events.reset_ev.send(Reset);
                     }
 
                     if ui

@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+use crate::components::microphone::Microphone;
 use crate::components::wall::{CircWall, RectWall};
 use crate::grid::grid::Grid;
 use crate::ui::state::{SimTime, UiState};
@@ -37,11 +38,13 @@ pub fn reset_event(
     mut grid: ResMut<Grid>,
     mut sim_time: ResMut<SimTime>,
     ui_state: Res<UiState>,
+    mut mics: Query<&mut Microphone>,
 ) {
     if ui_state.reset_on_change {
         for _ in reset_ev.read() {
             sim_time.time_since_start = 0f32;
             grid.reset_cells(ui_state.boundary_width);
+            mics.iter_mut().for_each(|mut mic| mic.clear());
         }
     }
 }
