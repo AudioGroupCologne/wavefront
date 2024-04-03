@@ -59,8 +59,9 @@ pub struct UiState {
     pub reset_on_change: bool,
     pub tool_use_enabled: bool,
     pub gradient_contrast: f32,
-    pub show_help: bool,
+    pub show_preferences: bool,
     pub show_about: bool,
+    pub show_help: bool,
     pub enable_spectrogram: bool,
 }
 
@@ -84,8 +85,9 @@ impl Default for UiState {
             reset_on_change: true,
             tool_use_enabled: true,
             gradient_contrast: 5.,
-            show_help: false,
+            show_preferences: false,
             show_about: false,
+            show_help: false,
             enable_spectrogram: false,
         }
     }

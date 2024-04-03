@@ -171,10 +171,8 @@ pub fn draw_egui(
         "Ctrl"
     };
 
-    let mut enable_spectrogram = ui_state.enable_spectrogram;
-
     if ui_state.show_help {
-        egui::Window::new("Preferences")
+        egui::Window::new("Keybinds")
             .open(&mut ui_state.show_help)
             .default_size(Vec2::new(400., 400.))
             .resizable(false)
@@ -272,9 +270,19 @@ pub fn draw_egui(
                             });
                         });
                     });
+            });
+    }
 
-                ui.add_space(5.);
-
+    let mut enable_spectrogram = ui_state.enable_spectrogram;
+    if ui_state.show_preferences {
+        egui::Window::new("Preferences")
+            .open(&mut ui_state.show_preferences)
+            .default_size(Vec2::new(400., 400.))
+            .resizable(false)
+            .collapsible(false)
+            .constrain(true)
+            .show(ctx, |ui| {
+                ui.set_min_width(250.);
                 ui.heading("Experimental Settings");
 
                 let mut window = windows.single_mut();
@@ -444,12 +452,16 @@ pub fn draw_egui(
                         events.undo_ev.send(UndoEvent(UndoRedo::Redo));
                     }
                     if ui.button("Preferences").clicked() {
-                        ui_state.show_help = true;
+                        ui_state.show_preferences = true;
                         ui.close_menu();
                     }
                 });
 
                 ui.menu_button("Help", |ui| {
+                    if ui.button("Keybinds").clicked() {
+                        ui_state.show_help = true;
+                        ui.close_menu();
+                    }
                     if ui.button("About").clicked() {
                         ui_state.show_about = true;
                         ui.close_menu();
