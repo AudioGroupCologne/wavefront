@@ -389,7 +389,7 @@ pub fn draw_egui(
 
     // Side Panel (Sources, Mic, Walls, Tool Options, Settings)
     egui::SidePanel::left("left_panel")
-        .default_width(400.)
+        .default_width(420.)
         .resizable(false)
         .show(ctx, |ui| {
             ui_state.tools_enabled = !ui.rect_contains_pointer(ui.available_rect_before_wrap())
@@ -399,7 +399,7 @@ pub fn draw_egui(
 
             ui.add_space(3.);
             egui::Grid::new("header_grid")
-                .min_col_width(400. / 2.)
+                .min_col_width(420. / 2.)
                 .show(ui, |ui| {
 
                     ui.vertical(|ui| {
@@ -567,18 +567,13 @@ pub fn draw_egui(
                             commands.entity(*entity).remove::<MenuSelected>();
                         }
                     });
-                });
+                
 
             if !source_set.p0().is_empty() {
                 ui.separator();
             }
 
             // Microphones
-            egui::ScrollArea::vertical()
-                .id_source("mic_scroll_area")
-                .max_height(400.)
-                .show(ui, |ui| {
-                    ui.set_min_width(ui.available_width());
 
                     let mut binding = mic_set.p0();
                     let mut mic_vec = binding.iter_mut().collect::<Vec<_>>();
@@ -621,18 +616,14 @@ pub fn draw_egui(
                             commands.entity(*entity).remove::<MenuSelected>();
                         }
                     });
-                });
+               
 
                 if !mic_set.p0().is_empty() {
                     ui.separator();
                 }
 
             // Rect Walls
-            egui::ScrollArea::vertical()
-                .id_source("rect_wall_scroll_area")
-                .max_height(400.)
-                .show(ui, |ui| {
-                    ui.set_min_width(ui.available_width());
+
 
                     let mut rect_binding = rect_wall_set.p0();
                     let mut wall_vec = rect_binding.iter_mut().collect::<Vec<_>>();
@@ -761,13 +752,9 @@ pub fn draw_egui(
                             commands.entity(*entity).remove::<MenuSelected>();
                         }
                     });
-                });
+               
             // Circ Walls
-            egui::ScrollArea::vertical()
-                .id_source("circ_wall_scroll_area")
-                .max_height(400.)
-                .show(ui, |ui| {
-                    ui.set_min_width(ui.available_width());
+
 
                     let mut circ_binding = circ_wall_set.p0();
                     let mut wall_vec = circ_binding.iter_mut().collect::<Vec<_>>();
@@ -893,6 +880,7 @@ pub fn draw_egui(
                         }
                     });
                 });
+               
 
             // General Settings
             egui::TopBottomPanel::bottom("general_settings_bottom_panel").show_inside(ui, |ui| {
