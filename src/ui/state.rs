@@ -60,6 +60,7 @@ pub struct UiState {
     pub tool_use_enabled: bool,
     pub gradient_contrast: f32,
     pub show_help: bool,
+    pub show_about: bool,
     pub enable_spectrogram: bool,
 }
 
@@ -84,6 +85,7 @@ impl Default for UiState {
             tool_use_enabled: true,
             gradient_contrast: 5.,
             show_help: false,
+            show_about: false,
             enable_spectrogram: false,
         }
     }

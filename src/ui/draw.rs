@@ -155,9 +155,7 @@ pub fn draw_egui(
             .collapsible(false)
             .constrain(true)
             .show(ctx, |ui| {
-                // ui.label("- link to manual/docs");
-                // ui.label("- credits (link to yt?)");
-                // ui.label("- experimental settings (spectrogram)");
+                // TODO: add links to documentation/user manual
 
                 ui.heading("Keybinds");
 
@@ -243,15 +241,34 @@ pub fn draw_egui(
 
                 ui.checkbox(&mut enable_spectrogram, "Spectrogram enabled");
 
+            });
+
+        ui_state.enable_spectrogram = enable_spectrogram;
+    }
+
+    if ui_state.show_about {
+        egui::Window::new("About")
+            .open(&mut ui_state.show_about)
+            .default_size(Vec2::new(400., 400.))
+            .resizable(false)
+            .collapsible(false)
+            .constrain(true)
+            .show(ctx, |ui| {
+                ui.heading("wavefront");
+                ui.strong(format!("Version: {}", env!("CARGO_PKG_VERSION")));
                 ui.add_space(5.);
+                ui.label("A wave simulation tool using the Transmission Line Matrix method.");
+
+                ui.add_space(10.);
 
                 ui.heading("Created by");
                 ui.hyperlink("https://github.com/JonathanKr");
                 ui.hyperlink("https://github.com/ecrax");
-                // ui.hyperlink("https://github.com/nichilum/wavefront");
+                
+                ui.add_space(5.);
+                ui.heading("Source");
+                ui.hyperlink("https://github.com/nichilum/wavefront");
             });
-
-        ui_state.enable_spectrogram = enable_spectrogram;
     }
 
     egui::TopBottomPanel::top("top_menu")
@@ -413,6 +430,10 @@ pub fn draw_egui(
                 ui.menu_button("Help", |ui| {
                     if ui.button("Help").clicked() {
                         ui_state.show_help = true;
+                        ui.close_menu();
+                    }
+                    if ui.button("About").clicked() {
+                        ui_state.show_about = true;
                         ui.close_menu();
                     }
                 });
