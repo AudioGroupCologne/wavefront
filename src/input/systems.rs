@@ -6,8 +6,8 @@ use crate::components::source::{Source, SourceType};
 use crate::components::states::{Drag, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize, Wall};
 use crate::events::{Load, Reset, Save, UpdateWalls};
-use crate::simulation::plugin::ComponentIDs;
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
+use crate::simulation::plugin::ComponentIDs;
 use crate::ui::state::{ClipboardBuffer, ToolType, UiState, WallType};
 
 /// This system handles the copy and paste functionality
@@ -135,10 +135,6 @@ pub fn button_input(
                         if let Some((mut x, mut y)) =
                             screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                         {
-                            if keys.pressed(KeyCode::ControlLeft) {
-                                x = (x as f32 / 10.).round() as u32 * 10;
-                                y = (y as f32 / 10.).round() as u32 * 10;
-                            }
                             commands.spawn((
                                 RectWall::new(
                                     x,
@@ -297,11 +293,6 @@ pub fn button_input(
                     if let Some((mut x, mut y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                     {
-                        if keys.pressed(KeyCode::ControlLeft) {
-                            x = (x as f32 / 10.).round() as u32 * 10;
-                            y = (y as f32 / 10.).round() as u32 * 10;
-                        }
-
                         rect_wall_set
                             .p2()
                             .iter_mut()
@@ -310,22 +301,67 @@ pub fn button_input(
                             .p2()
                             .iter_mut()
                             .for_each(|(_, wall_resize, mut wall)| wall.resize(wall_resize, x, y));
+
+                        #[cfg(not(target_os = "macos"))]
+                        let ctrl = keys.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
+
+                        #[cfg(target_os = "macos")]
+                        let ctrl = keys.any_pressed([KeyCode::SuperLeft, KeyCode::SuperRight]);
+
+                        if ctrl {
+                            // snap all four corners to grid
+                            rect_wall_set.p2().iter_mut().for_each(|(_, _, mut wall)| {
+                                let min = UVec2 {
+                                    x: (wall.rect.min.x as f32 / 10.).round() as u32 * 10,
+                                    y: (wall.rect.min.y as f32 / 10.).round() as u32 * 10,
+                                };
+                                let max = UVec2 {
+                                    x: (wall.rect.max.x as f32 / 10.).round() as u32 * 10,
+                                    y: (wall.rect.max.y as f32 / 10.).round() as u32 * 10,
+                                };
+                                wall.resize(&WResize::TopLeft, min.x, min.y);
+                                wall.resize(&WResize::TopRight, max.x, min.y);
+                                wall.resize(&WResize::BottomLeft, min.x, max.y);
+                                wall.resize(&WResize::BottomRight, max.x, max.y);
+                            });
+                        }
                     }
                 }
                 ToolType::MoveWall => {
                     if let Some((mut x, mut y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                     {
-                        if keys.pressed(KeyCode::ControlLeft) {
-                            x = (x as f32 / 10.).round() as u32 * 10;
-                            y = (y as f32 / 10.).round() as u32 * 10;
-                        }
                         rect_wall_set.p1().iter_mut().for_each(|(_, mut wall)| {
                             wall.set_center(x, y);
                         });
                         circ_wall_set.p1().iter_mut().for_each(|(_, mut wall)| {
                             wall.set_center(x, y);
                         });
+
+                        #[cfg(not(target_os = "macos"))]
+                        let ctrl = keys.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
+
+                        #[cfg(target_os = "macos")]
+                        let ctrl = keys.any_pressed([KeyCode::SuperLeft, KeyCode::SuperRight]);
+
+                        if ctrl {
+                            // snap all four corners to grid
+                            rect_wall_set.p1().iter_mut().for_each(|(_, mut wall)| {
+                                let min = UVec2 {
+                                    x: (wall.rect.min.x as f32 / 10.).round() as u32 * 10,
+                                    y: (wall.rect.min.y as f32 / 10.).round() as u32 * 10,
+                                };
+                                let max = UVec2 {
+                                    x: (wall.rect.max.x as f32 / 10.).round() as u32 * 10,
+                                    y: (wall.rect.max.y as f32 / 10.).round() as u32 * 10,
+                                };
+
+                                wall.resize(&WResize::TopLeft, min.x, min.y);
+                                wall.resize(&WResize::TopRight, max.x, min.y);
+                                wall.resize(&WResize::BottomLeft, min.x, max.y);
+                                wall.resize(&WResize::BottomRight, max.x, max.y);
+                            });
+                        }
                     }
                 }
                 ToolType::MoveMic => {
