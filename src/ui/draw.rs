@@ -215,6 +215,14 @@ pub fn draw_egui(
                         });
                         body.row(15.0, |mut row| {
                             row.col(|ui| {
+                                ui.label("Snap to Grid");
+                            });
+                            row.col(|ui| {
+                                ui.label("Ctrl");
+                            });
+                        });
+                        body.row(15.0, |mut row| {
+                            row.col(|ui| {
                                 ui.label("Play/Pause");
                             });
                             row.col(|ui| {
