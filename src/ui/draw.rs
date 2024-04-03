@@ -162,6 +162,14 @@ pub fn draw_egui(
                                 ui.label("Ctrl/Cmd + Shift + Z");
                             });
                         });
+                        body.row(15.0, |mut row| {
+                            row.col(|ui| {
+                                ui.label("Play/Pause");
+                            });
+                            row.col(|ui| {
+                                ui.label("Space");
+                            });
+                        });
 
                         //TODO: add more keybinds
                     });
@@ -319,10 +327,10 @@ pub fn draw_egui(
                     }
                 });
                 ui.menu_button("Edit", |ui| {
-                    if ui.button("Undo").clicked() {
+                    if ui.add(egui::Button::new("Undo").shortcut_text("Ctrl+Z")).clicked() {
                         ui.close_menu();
                     }
-                    if ui.button("Redo").clicked() {
+                    if ui.add(egui::Button::new("Redo").shortcut_text("Ctrl+Shift+Z")).clicked() {
                         ui.close_menu();
                     }
                 });
