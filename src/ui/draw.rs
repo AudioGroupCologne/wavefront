@@ -1237,7 +1237,7 @@ pub fn draw_egui(
 
             if !ui_state.render_abc_area {
                 let painter = ui.painter();
-                let text_color = gradient.get_average();
+                let text_color = Color32::WHITE;
                 //menu gizmos
                 if !ui_state.tools_enabled {
                     for (_, wall) in rect_wall_set.p2().iter() {

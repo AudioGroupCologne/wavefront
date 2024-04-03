@@ -40,15 +40,6 @@ impl Gradient {
         let result_blue = self.1.b() as f32 + percent * (self.2.b() as f32 - self.1.b() as f32);
         Color32::from_rgb(result_red as u8, result_green as u8, result_blue as u8)
     }
-
-    //TODO: Rethink
-    pub fn get_average(&self) -> Color32 {
-        // let result_red = 255. - (self.0.r() as f32 + self.2.r() as f32) / 2.;
-        // let result_green = (self.0.g() as f32 + self.2.g() as f32) / 2.;
-        // let result_blue = (self.0.b() as f32 + self.2.b() as f32) / 2.;
-        // Color32::from_rgb(result_red as u8, result_green as u8, result_blue as u8)
-        Color32::WHITE
-    }
 }
 
 impl Default for Gradient {
