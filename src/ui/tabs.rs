@@ -6,7 +6,7 @@ use bevy_pixel_buffer::query::PixelBuffersItem;
 use egui_plot::{GridMark, Line, Plot, PlotPoints};
 use plotters::prelude::*;
 
-use super::dialog::SaveFileContents;
+use super::loading::SaveFileContents;
 use super::state::FftMicrophone;
 use crate::components::microphone::Microphone;
 use crate::math::fft::calc_mic_spectrum;

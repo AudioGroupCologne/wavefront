@@ -5,7 +5,7 @@ use crate::components::microphone::Microphone;
 use crate::components::source::{Source, SourceType};
 use crate::components::states::{Drag, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize, Wall};
-use crate::events::{Reset, UpdateWalls};
+use crate::events::{Load, Reset, Save, UpdateWalls};
 use crate::grid::plugin::ComponentIDs;
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
 use crate::ui::state::{ClipboardBuffer, ToolType, UiState, WallType};
@@ -62,7 +62,6 @@ pub fn copy_paste_system(
 pub fn button_input(
     mouse_buttons: Res<ButtonInput<MouseButton>>,
     mut wall_update_ev: EventWriter<UpdateWalls>,
-    mut reset_ev: EventWriter<Reset>,
     keys: Res<ButtonInput<KeyCode>>,
     q_windows: Query<&Window, With<PrimaryWindow>>,
     sources: Query<(Entity, &Source), Without<Drag>>,
@@ -337,6 +336,25 @@ pub fn button_input(
     if keys.just_pressed(KeyCode::Space) {
         ui_state.is_running = !ui_state.is_running;
     }
+}
+
+/// This system handles all inputs that dispatch events
+pub fn event_input(
+    mouse_buttons: Res<ButtonInput<MouseButton>>,
+    keys: Res<ButtonInput<KeyCode>>,
+    ui_state: ResMut<UiState>,
+    mut reset_ev: EventWriter<Reset>,
+    mut save_ev: EventWriter<Save>,
+    mut load_ev: EventWriter<Load>,
+    mut wall_update_ev: EventWriter<UpdateWalls>,
+    mut selected: Query<Entity, With<Selected>>,
+    mut commands: Commands,
+) {
+    #[cfg(not(target_os = "macos"))]
+    let ctrl = keys.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
+
+    #[cfg(target_os = "macos")]
+    let ctrl = keys.any_pressed([KeyCode::SuperLeft, KeyCode::SuperRight]);
 
     if keys.just_pressed(KeyCode::Delete) || keys.just_pressed(KeyCode::Backspace) {
         selected.iter_mut().for_each(|entity| {
@@ -352,5 +370,14 @@ pub fn button_input(
         && ui_state.tools_enabled
     {
         reset_ev.send(Reset);
+    }
+
+    // load file
+    if ctrl && keys.just_pressed(KeyCode::KeyL) {
+        load_ev.send(Load);
+    }
+    // save file
+    if ctrl && keys.just_pressed(KeyCode::KeyS) {
+        save_ev.send(Save);
     }
 }

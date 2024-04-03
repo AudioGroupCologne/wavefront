@@ -16,7 +16,7 @@ struct SaveData<'a> {
 }
 
 /// Serializes the given data to a byte vector of JSON.
-pub fn save(
+pub fn serialize(
     sources: &Vec<&Source>,
     mics: &Vec<&Microphone>,
     rect_walls: &Vec<&RectWall>,

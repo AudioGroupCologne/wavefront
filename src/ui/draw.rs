@@ -8,14 +8,14 @@ use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::prelude::*;
 use egui_extras::{Column, TableBuilder};
 
-use super::dialog::SaveFileContents;
+use super::loading::SaveFileContents;
 use super::tabs::{DockState, PlotTabs};
 use crate::components::gizmo::GizmoComponent;
 use crate::components::microphone::*;
 use crate::components::source::*;
 use crate::components::states::{MenuSelected, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize};
-use crate::events::{Reset, UpdateWalls};
+use crate::events::{Load, Reset, Save, UpdateWalls};
 use crate::grid::grid::Grid;
 use crate::math::constants::*;
 use crate::math::transformations::coords_to_index;
@@ -36,6 +36,8 @@ pub struct EventSystemParams<'w> {
     wall_update_ev: EventWriter<'w, UpdateWalls>,
     reset_ev: EventWriter<'w, Reset>,
     undo_ev: EventWriter<'w, UndoEvent>,
+    save_ev: EventWriter<'w, Save>,
+    load_ev: EventWriter<'w, Load>,
 }
 
 #[derive(SystemParam)]
@@ -248,7 +250,6 @@ pub fn draw_egui(
                 };
 
                 ui.checkbox(&mut enable_spectrogram, "Spectrogram enabled");
-
             });
 
         ui_state.enable_spectrogram = enable_spectrogram;
@@ -272,7 +273,7 @@ pub fn draw_egui(
                 ui.heading("Created by");
                 ui.hyperlink("https://github.com/JonathanKr");
                 ui.hyperlink("https://github.com/ecrax");
-                
+
                 ui.add_space(5.);
                 ui.heading("Source");
                 //TODO: maybe add links to papers?
@@ -296,54 +297,21 @@ pub fn draw_egui(
                 ui.visuals_mut().button_frame = false;
                 ui.menu_button("File", |ui| {
                     if ui
-                        .button("Save")
+                        .add(egui::Button::new("Save").shortcut_text(format!("{key}+S")))
                         .on_hover_text("Save the current state of the simulation")
                         .clicked()
                     {
                         ui.close_menu();
-
-                        // TODO: not super happy with this, would like to move it to the dialog system
-                        let source_set = source_set.p3();
-                        let mic_set = mic_set.p3();
-                        let rect_wall_set = rect_wall_set.p3();
-                        let circ_wall_set = circ_wall_set.p3();
-
-                        let sources = source_set.iter().collect::<Vec<_>>();
-                        let mics = mic_set.iter().collect::<Vec<_>>();
-                        let rect_walls = rect_wall_set.iter().collect::<Vec<_>>();
-                        let circ_walls = circ_wall_set.iter().collect::<Vec<_>>();
-
-                        let data = crate::ui::saving::save(
-                            &sources,
-                            &mics,
-                            &rect_walls,
-                            &circ_walls,
-                            &gradient,
-                        )
-                        .unwrap();
-
-                        commands
-                            .dialog()
-                            .add_filter("JSON", &["json"])
-                            .set_file_name("save.json")
-                            .set_directory("./")
-                            .set_title("Select a file to save to")
-                            .save_file::<SaveFileContents>(data);
+                        events.save_ev.send(Save);
                     }
 
                     if ui
-                        .button("Load")
+                        .add(egui::Button::new("Load").shortcut_text(format!("{key}+L")))
                         .on_hover_text("Load a previously saved state of the simulation")
                         .clicked()
                     {
                         ui.close_menu();
-
-                        commands
-                            .dialog()
-                            .add_filter("JSON", &["json"])
-                            .set_directory("./")
-                            .set_title("Select a file to load")
-                            .load_file::<SaveFileContents>();
+                        events.load_ev.send(Load);
                     }
 
                     if ui
