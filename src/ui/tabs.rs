@@ -70,7 +70,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                         {
                             let mut mics = self.mics.to_vec();
                             mics.sort_by_cached_key(|mic| mic.id);
-                            
+
                             // find the highest x and y values to set the plot size
                             let highest_x = mics
                                 .iter()
@@ -102,7 +102,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             let root = SVGBackend::with_string(&mut string_buffer, (1024, 600))
                                 .into_drawing_area();
                             root.fill(&WHITE).unwrap();
-                            let root = root.margin(10, 10, 10, 10); 
+                            let root = root.margin(10, 10, 10, 10);
 
                             let mut chart = ChartBuilder::on(&root)
                                 .x_label_area_size(20)
@@ -126,7 +126,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                     .iter()
                                     .map(|x| (x[0] as f32, x[1] as f32))
                                     .collect::<Vec<_>>();
-                                
+
                                 chart
                                     .draw_series(LineSeries::new(
                                         points,

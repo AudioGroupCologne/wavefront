@@ -8,7 +8,7 @@ use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
 use super::gizmo::GizmoComponent;
-use crate::grid::plugin::ComponentIDs;
+use crate::simulation::plugin::ComponentIDs;
 use crate::math::constants::*;
 use crate::math::transformations::grid_to_image;
 use crate::ui::state::ToolType;

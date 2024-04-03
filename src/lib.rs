@@ -2,7 +2,7 @@
 
 pub mod components;
 pub mod events;
-pub mod grid;
+pub mod simulation;
 pub mod input;
 pub mod math;
 pub mod render;

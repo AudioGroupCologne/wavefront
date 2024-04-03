@@ -6,7 +6,7 @@ use crate::components::source::{Source, SourceType};
 use crate::components::states::{Drag, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize, Wall};
 use crate::events::{Load, Reset, Save, UpdateWalls};
-use crate::grid::plugin::ComponentIDs;
+use crate::simulation::plugin::ComponentIDs;
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
 use crate::ui::state::{ClipboardBuffer, ToolType, UiState, WallType};
 
@@ -59,6 +59,24 @@ pub fn copy_paste_system(
     }
 }
 
+type AllRectWalls<'w, 's> = Query<'w, 's, (Entity, &'static RectWall)>;
+type RectWallsDrag<'w, 's> = Query<'w, 's, (Entity, &'static mut RectWall), With<Drag>>;
+type RectWallsResizeNoDrag<'w, 's> = Query<
+    'w,
+    's,
+    (Entity, &'static WResize, &'static mut RectWall),
+    (With<WResize>, Without<Drag>),
+>;
+
+type AllCircWalls<'w, 's> = Query<'w, 's, (Entity, &'static CircWall)>;
+type CircWallsDrag<'w, 's> = Query<'w, 's, (Entity, &'static mut CircWall), With<Drag>>;
+type CircWallsResizeNoDrag<'w, 's> = Query<
+    'w,
+    's,
+    (Entity, &'static WResize, &'static mut CircWall),
+    (With<WResize>, Without<Drag>),
+>;
+
 pub fn button_input(
     mouse_buttons: Res<ButtonInput<MouseButton>>,
     mut wall_update_ev: EventWriter<UpdateWalls>,
@@ -69,16 +87,8 @@ pub fn button_input(
     microphones: Query<(Entity, &Microphone), Without<Drag>>,
     mut drag_microphones: Query<(Entity, &mut Microphone), With<Drag>>,
     mut selected: Query<Entity, With<Selected>>,
-    mut rect_wall_set: ParamSet<(
-        Query<(Entity, &RectWall)>,
-        Query<(Entity, &mut RectWall), With<Drag>>, // mut drag_walls:
-        Query<(Entity, &WResize, &mut RectWall), (With<WResize>, Without<Drag>)>, // mut resize_walls:
-    )>,
-    mut circ_wall_set: ParamSet<(
-        Query<(Entity, &CircWall)>,
-        Query<(Entity, &mut CircWall), With<Drag>>,
-        Query<(Entity, &WResize, &mut CircWall), (With<WResize>, Without<Drag>)>,
-    )>,
+    mut rect_wall_set: ParamSet<(AllRectWalls, RectWallsDrag, RectWallsResizeNoDrag)>,
+    mut circ_wall_set: ParamSet<(AllCircWalls, CircWallsDrag, CircWallsResizeNoDrag)>,
     mut commands: Commands,
     mut ui_state: ResMut<UiState>,
     mut component_ids: ResMut<ComponentIDs>,

@@ -5,7 +5,7 @@ use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::components::wall::{CircWall, RectWall};
 use crate::events::{Reset, UpdateWalls};
-use crate::grid::plugin::ComponentIDs;
+use crate::simulation::plugin::ComponentIDs;
 
 /// The undo resource. This is a wrapper around the [`Undoer`] struct from the [`egui`] crate.
 #[derive(Resource, Default)]

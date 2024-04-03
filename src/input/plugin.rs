@@ -1,6 +1,6 @@
 use bevy::app::{App, Plugin, Update};
 
-use super::input::{button_input, copy_paste_system, event_input};
+use super::systems::{button_input, copy_paste_system, event_input};
 
 pub struct InputPlugin;
 

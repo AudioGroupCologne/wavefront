@@ -7,8 +7,8 @@ use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::components::wall::{CircWall, RectWall};
 use crate::events::UpdateWalls;
-use crate::grid::grid::Grid;
-use crate::grid::plugin::ComponentIDs;
+use crate::simulation::grid::Grid;
+use crate::simulation::plugin::ComponentIDs;
 use crate::render::gradient::Gradient;
 
 /// Marker component for the file dialog and the corresponding event.

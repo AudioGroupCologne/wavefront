@@ -16,7 +16,7 @@ use crate::components::source::*;
 use crate::components::states::{MenuSelected, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize};
 use crate::events::{Load, Reset, Save, UpdateWalls};
-use crate::grid::grid::Grid;
+use crate::simulation::grid::Grid;
 use crate::math::constants::*;
 use crate::math::transformations::coords_to_index;
 use crate::render::gradient::Gradient;
@@ -40,46 +40,70 @@ pub struct EventSystemParams<'w> {
     load_ev: EventWriter<'w, Load>,
 }
 
+type AllRectWallsMut<'w, 's> = Query<'w, 's, (Entity, &'static mut RectWall)>;
+type AllRectWallsSelected<'w, 's> = Query<'w, 's, (Entity, &'static mut RectWall), With<Selected>>;
+type AllRectWallsMenuSelected<'w, 's> =
+    Query<'w, 's, (Entity, &'static mut RectWall), With<MenuSelected>>;
+type AllRectWalls<'w, 's> = Query<'w, 's, &'static RectWall>;
+
+type AllCircWallsMut<'w, 's> = Query<'w, 's, (Entity, &'static mut CircWall)>;
+type AllCircWallsSelected<'w, 's> = Query<'w, 's, (Entity, &'static mut CircWall), With<Selected>>;
+type AllCircWallsMenuSelected<'w, 's> =
+    Query<'w, 's, (Entity, &'static mut CircWall), With<MenuSelected>>;
+type AllCircWalls<'w, 's> = Query<'w, 's, &'static CircWall>;
+
+type AllSourcesMut<'w, 's> = Query<'w, 's, (Entity, &'static mut Source)>;
+type AllSourcesSelected<'w, 's> = Query<'w, 's, (Entity, &'static mut Source), With<Selected>>;
+type AllSourcesMenuSelected<'w, 's> =
+    Query<'w, 's, (Entity, &'static mut Source), With<MenuSelected>>;
+type AllSources<'w, 's> = Query<'w, 's, &'static Source>;
+
+type AllMicsMut<'w, 's> = Query<'w, 's, (Entity, &'static mut Microphone)>;
+type AllMicsSelected<'w, 's> = Query<'w, 's, (Entity, &'static mut Microphone), With<Selected>>;
+type AllMicsMenuSelected<'w, 's> =
+    Query<'w, 's, (Entity, &'static mut Microphone), With<MenuSelected>>;
+type AllMics<'w, 's> = Query<'w, 's, &'static Microphone>;
+
 #[derive(SystemParam)]
 pub struct QuerySystemParams<'w, 's> {
     rect_wall_set: ParamSet<
         'w,
         's,
         (
-            Query<'w, 's, (Entity, &'static mut RectWall)>,
-            Query<'w, 's, (Entity, &'static mut RectWall), With<Selected>>,
-            Query<'w, 's, (Entity, &'static mut RectWall), With<MenuSelected>>,
-            Query<'w, 's, &'static RectWall>,
+            AllRectWallsMut<'w, 's>,
+            AllRectWallsSelected<'w, 's>,
+            AllRectWallsMenuSelected<'w, 's>,
+            AllRectWalls<'w, 's>,
         ),
     >,
     circ_wall_set: ParamSet<
         'w,
         's,
         (
-            Query<'w, 's, (Entity, &'static mut CircWall)>,
-            Query<'w, 's, (Entity, &'static mut CircWall), With<Selected>>,
-            Query<'w, 's, (Entity, &'static mut CircWall), With<MenuSelected>>,
-            Query<'w, 's, &'static CircWall>,
+            AllCircWallsMut<'w, 's>,
+            AllCircWallsSelected<'w, 's>,
+            AllCircWallsMenuSelected<'w, 's>,
+            AllCircWalls<'w, 's>,
         ),
     >,
     source_set: ParamSet<
         'w,
         's,
         (
-            Query<'w, 's, (Entity, &'static mut Source)>,
-            Query<'w, 's, (Entity, &'static Source), With<Selected>>,
-            Query<'w, 's, (Entity, &'static Source), With<MenuSelected>>,
-            Query<'w, 's, &'static Source>,
+            AllSourcesMut<'w, 's>,
+            AllSourcesSelected<'w, 's>,
+            AllSourcesMenuSelected<'w, 's>,
+            AllSources<'w, 's>,
         ),
     >,
     mic_set: ParamSet<
         'w,
         's,
         (
-            Query<'w, 's, (Entity, &'static mut Microphone)>,
-            Query<'w, 's, (Entity, &'static Microphone), With<Selected>>,
-            Query<'w, 's, (Entity, &'static Microphone), With<MenuSelected>>,
-            Query<'w, 's, &'static Microphone>,
+            AllMicsMut<'w, 's>,
+            AllMicsSelected<'w, 's>,
+            AllMicsMenuSelected<'w, 's>,
+            AllMics<'w, 's>,
         ),
     >,
 }
@@ -281,7 +305,7 @@ pub fn draw_egui(
                     ui.heading("wavefront");
                     ui.strong(format!("Version: {}", env!("CARGO_PKG_VERSION")));
                 });
-                
+
                 ui.add_space(5.);
                 ui.label("A wave simulation tool using the Transmission Line Matrix method.");
 
@@ -396,7 +420,7 @@ pub fn draw_egui(
                     }
 
                     if ui
-                        .add(egui::Button::new("Quit").shortcut_text(format!("Esc")))
+                        .add(egui::Button::new("Quit").shortcut_text("Esc"))
                         .on_hover_text("Quit the application")
                         .clicked()
                     {

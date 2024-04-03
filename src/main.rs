@@ -4,7 +4,7 @@ use bevy::window::PresentMode;
 use bevy_pixel_buffer::bevy_egui::EguiPlugin;
 use bevy_pixel_buffer::prelude::*;
 use wavefront::events::EventPlugin;
-use wavefront::grid::plugin::GridPlugin;
+use wavefront::simulation::plugin::GridPlugin;
 use wavefront::input::plugin::InputPlugin;
 use wavefront::render::plugin::RenderPlugin;
 use wavefront::ui::plugin::UiPlugin;
