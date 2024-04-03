@@ -321,7 +321,6 @@ pub fn draw_egui(
                     }
                 });
 
-                // This doesn't work
                 ui.menu_button("Edit", |ui| {
                     if ui.button("Undo").clicked() {
                         ui.close_menu();
