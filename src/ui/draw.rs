@@ -16,10 +16,10 @@ use crate::components::source::*;
 use crate::components::states::{MenuSelected, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize};
 use crate::events::{Load, Reset, Save, UpdateWalls};
-use crate::simulation::grid::Grid;
 use crate::math::constants::*;
 use crate::math::transformations::coords_to_index;
 use crate::render::gradient::Gradient;
+use crate::simulation::grid::Grid;
 use crate::ui::state::*;
 use crate::undo::{UndoEvent, UndoRedo};
 
@@ -174,7 +174,7 @@ pub fn draw_egui(
     let mut enable_spectrogram = ui_state.enable_spectrogram;
 
     if ui_state.show_help {
-        egui::Window::new("Help")
+        egui::Window::new("Preferences")
             .open(&mut ui_state.show_help)
             .default_size(Vec2::new(400., 400.))
             .resizable(false)
@@ -233,7 +233,7 @@ pub fn draw_egui(
                         });
                         body.row(15.0, |mut row| {
                             row.col(|ui| {
-                                ui.label("Paste Selected");
+                                ui.label("Paste Clipboard");
                             });
                             row.col(|ui| {
                                 ui.label(format!("{key}+V"));
@@ -260,7 +260,7 @@ pub fn draw_egui(
                                 ui.label("Snap to Grid");
                             });
                             row.col(|ui| {
-                                ui.label("Ctrl");
+                                ui.label(format!("{key} + Move or Resize Wall"));
                             });
                         });
                         body.row(15.0, |mut row| {
@@ -443,13 +443,13 @@ pub fn draw_egui(
                         ui.close_menu();
                         events.undo_ev.send(UndoEvent(UndoRedo::Redo));
                     }
-                });
-
-                ui.menu_button("Help", |ui| {
-                    if ui.button("Help").clicked() {
+                    if ui.button("Preferences").clicked() {
                         ui_state.show_help = true;
                         ui.close_menu();
                     }
+                });
+
+                ui.menu_button("Help", |ui| {
                     if ui.button("About").clicked() {
                         ui_state.show_about = true;
                         ui.close_menu();
