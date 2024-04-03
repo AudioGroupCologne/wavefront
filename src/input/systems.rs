@@ -132,7 +132,7 @@ pub fn button_input(
                 }
                 ToolType::DrawWall => match ui_state.wall_type {
                     WallType::Rectangle => {
-                        if let Some((mut x, mut y)) =
+                        if let Some((x, y)) =
                             screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                         {
                             commands.spawn((
@@ -290,7 +290,7 @@ pub fn button_input(
                     }
                 }
                 ToolType::DrawWall | ToolType::ResizeWall => {
-                    if let Some((mut x, mut y)) =
+                    if let Some((x, y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                     {
                         rect_wall_set
@@ -328,7 +328,7 @@ pub fn button_input(
                     }
                 }
                 ToolType::MoveWall => {
-                    if let Some((mut x, mut y)) =
+                    if let Some((x, y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                     {
                         rect_wall_set.p1().iter_mut().for_each(|(_, mut wall)| {
