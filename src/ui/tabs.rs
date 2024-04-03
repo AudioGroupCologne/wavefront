@@ -64,12 +64,14 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                         .on_hover_text("Save a screenshot of the plot")
                         .clicked()
                     {
-                        let colors = [RED, GREEN, BLUE, CYAN, MAGENTA, BLACK, WHITE];
+                        let colors = [RED, BLUE, GREEN, CYAN, MAGENTA, BLACK, WHITE];
 
                         let mut string_buffer = String::new();
                         {
                             let mut mics = self.mics.to_vec();
                             mics.sort_by_cached_key(|mic| mic.id);
+                            
+                            // find the highest x and y values to set the plot size
                             let highest_x = mics
                                 .iter()
                                 .map(|mic| {
@@ -86,38 +88,35 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             let highest_y = mics
                                 .iter()
                                 .map(|mic| {
-                                    *mic.record
+                                    mic.record
                                         .iter()
                                         .map(|x| x[1])
-                                        .collect::<Vec<_>>()
-                                        .last()
-                                        .unwrap_or(&0.)
+                                        .reduce(f64::max)
+                                        .unwrap_or(0.)
                                 })
                                 .reduce(f64::max)
                                 .unwrap_or(0.)
                                 .abs() as f32;
 
-                            let root = SVGBackend::with_string(&mut string_buffer, (640, 480))
+                            // the resolution is chosen at random
+                            let root = SVGBackend::with_string(&mut string_buffer, (1024, 600))
                                 .into_drawing_area();
                             root.fill(&WHITE).unwrap();
-                            let root = root.margin(10, 10, 10, 10);
-                            // After this point, we should be able to construct a chart context
+                            let root = root.margin(10, 10, 10, 10); 
+
                             let mut chart = ChartBuilder::on(&root)
-                                // Set the size of the label region
                                 .x_label_area_size(20)
                                 .y_label_area_size(40)
-                                // Finally attach a coordinate on the drawing area and make a chart context
                                 .build_cartesian_2d(0f32..highest_x, -highest_y..highest_y)
                                 .unwrap();
 
-                            // Then we can draw a mesh
                             chart
                                 .configure_mesh()
-                                // We can customize the maximum number of labels allowed for each axis
                                 .x_labels(5)
                                 .y_labels(5)
-                                // We can also change the format of the label text
-                                .y_label_formatter(&|x| format!("{:.3}", x))
+                                .y_label_formatter(&|x| format!("{:.2}", x))
+                                .y_desc("Amplitude")
+                                .x_desc("Time (s)")
                                 .draw()
                                 .unwrap();
 
@@ -127,7 +126,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                     .iter()
                                     .map(|x| (x[0] as f32, x[1] as f32))
                                     .collect::<Vec<_>>();
-                                // draw something in the drawing area
+                                
                                 chart
                                     .draw_series(LineSeries::new(
                                         points,
