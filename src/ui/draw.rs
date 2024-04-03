@@ -263,8 +263,11 @@ pub fn draw_egui(
             .collapsible(false)
             .constrain(true)
             .show(ctx, |ui| {
-                ui.heading("wavefront");
-                ui.strong(format!("Version: {}", env!("CARGO_PKG_VERSION")));
+                ui.vertical_centered(|ui| {
+                    ui.heading("wavefront");
+                    ui.strong(format!("Version: {}", env!("CARGO_PKG_VERSION")));
+                });
+                
                 ui.add_space(5.);
                 ui.label("A wave simulation tool using the Transmission Line Matrix method.");
 
