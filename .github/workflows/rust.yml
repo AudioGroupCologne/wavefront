@@ -1,6 +1,9 @@
 name: build
 
-on: 
+permissions:
+  contents: write
+
+on:
   issues:
     types:
       - closed
@@ -39,7 +42,7 @@ jobs:
             command: build
 
     runs-on: ${{ matrix.platform.os }}
-    env: 
+    env:
       RUSTFLAGS: "-Awarnings"
     steps:
       - uses: Swatinem/rust-cache@v2
@@ -78,5 +81,3 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: "${{ matrix.platform.name }}"
-
-  
