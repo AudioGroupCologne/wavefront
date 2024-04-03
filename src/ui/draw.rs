@@ -21,6 +21,7 @@ use crate::math::constants::*;
 use crate::math::transformations::coords_to_index;
 use crate::render::gradient::Gradient;
 use crate::ui::state::*;
+use crate::undo::UndoEvent;
 
 #[derive(SystemParam)]
 pub struct EventSystemParams<'w> {
@@ -34,6 +35,7 @@ pub struct EventSystemParams<'w> {
     // EventWriter<'w, SomeEvent>
     wall_update_ev: EventWriter<'w, UpdateWalls>,
     reset_ev: EventWriter<'w, Reset>,
+    undo_ev: EventWriter<'w, UndoEvent>,
 }
 
 pub fn draw_egui(
@@ -318,12 +320,16 @@ pub fn draw_egui(
                             .save_file::<SaveFileContents>(data);
                     }
                 });
+
+                // This doesn't work
                 ui.menu_button("Edit", |ui| {
                     if ui.button("Undo").clicked() {
                         ui.close_menu();
+                        events.undo_ev.send(UndoEvent(true));
                     }
                     if ui.button("Redo").clicked() {
                         ui.close_menu();
+                        events.undo_ev.send(UndoEvent(false));
                     }
                 });
 

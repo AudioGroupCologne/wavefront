@@ -29,8 +29,9 @@ pub struct UndoPlugin;
 impl Plugin for UndoPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Undo>()
-            .add_systems(Update, undo_redo)
-            .add_systems(PostUpdate, update_state);
+            .add_systems(Update, (undo_redo_key, undo_event))
+            .add_systems(PostUpdate, update_state)
+            .add_event::<UndoEvent>();
     }
 }
 
@@ -66,7 +67,30 @@ fn update_state(
 }
 
 /// Updates the state of the application based on the undo/redo commands.
-fn undo_redo(
+fn undo_redo_key(keys: Res<ButtonInput<KeyCode>>, mut undo_ev: EventWriter<UndoEvent>) {
+    #[cfg(not(target_os = "macos"))]
+    let ctrl = keys.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
+
+    #[cfg(target_os = "macos")]
+    let ctrl = keys.any_pressed([KeyCode::SuperLeft, KeyCode::SuperRight]);
+
+    let shift = keys.any_pressed([KeyCode::ShiftLeft, KeyCode::ShiftRight]);
+
+    // on qwertz keyboards this binds to the z key
+    if ctrl && !shift && keys.just_pressed(KeyCode::KeyY) {
+        undo_ev.send(UndoEvent(true));
+    } else if ctrl && shift && keys.just_pressed(KeyCode::KeyY) {
+        undo_ev.send(UndoEvent(false));
+    }
+}
+
+// bool: true -> undo, false -> redo
+// TODO: make better
+#[derive(Event)]
+pub struct UndoEvent(pub bool);
+
+pub fn undo_event(
+    mut undo_ev: EventReader<UndoEvent>,
     mut undo: ResMut<Undo>,
     mut ui_state: ResMut<UiState>,
     mut ids: ResMut<ComponentIDs>,
@@ -77,21 +101,9 @@ fn undo_redo(
     q_mics: Query<(Entity, &Microphone)>,
     q_rect_walls: Query<(Entity, &RectWall)>,
     q_circle_walls: Query<(Entity, &CircWall)>,
-    keys: Res<ButtonInput<KeyCode>>,
 ) {
-    #[cfg(not(target_os = "macos"))]
-    let ctrl = keys.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
-
-    #[cfg(target_os = "macos")]
-    let ctrl = keys.any_pressed([KeyCode::SuperLeft, KeyCode::SuperRight]);
-
-    let shift = keys.any_pressed([KeyCode::ShiftLeft, KeyCode::ShiftRight]);
-
-    // on qwertz keyboards this binds to the z key
-    let is_undo = ctrl && !shift && keys.just_pressed(KeyCode::KeyY);
-    let is_redo = ctrl && shift && keys.just_pressed(KeyCode::KeyY);
-
-    if is_undo || is_redo {
+    for event in undo_ev.read() {
+        println!("{}", event.0);
         let sources = q_sources.iter().map(|x| *x.1).collect::<Vec<_>>();
         let mics = q_mics.iter().map(|x| x.1.clone()).collect::<Vec<_>>();
         let rect_walls = q_rect_walls.iter().map(|x| *x.1).collect::<Vec<_>>();
@@ -106,7 +118,7 @@ fn undo_redo(
             ui_state: *ui_state,
         };
 
-        let new_state = if is_undo {
+        let new_state = if event.0 {
             undo.0.undo(&current_state)
         } else {
             undo.0.redo(&current_state)
