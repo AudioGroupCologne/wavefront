@@ -217,6 +217,22 @@ pub fn draw_egui(
                         });
                         body.row(15.0, |mut row| {
                             row.col(|ui| {
+                                ui.label("Save Current Simulation");
+                            });
+                            row.col(|ui| {
+                                ui.label(format!("{key}+S"));
+                            });
+                        });
+                        body.row(15.0, |mut row| {
+                            row.col(|ui| {
+                                ui.label("Load Previous Simulation");
+                            });
+                            row.col(|ui| {
+                                ui.label(format!("{key}+L"));
+                            });
+                        });
+                        body.row(15.0, |mut row| {
+                            row.col(|ui| {
                                 ui.label("Snap to Grid");
                             });
                             row.col(|ui| {
@@ -231,8 +247,6 @@ pub fn draw_egui(
                                 ui.label("Space");
                             });
                         });
-
-                        //TODO: add more keybinds
                     });
 
                 ui.add_space(5.);
