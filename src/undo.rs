@@ -76,16 +76,19 @@ fn undo_redo_key(keys: Res<ButtonInput<KeyCode>>, mut undo_ev: EventWriter<UndoE
 
     // on qwertz keyboards this binds to the z key
     if ctrl && !shift && keys.just_pressed(KeyCode::KeyY) {
-        undo_ev.send(UndoEvent(true));
+        undo_ev.send(UndoEvent(UndoRedo::Undo));
     } else if ctrl && shift && keys.just_pressed(KeyCode::KeyY) {
-        undo_ev.send(UndoEvent(false));
+        undo_ev.send(UndoEvent(UndoRedo::Redo));
     }
 }
 
-// bool: true -> undo, false -> redo
-// TODO: make better
+pub enum UndoRedo {
+    Undo,
+    Redo,
+}
+
 #[derive(Event)]
-pub struct UndoEvent(pub bool);
+pub struct UndoEvent(pub UndoRedo);
 
 pub fn undo_event(
     mut undo_ev: EventReader<UndoEvent>,
@@ -100,7 +103,6 @@ pub fn undo_event(
     q_circle_walls: Query<(Entity, &CircWall)>,
 ) {
     for event in undo_ev.read() {
-        println!("{}", event.0);
         let sources = q_sources.iter().map(|x| *x.1).collect::<Vec<_>>();
         let mics = q_mics
             .iter()
@@ -118,10 +120,9 @@ pub fn undo_event(
         };
 
         // get new state based on undo/redo and the current state
-        let new_state = if event.0 {
-            undo.0.undo(&current_state)
-        } else {
-            undo.0.redo(&current_state)
+        let new_state = match event.0 {
+            UndoRedo::Undo => undo.0.undo(&current_state),
+            UndoRedo::Redo => undo.0.redo(&current_state),
         };
 
         // if there is a new state, update the entities

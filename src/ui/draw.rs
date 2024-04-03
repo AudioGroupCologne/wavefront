@@ -21,7 +21,7 @@ use crate::math::constants::*;
 use crate::math::transformations::coords_to_index;
 use crate::render::gradient::Gradient;
 use crate::ui::state::*;
-use crate::undo::UndoEvent;
+use crate::undo::{UndoEvent, UndoRedo};
 
 #[derive(SystemParam)]
 pub struct EventSystemParams<'w> {
@@ -325,11 +325,11 @@ pub fn draw_egui(
                 ui.menu_button("Edit", |ui| {
                     if ui.button("Undo").clicked() {
                         ui.close_menu();
-                        events.undo_ev.send(UndoEvent(true));
+                        events.undo_ev.send(UndoEvent(UndoRedo::Undo));
                     }
                     if ui.button("Redo").clicked() {
                         ui.close_menu();
-                        events.undo_ev.send(UndoEvent(false));
+                        events.undo_ev.send(UndoEvent(UndoRedo::Redo));
                     }
                 });
 
