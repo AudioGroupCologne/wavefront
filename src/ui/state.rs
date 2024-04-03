@@ -32,8 +32,8 @@ impl fmt::Display for ToolType {
             ToolType::DrawWall => write!(f, "Draw Wall"),
             ToolType::ResizeWall => write!(f, "Resize Wall"),
             ToolType::MoveWall => write!(f, "Move Wall"),
-            ToolType::PlaceMic => write!(f, "Place Mic"),
-            ToolType::MoveMic => write!(f, "Move Mic"),
+            ToolType::PlaceMic => write!(f, "Place Microphone"),
+            ToolType::MoveMic => write!(f, "Move Microphone"),
         }
     }
 }
