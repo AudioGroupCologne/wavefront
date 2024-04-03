@@ -567,14 +567,12 @@ pub fn draw_egui(
                             commands.entity(*entity).remove::<MenuSelected>();
                         }
                     });
-                
 
-            if !source_set.p0().is_empty() {
-                ui.separator();
-            }
+                    if !source_set.p0().is_empty() {
+                        ui.separator();
+                    }
 
-            // Microphones
-
+                    // Microphones
                     let mut binding = mic_set.p0();
                     let mut mic_vec = binding.iter_mut().collect::<Vec<_>>();
                     mic_vec.sort_by_cached_key(|(_, mic)| mic.id);
@@ -616,15 +614,12 @@ pub fn draw_egui(
                             commands.entity(*entity).remove::<MenuSelected>();
                         }
                     });
-               
 
-                if !mic_set.p0().is_empty() {
-                    ui.separator();
-                }
+                    if !mic_set.p0().is_empty() {
+                        ui.separator();
+                    }
 
-            // Rect Walls
-
-
+                    // Rect Walls
                     let mut rect_binding = rect_wall_set.p0();
                     let mut wall_vec = rect_binding.iter_mut().collect::<Vec<_>>();
                     wall_vec.sort_by_cached_key(|(_, wall)| wall.id);
@@ -752,10 +747,8 @@ pub fn draw_egui(
                             commands.entity(*entity).remove::<MenuSelected>();
                         }
                     });
-               
-            // Circ Walls
 
-
+                    // Circ Walls
                     let mut circ_binding = circ_wall_set.p0();
                     let mut wall_vec = circ_binding.iter_mut().collect::<Vec<_>>();
                     wall_vec.sort_by_cached_key(|(_, wall)| wall.id);
@@ -880,7 +873,6 @@ pub fn draw_egui(
                         }
                     });
                 });
-               
 
             // General Settings
             egui::TopBottomPanel::bottom("general_settings_bottom_panel").show_inside(ui, |ui| {
