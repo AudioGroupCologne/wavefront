@@ -21,6 +21,7 @@ use crate::math::constants::*;
 use crate::math::transformations::coords_to_index;
 use crate::render::gradient::Gradient;
 use crate::ui::state::*;
+use crate::undo::{UndoEvent, UndoRedo};
 
 #[derive(SystemParam)]
 pub struct EventSystemParams<'w> {
@@ -34,6 +35,7 @@ pub struct EventSystemParams<'w> {
     // EventWriter<'w, SomeEvent>
     wall_update_ev: EventWriter<'w, UpdateWalls>,
     reset_ev: EventWriter<'w, Reset>,
+    undo_ev: EventWriter<'w, UndoEvent>,
 }
 
 #[derive(SystemParam)]
@@ -363,18 +365,21 @@ pub fn draw_egui(
                         app_exit_events.send(bevy::app::AppExit);
                     }
                 });
+
                 ui.menu_button("Edit", |ui| {
                     if ui
                         .add(egui::Button::new("Undo").shortcut_text("Ctrl+Z"))
                         .clicked()
                     {
                         ui.close_menu();
+                        events.undo_ev.send(UndoEvent(UndoRedo::Undo));
                     }
                     if ui
                         .add(egui::Button::new("Redo").shortcut_text("Ctrl+Shift+Z"))
                         .clicked()
                     {
                         ui.close_menu();
+                        events.undo_ev.send(UndoEvent(UndoRedo::Redo));
                     }
                 });
 
