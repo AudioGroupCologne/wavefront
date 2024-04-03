@@ -139,6 +139,12 @@ pub fn draw_egui(
         ),
     ];
 
+    let key = if cfg!(target_os = "macos") {
+        "Cmd"
+    } else {
+        "Ctrl"
+    };
+
     let mut enable_spectrogram = ui_state.enable_spectrogram;
 
     if ui_state.show_help {
@@ -171,7 +177,7 @@ pub fn draw_egui(
                     .body(|mut body| {
                         body.row(15.0, |mut row| {
                             row.col(|ui| {
-                                ui.label("Delete");
+                                ui.label("Delete Selected");
                             });
                             row.col(|ui| {
                                 ui.label("Backspace or Delete");
@@ -182,7 +188,7 @@ pub fn draw_egui(
                                 ui.label("Undo");
                             });
                             row.col(|ui| {
-                                ui.label("Ctrl/Cmd + Z");
+                                ui.label(format!("{key}+Z"));
                             });
                         });
                         body.row(15.0, |mut row| {
@@ -190,7 +196,23 @@ pub fn draw_egui(
                                 ui.label("Redo");
                             });
                             row.col(|ui| {
-                                ui.label("Ctrl/Cmd + Shift + Z");
+                                ui.label(format!("{key}+Shift+Z"));
+                            });
+                        });
+                        body.row(15.0, |mut row| {
+                            row.col(|ui| {
+                                ui.label("Copy Selected");
+                            });
+                            row.col(|ui| {
+                                ui.label(format!("{key}+C"));
+                            });
+                        });
+                        body.row(15.0, |mut row| {
+                            row.col(|ui| {
+                                ui.label("Paste Selected");
+                            });
+                            row.col(|ui| {
+                                ui.label(format!("{key}+V"));
                             });
                         });
                         body.row(15.0, |mut row| {
@@ -373,14 +395,14 @@ pub fn draw_egui(
 
                 ui.menu_button("Edit", |ui| {
                     if ui
-                        .add(egui::Button::new("Undo").shortcut_text("Ctrl+Z"))
+                        .add(egui::Button::new("Undo").shortcut_text(format!("{key}+Z")))
                         .clicked()
                     {
                         ui.close_menu();
                         events.undo_ev.send(UndoEvent(UndoRedo::Undo));
                     }
                     if ui
-                        .add(egui::Button::new("Redo").shortcut_text("Ctrl+Shift+Z"))
+                        .add(egui::Button::new("Redo").shortcut_text(format!("{key}+Shift+Z")))
                         .clicked()
                     {
                         ui.close_menu();
