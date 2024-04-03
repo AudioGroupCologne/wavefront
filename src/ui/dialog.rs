@@ -9,6 +9,7 @@ use crate::components::wall::{CircWall, RectWall};
 use crate::events::UpdateWalls;
 use crate::grid::grid::Grid;
 use crate::grid::plugin::ComponentIDs;
+use crate::render::gradient::Gradient;
 
 /// Marker component for the file dialog and the corresponding event.
 pub struct SaveFileContents;
@@ -20,21 +21,23 @@ pub struct SaveData {
     pub mics: Vec<Microphone>,
     pub rect_walls: Vec<RectWall>,
     pub circ_walls: Vec<CircWall>,
+    pub gradient: Gradient,
 }
 
-/// Loads a file when receiving a `DialogFileLoaded` event from the file dialog.
+/// Loads a file when receiving a [`DialogFileLoaded`] event from the file dialog.
 /// All entities are despawned and the new entities are spawned.
 pub fn file_loaded(
     mut ev_loaded: EventReader<DialogFileLoaded<SaveFileContents>>,
     mut commands: Commands,
     mut wall_update_ev: EventWriter<UpdateWalls>,
     mut grid: ResMut<Grid>,
+    mut ids: ResMut<ComponentIDs>,
+    mut gradient: ResMut<Gradient>,
     sources: Query<(Entity, &Source)>,
     mics: Query<(Entity, &Microphone)>,
     rect_walls: Query<(Entity, &RectWall)>,
     circ_walls: Query<(Entity, &CircWall)>,
     ui_state: Res<UiState>,
-    mut ids: ResMut<ComponentIDs>,
 ) {
     if let Some(data) = ev_loaded.read().next() {
         let save_data = serde_json::from_slice::<SaveData>(&data.contents).unwrap();
@@ -75,5 +78,7 @@ pub fn file_loaded(
 
         grid.reset_cells(ui_state.boundary_width);
         wall_update_ev.send(UpdateWalls);
+
+        gradient.update(&save_data.gradient);
     }
 }

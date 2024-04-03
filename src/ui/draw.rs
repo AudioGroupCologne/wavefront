@@ -264,7 +264,7 @@ pub fn draw_egui(
                         let circ_walls = circ_wall_set.iter().collect::<Vec<_>>();
 
                         let data =
-                            crate::ui::saving::save(&sources, &mics, &rect_walls, &circ_walls)
+                            crate::ui::saving::save(&sources, &mics, &rect_walls, &circ_walls, &gradient)
                                 .unwrap();
 
                         commands

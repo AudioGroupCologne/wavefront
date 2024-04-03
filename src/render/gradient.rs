@@ -1,14 +1,21 @@
 use bevy::ecs::system::Resource;
 use egui::Color32;
+use serde::{Deserialize, Serialize};
 
 use crate::math::transformations::map_range;
 
-#[derive(Resource)]
+#[derive(Resource, Serialize, Deserialize, Clone, Copy)]
 pub struct Gradient(pub Color32, pub Color32, pub Color32);
 
 impl Gradient {
     pub fn new(start: Color32, middle: Color32, end: Color32) -> Self {
         Self(start, middle, end)
+    }
+
+    pub fn update(&mut self, gradient: &Gradient) {
+        self.0 = gradient.0;
+        self.1 = gradient.1;
+        self.2 = gradient.2;
     }
 
     pub fn at(&self, percent: f32, contrast: f32) -> Color32 {
