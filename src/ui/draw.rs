@@ -36,6 +36,50 @@ pub struct EventSystemParams<'w> {
     reset_ev: EventWriter<'w, Reset>,
 }
 
+#[derive(SystemParam)]
+pub struct QuerySystemParams<'w, 's> {
+    rect_wall_set: ParamSet<
+        'w,
+        's,
+        (
+            Query<'w, 's, (Entity, &'static mut RectWall)>,
+            Query<'w, 's, (Entity, &'static mut RectWall), With<Selected>>,
+            Query<'w, 's, (Entity, &'static mut RectWall), With<MenuSelected>>,
+            Query<'w, 's, &'static RectWall>,
+        ),
+    >,
+    circ_wall_set: ParamSet<
+        'w,
+        's,
+        (
+            Query<'w, 's, (Entity, &'static mut CircWall)>,
+            Query<'w, 's, (Entity, &'static mut CircWall), With<Selected>>,
+            Query<'w, 's, (Entity, &'static mut CircWall), With<MenuSelected>>,
+            Query<'w, 's, &'static CircWall>,
+        ),
+    >,
+    source_set: ParamSet<
+        'w,
+        's,
+        (
+            Query<'w, 's, (Entity, &'static mut Source)>,
+            Query<'w, 's, (Entity, &'static Source), With<Selected>>,
+            Query<'w, 's, (Entity, &'static Source), With<MenuSelected>>,
+            Query<'w, 's, &'static Source>,
+        ),
+    >,
+    mic_set: ParamSet<
+        'w,
+        's,
+        (
+            Query<'w, 's, (Entity, &'static mut Microphone)>,
+            Query<'w, 's, (Entity, &'static Microphone), With<Selected>>,
+            Query<'w, 's, (Entity, &'static Microphone), With<MenuSelected>>,
+            Query<'w, 's, &'static Microphone>,
+        ),
+    >,
+}
+
 pub fn draw_egui(
     mut commands: Commands,
     mut windows: Query<&mut Window>,
@@ -46,34 +90,19 @@ pub fn draw_egui(
     mut grid: ResMut<Grid>,
     mut gradient: ResMut<Gradient>,
     mut events: EventSystemParams,
-    mut rect_wall_set: ParamSet<(
-        Query<(Entity, &mut RectWall)>,
-        Query<(Entity, &mut RectWall), With<Selected>>,
-        Query<(Entity, &mut RectWall), With<MenuSelected>>,
-        Query<&RectWall>,
-    )>,
-    mut circ_wall_set: ParamSet<(
-        Query<(Entity, &mut CircWall)>,
-        Query<(Entity, &mut CircWall), With<Selected>>,
-        Query<(Entity, &mut CircWall), With<MenuSelected>>,
-        Query<&CircWall>,
-    )>,
-    mut source_set: ParamSet<(
-        Query<(Entity, &mut Source)>,
-        Query<(Entity, &Source), With<Selected>>,
-        Query<(Entity, &Source), With<MenuSelected>>,
-        Query<&Source>,
-    )>,
-    mut mic_set: ParamSet<(
-        Query<(Entity, &mut Microphone)>,
-        Query<(Entity, &Microphone), With<Selected>>,
-        Query<(Entity, &Microphone), With<MenuSelected>>,
-        Query<&Microphone>,
-    )>,
+    sets: QuerySystemParams,
     mut dock_state: ResMut<DockState>,
     mut fft_mic: ResMut<FftMicrophone>,
+    mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
     sim_time: ResMut<SimTime>,
 ) {
+    let QuerySystemParams {
+        mut rect_wall_set,
+        mut circ_wall_set,
+        mut source_set,
+        mut mic_set,
+    } = sets;
+
     let ctx = egui_context.ctx_mut();
     egui_extras::install_image_loaders(ctx);
 
@@ -325,12 +354,26 @@ pub fn draw_egui(
                             .set_title("Select a file to save to")
                             .save_file::<SaveFileContents>(data);
                     }
+
+                    if ui
+                        .button("Exit")
+                        .on_hover_text("Quit the application")
+                        .clicked()
+                    {
+                        app_exit_events.send(bevy::app::AppExit);
+                    }
                 });
                 ui.menu_button("Edit", |ui| {
-                    if ui.add(egui::Button::new("Undo").shortcut_text("Ctrl+Z")).clicked() {
+                    if ui
+                        .add(egui::Button::new("Undo").shortcut_text("Ctrl+Z"))
+                        .clicked()
+                    {
                         ui.close_menu();
                     }
-                    if ui.add(egui::Button::new("Redo").shortcut_text("Ctrl+Shift+Z")).clicked() {
+                    if ui
+                        .add(egui::Button::new("Redo").shortcut_text("Ctrl+Shift+Z"))
+                        .clicked()
+                    {
                         ui.close_menu();
                     }
                 });
