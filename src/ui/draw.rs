@@ -288,6 +288,7 @@ pub fn draw_egui(
                 let mut window = windows.single_mut();
 
                 let mut is_vsync_enabled = matches!(window.present_mode, PresentMode::AutoVsync);
+                ui.label("WARNING: Disabling the Vsync option may potentially trigger seizures for people with photosensitive epilepsy. Discretion is advised.");
                 ui.checkbox(&mut is_vsync_enabled, "Vsync enabled");
                 window.present_mode = if is_vsync_enabled {
                     PresentMode::AutoVsync
