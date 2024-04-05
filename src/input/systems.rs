@@ -93,6 +93,12 @@ pub fn button_input(
     mut ui_state: ResMut<UiState>,
     mut component_ids: ResMut<ComponentIDs>,
 ) {
+    #[cfg(not(target_os = "macos"))]
+    let ctrl = keys.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
+
+    #[cfg(target_os = "macos")]
+    let ctrl = keys.any_pressed([KeyCode::SuperLeft, KeyCode::SuperRight]);
+
     if mouse_buttons.just_pressed(MouseButton::Left)
         && ui_state.tools_enabled
         && ui_state.tool_use_enabled
@@ -302,12 +308,6 @@ pub fn button_input(
                             .iter_mut()
                             .for_each(|(_, wall_resize, mut wall)| wall.resize(wall_resize, x, y));
 
-                        #[cfg(not(target_os = "macos"))]
-                        let ctrl = keys.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
-
-                        #[cfg(target_os = "macos")]
-                        let ctrl = keys.any_pressed([KeyCode::SuperLeft, KeyCode::SuperRight]);
-
                         if ctrl {
                             // snap all four corners to grid
                             rect_wall_set.p2().iter_mut().for_each(|(_, _, mut wall)| {
@@ -337,12 +337,6 @@ pub fn button_input(
                         circ_wall_set.p1().iter_mut().for_each(|(_, mut wall)| {
                             wall.set_center(x, y);
                         });
-
-                        #[cfg(not(target_os = "macos"))]
-                        let ctrl = keys.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
-
-                        #[cfg(target_os = "macos")]
-                        let ctrl = keys.any_pressed([KeyCode::SuperLeft, KeyCode::SuperRight]);
 
                         if ctrl {
                             // snap all four corners to grid
