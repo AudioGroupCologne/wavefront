@@ -1,16 +1,18 @@
-use spectrum_analyzer::scaling::scale_to_zero_to_one;
+use spectrum_analyzer::scaling::{scale_20_times_log10, scale_to_zero_to_one};
 use spectrum_analyzer::windows::hann_window;
 use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
 
 use crate::components::microphone::Microphone;
 use crate::math::constants::*;
+use crate::ui::state::FftScaling;
 
 /// Calculate the spectrum of a [`Microphone`] based on the record field.
 /// The spectrum is calculated using the FFT algorithm and a Hann window. The corresponding window size is specified in [`FFT_WINDOW_SIZE`].
-/// The spectrum is then mapped to a logarithmic scale and returned.
+/// The spectrum is then mapped to a logarithmic scale on the frequency axis and returned.
 /// * `microphone` - The microphone to calculate the spectrum for.
 /// * `ui_state` - The current state of the UI.
-pub fn calc_mic_spectrum(microphone: &Microphone) -> Vec<[f64; 2]> {
+/// * `scaling` - The scaling to apply to the spectrum on the amplitude axis.
+pub fn calc_mic_spectrum(microphone: &Microphone, scaling: FftScaling) -> Vec<[f64; 2]> {
     let samples = if microphone.record.len() < FFT_WINDOW_SIZE {
         let mut s = microphone.record.clone();
         s.resize(FFT_WINDOW_SIZE, [0.0, 0.0]);
@@ -28,7 +30,10 @@ pub fn calc_mic_spectrum(microphone: &Microphone) -> Vec<[f64; 2]> {
         // we can just use the constant value. Calculated as 1/(0.001 / 343) = 343200
         343200,
         FrequencyLimit::All,
-        Some(&scale_to_zero_to_one),
+        match scaling {
+            FftScaling::ZeroToOne => Some(&scale_to_zero_to_one),
+            FftScaling::Decibels => Some(&scale_20_times_log10),
+        },
     )
     .unwrap();
 

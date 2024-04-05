@@ -7,9 +7,9 @@ use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::components::wall::{CircWall, RectWall};
 use crate::events::UpdateWalls;
+use crate::render::gradient::Gradient;
 use crate::simulation::grid::Grid;
 use crate::simulation::plugin::ComponentIDs;
-use crate::render::gradient::Gradient;
 
 /// Marker component for the file dialog and the corresponding event.
 pub struct SaveFileContents;

@@ -8,9 +8,9 @@ use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
 use super::gizmo::GizmoComponent;
-use crate::simulation::plugin::ComponentIDs;
 use crate::math::constants::*;
 use crate::math::transformations::grid_to_image;
+use crate::simulation::plugin::ComponentIDs;
 use crate::ui::state::ToolType;
 
 /// A sound source on the grid

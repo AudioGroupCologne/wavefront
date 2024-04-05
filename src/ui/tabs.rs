@@ -7,7 +7,7 @@ use egui_plot::{GridMark, Line, Plot, PlotPoints};
 use plotters::prelude::*;
 
 use super::loading::SaveFileContents;
-use super::state::FftMicrophone;
+use super::state::{FftMicrophone, FftScaling};
 use crate::components::microphone::Microphone;
 use crate::math::fft::calc_mic_spectrum;
 
@@ -33,6 +33,7 @@ pub struct PlotTabs<'a> {
     pub mics: &'a [&'a Microphone],
     pub pixel_buffer: &'a mut PixelBuffersItem<'a>,
     pub fft_microphone: &'a mut FftMicrophone,
+    pub scaling: &'a mut FftScaling,
     pub commands: &'a mut Commands<'a, 'a>,
     pub enabled_spectrogram: bool,
 }
@@ -190,30 +191,54 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                     });
             }
             Tab::Frequency => {
-                egui::ComboBox::from_label("FFT Microphone")
-                    .selected_text(if let Some(index) = self.fft_microphone.mic_id {
-                        format!("Microphone {index}")
-                    } else {
-                        "No Microphone Selected".to_string()
-                    })
-                    .show_ui(ui, |ui| {
-                        for mic in self.mics {
+                ui.horizontal(|ui| {
+                    egui::ComboBox::from_label("FFT Microphone")
+                        .selected_text(if let Some(index) = self.fft_microphone.mic_id {
+                            format!("Microphone {index}")
+                        } else {
+                            "No Microphone Selected".to_string()
+                        })
+                        .show_ui(ui, |ui| {
+                            for mic in self.mics {
+                                ui.selectable_value(
+                                    &mut self.fft_microphone.mic_id,
+                                    Some(mic.id),
+                                    format!("Microphone {}", mic.id),
+                                );
+                            }
+                        });
+
+                    ui.add(egui::Separator::default().vertical());
+
+                    egui::ComboBox::from_label("Scaling")
+                        .selected_text(self.scaling.to_string())
+                        .show_ui(ui, |ui| {
                             ui.selectable_value(
-                                &mut self.fft_microphone.mic_id,
-                                Some(mic.id),
-                                format!("Microphone {}", mic.id),
+                                self.scaling,
+                                FftScaling::ZeroToOne,
+                                format!("{}", FftScaling::ZeroToOne),
                             );
-                        }
-                    });
+                            ui.selectable_value(
+                                self.scaling,
+                                FftScaling::Decibels,
+                                format!("{}", FftScaling::Decibels),
+                            );
+                        });
+                });
 
                 ui.separator();
+
+                let unit = match self.scaling {
+                    FftScaling::ZeroToOne => "(0-1)",
+                    FftScaling::Decibels => "(dB)",
+                };
                 Plot::new("fft_plot")
                     .allow_zoom([false, false])
                     .allow_scroll(false)
                     .allow_drag(false)
                     .allow_boxed_zoom(false)
                     .x_axis_label("Frequency (Hz)")
-                    .y_axis_label("Intensity (dB)")
+                    .y_axis_label(format!("Intensity {}", unit))
                     .x_grid_spacer(|input| {
                         let mut marks = Vec::with_capacity(
                             input.bounds.1 as usize - input.bounds.0 as usize + 1,
@@ -228,10 +253,11 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                         marks
                     })
                     .x_axis_formatter(|mark, _, _| format!("{:.0}", 10_f64.powf(mark.value)))
-                    .label_formatter(|_, value| {
+                    .label_formatter(move |_, value| {
                         format!(
-                            "Intensity: {:.2} dB\nFrequency: {:.2} Hz",
+                            "Intensity: {:.2} {}\nFrequency: {:.2} (Hz)",
                             value.y,
+                            unit,
                             10_f64.powf(value.x)
                         )
                     })
@@ -245,7 +271,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             .iter()
                             .find(|m| m.id == self.fft_microphone.mic_id.expect("no mic selected"))
                         {
-                            let mapped_spectrum = calc_mic_spectrum(mic);
+                            let mapped_spectrum = calc_mic_spectrum(mic, *self.scaling);
                             // remove the first element, because of log it is at x=-inf
                             let mapped_spectrum = &mapped_spectrum[1..];
 

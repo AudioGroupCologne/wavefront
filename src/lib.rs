@@ -2,9 +2,9 @@
 
 pub mod components;
 pub mod events;
-pub mod simulation;
 pub mod input;
 pub mod math;
 pub mod render;
+pub mod simulation;
 pub mod ui;
 pub mod undo;

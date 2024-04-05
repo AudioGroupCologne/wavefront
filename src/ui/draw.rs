@@ -1173,6 +1173,7 @@ pub fn draw_egui(
                             fft_microphone: &mut fft_mic,
                             commands: &mut commands.reborrow(),
                             enabled_spectrogram: ui_state.enable_spectrogram,
+                            scaling: &mut ui_state.fft_scaling,
                         },
                     );
             });

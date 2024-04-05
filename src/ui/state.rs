@@ -43,6 +43,21 @@ pub struct FftMicrophone {
     pub mic_id: Option<usize>,
 }
 
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum FftScaling {
+    ZeroToOne,
+    Decibels,
+}
+
+impl fmt::Display for FftScaling {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FftScaling::ZeroToOne => write!(f, "0-1"),
+            FftScaling::Decibels => write!(f, "dB"),
+        }
+    }
+}
+
 #[derive(Resource, PartialEq, Clone, Copy)]
 pub struct UiState {
     pub is_running: bool,
@@ -63,6 +78,7 @@ pub struct UiState {
     pub show_about: bool,
     pub show_help: bool,
     pub enable_spectrogram: bool,
+    pub fft_scaling: FftScaling,
 }
 
 impl Default for UiState {
@@ -89,6 +105,7 @@ impl Default for UiState {
             show_about: false,
             show_help: false,
             enable_spectrogram: false,
+            fft_scaling: FftScaling::ZeroToOne,
         }
     }
 }

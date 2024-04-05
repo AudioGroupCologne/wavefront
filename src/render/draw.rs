@@ -9,10 +9,10 @@ use super::gradient::Gradient;
 use crate::components::microphone::Microphone;
 use crate::components::states::Drag;
 use crate::components::wall::{CircWall, RectWall, WResize, Wall};
-use crate::simulation::grid::Grid;
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::transformations::{coords_to_index, map_range};
-use crate::ui::state::{FftMicrophone, UiState};
+use crate::simulation::grid::Grid;
+use crate::ui::state::{FftMicrophone, FftScaling, UiState};
 
 pub fn draw_pixels(
     pixel_buffers: QueryPixelBuffer,
@@ -85,7 +85,7 @@ pub fn draw_pixels(
 
             // TODO: maybe reset the frame each time the mic changes
 
-            let new_spectrum = crate::math::fft::calc_mic_spectrum(mic);
+            let new_spectrum = crate::math::fft::calc_mic_spectrum(mic, FftScaling::ZeroToOne);
             let frame_size = frame.size();
 
             // shift the old values to the left

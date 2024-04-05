@@ -4,8 +4,8 @@ use bevy_file_dialog::FileDialogExt;
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::components::wall::{CircWall, RectWall};
-use crate::simulation::grid::Grid;
 use crate::render::gradient::Gradient;
+use crate::simulation::grid::Grid;
 use crate::ui::loading::SaveFileContents;
 use crate::ui::state::{SimTime, UiState};
 

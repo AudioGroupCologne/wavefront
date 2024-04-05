@@ -4,8 +4,8 @@ use egui::{Color32, Pos2, Rect};
 use serde::{Deserialize, Serialize};
 
 use super::gizmo::GizmoComponent;
-use crate::simulation::plugin::ComponentIDs;
 use crate::math::transformations::grid_to_image;
+use crate::simulation::plugin::ComponentIDs;
 use crate::ui::state::ToolType;
 
 /// A microphone on the grid that records the pressure at its position
