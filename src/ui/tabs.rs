@@ -216,8 +216,8 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                         .show_ui(ui, |ui| {
                             ui.selectable_value(
                                 self.scaling,
-                                FftScaling::ZeroToOne,
-                                format!("{}", FftScaling::ZeroToOne),
+                                FftScaling::Normalized,
+                                format!("{}", FftScaling::Normalized),
                             );
                             ui.selectable_value(
                                 self.scaling,
@@ -230,7 +230,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                 ui.separator();
 
                 let unit = match self.scaling {
-                    FftScaling::ZeroToOne => "(0-1)",
+                    FftScaling::Normalized => "",
                     FftScaling::Decibels => "(dB)",
                 };
                 Plot::new("fft_plot")
