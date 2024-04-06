@@ -31,7 +31,7 @@ pub fn calc_mic_spectrum(microphone: &Microphone, scaling: FftScaling) -> Vec<[f
         343200,
         FrequencyLimit::All,
         match scaling {
-            FftScaling::ZeroToOne => Some(&scale_to_zero_to_one),
+            FftScaling::Normalized => Some(&scale_to_zero_to_one),
             FftScaling::Decibels => Some(&scale_20_times_log10),
         },
     )

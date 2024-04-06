@@ -45,14 +45,14 @@ pub struct FftMicrophone {
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum FftScaling {
-    ZeroToOne,
+    Normalized,
     Decibels,
 }
 
 impl fmt::Display for FftScaling {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            FftScaling::ZeroToOne => write!(f, "0-1"),
+            FftScaling::Normalized => write!(f, "Normalized"),
             FftScaling::Decibels => write!(f, "dB"),
         }
     }
@@ -105,7 +105,7 @@ impl Default for UiState {
             show_about: false,
             show_help: false,
             enable_spectrogram: false,
-            fft_scaling: FftScaling::ZeroToOne,
+            fft_scaling: FftScaling::Normalized,
         }
     }
 }
