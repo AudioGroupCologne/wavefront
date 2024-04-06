@@ -36,6 +36,7 @@ pub struct PlotTabs<'a> {
     pub scaling: &'a mut FftScaling,
     pub commands: &'a mut Commands<'a, 'a>,
     pub enabled_spectrogram: bool,
+    pub delta_t: f32,
 }
 
 impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
@@ -271,7 +272,8 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             .iter()
                             .find(|m| m.id == self.fft_microphone.mic_id.expect("no mic selected"))
                         {
-                            let mapped_spectrum = calc_mic_spectrum(mic, *self.scaling);
+                            let mapped_spectrum =
+                                calc_mic_spectrum(mic, *self.scaling, self.delta_t);
                             // remove the first element, because of log it is at x=-inf
                             let mapped_spectrum = &mapped_spectrum[1..];
 

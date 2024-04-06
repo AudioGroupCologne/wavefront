@@ -12,7 +12,11 @@ use crate::ui::state::FftScaling;
 /// * `microphone` - The microphone to calculate the spectrum for.
 /// * `ui_state` - The current state of the UI.
 /// * `scaling` - The scaling to apply to the spectrum on the amplitude axis.
-pub fn calc_mic_spectrum(microphone: &Microphone, scaling: FftScaling) -> Vec<[f64; 2]> {
+pub fn calc_mic_spectrum(
+    microphone: &Microphone,
+    scaling: FftScaling,
+    delta_t: f32,
+) -> Vec<[f64; 2]> {
     let samples = if microphone.record.len() < FFT_WINDOW_SIZE {
         let mut s = microphone.record.clone();
         s.resize(FFT_WINDOW_SIZE, [0.0, 0.0]);
@@ -28,7 +32,7 @@ pub fn calc_mic_spectrum(microphone: &Microphone, scaling: FftScaling) -> Vec<[f
         // "Normally" the sample rate should be calculated as: (1. / delta_t) as u32
         // But because the rate of samples provided does not actually change when changing delta_l,
         // we can just use the constant value. Calculated as 1/(0.001 / 343) = 343200
-        343200,
+        (1. / delta_t) as u32,
         FrequencyLimit::All,
         match scaling {
             FftScaling::ZeroToOne => Some(&scale_to_zero_to_one),

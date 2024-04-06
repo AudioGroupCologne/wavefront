@@ -85,7 +85,8 @@ pub fn draw_pixels(
 
             // TODO: maybe reset the frame each time the mic changes
 
-            let new_spectrum = crate::math::fft::calc_mic_spectrum(mic, FftScaling::ZeroToOne);
+            let new_spectrum =
+                crate::math::fft::calc_mic_spectrum(mic, FftScaling::ZeroToOne, grid.delta_t);
             let frame_size = frame.size();
 
             // shift the old values to the left

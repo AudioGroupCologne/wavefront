@@ -1174,6 +1174,7 @@ pub fn draw_egui(
                             commands: &mut commands.reborrow(),
                             enabled_spectrogram: ui_state.enable_spectrogram,
                             scaling: &mut ui_state.fft_scaling,
+                            delta_t: grid.delta_t,
                         },
                     );
             });
