@@ -1,4 +1,4 @@
-use bevy::app::{App, Plugin, Startup, Update};
+use bevy::app::{App, FixedUpdate, Plugin, Startup};
 use bevy::ecs::schedule::IntoSystemConfigs;
 use bevy::ecs::system::Resource;
 
@@ -17,7 +17,10 @@ impl Plugin for GridPlugin {
 
         app.insert_resource(grid)
             .init_resource::<ComponentIDs>()
-            .add_systems(Update, (calc_system, apply_system, update_system).chain());
+            .add_systems(
+                FixedUpdate,
+                (calc_system, apply_system, update_system).chain(),
+            );
 
         #[cfg(debug_assertions)]
         app.add_systems(

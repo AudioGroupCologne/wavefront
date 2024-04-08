@@ -79,6 +79,7 @@ pub struct UiState {
     pub show_help: bool,
     pub enable_spectrogram: bool,
     pub fft_scaling: FftScaling,
+    pub framerate: f64,
 }
 
 impl Default for UiState {
@@ -106,6 +107,7 @@ impl Default for UiState {
             show_help: false,
             enable_spectrogram: false,
             fft_scaling: FftScaling::Normalized,
+            framerate: 60.,
         }
     }
 }

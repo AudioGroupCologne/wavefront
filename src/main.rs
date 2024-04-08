@@ -1,6 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
 use bevy::window::PresentMode;
 use bevy::winit::WinitWindows;
@@ -20,12 +19,11 @@ fn main() {
             DefaultPlugins.set(WindowPlugin {
                 primary_window: Some(Window {
                     title: "wavefront".into(),
-                    present_mode: PresentMode::AutoVsync,
+                    present_mode: PresentMode::AutoNoVsync,
                     ..default()
                 }),
                 ..default()
             }),
-            FrameTimeDiagnosticsPlugin,
             PixelBufferPlugins,
             EguiPlugin,
             RenderPlugin,
@@ -36,6 +34,7 @@ fn main() {
             UndoPlugin,
         ))
         .add_systems(Startup, set_window_icon)
+        .insert_resource(Time::<Fixed>::from_hz(60.0))
         .run();
 }
 

@@ -14,7 +14,7 @@ impl Plugin for RenderPlugin {
         app.init_resource::<Gradient>()
             .init_resource::<SimTime>()
             .add_systems(Startup, (setup_buffers,))
-            .add_systems(Update, (draw_pixels, draw_overlays).chain());
+            .add_systems(FixedUpdate, (draw_pixels, draw_overlays).chain());
     }
 }
 

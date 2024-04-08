@@ -1,4 +1,3 @@
-use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::ecs::system::SystemParam;
 use bevy::prelude::*;
 use bevy::window::PresentMode;
@@ -111,7 +110,6 @@ pub struct QuerySystemParams<'w, 's> {
 pub fn draw_egui(
     mut commands: Commands,
     mut windows: Query<&mut Window>,
-    diagnostics: Res<DiagnosticsStore>,
     mut pixel_buffers: QueryPixelBuffer,
     mut egui_context: EguiContexts,
     mut ui_state: ResMut<UiState>,
@@ -123,6 +121,7 @@ pub fn draw_egui(
     mut fft_mic: ResMut<FftMicrophone>,
     mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
     sim_time: ResMut<SimTime>,
+    mut fixed_timestep: ResMut<Time<Fixed>>,
 ) {
     let QuerySystemParams {
         mut rect_wall_set,
@@ -481,23 +480,25 @@ pub fn draw_egui(
 
             ui.spacing_mut().slider_width = 200.0;
 
-            ui.add_space(3.);
-            egui::Grid::new("header_grid")
-                .min_col_width(420. / 2.)
-                .show(ui, |ui| {
+            // ui.add_space(3.);
+            // egui::Grid::new("header_grid")
+            //     .min_col_width(420. / 2.)
+            //     .show(ui, |ui| {
 
-                    ui.vertical(|ui| {
-                        ui.heading("Settings");
-                        if let Some(value) = diagnostics
-                            .get(&FrameTimeDiagnosticsPlugin::FPS)
-                            .and_then(|fps| fps.smoothed())
-                        {
-                            ui.label(format!("FPS: {:.1}", value));
-                        }
-                    });
-                });
+            //         ui.vertical(|ui| {
+            //             ui.heading("Settings");
+            //             if let Some(value) = diagnostics
+            //                 .get(&FrameTimeDiagnosticsPlugin::FPS)
+            //                 .and_then(|fps| fps.smoothed())
+            //             {
+            //                 ui.label(format!("FPS: {:.1}", value));
+            //             }
+            //             //TODO: maybe 1/elapsed_sec_since_last_update as framerate
+            //             ui.label(format!("FPS2: {:.1}", fixed_timestep.));
+            //         });
+            //     });
 
-            ui.separator();
+            // ui.separator();
 
             // Sources
             egui::ScrollArea::vertical()
@@ -1012,6 +1013,10 @@ pub fn draw_egui(
                     .changed()
                 {
                     events.reset_ev.send(Reset);
+                }
+
+                if ui.add(egui::Slider::new(&mut ui_state.framerate, 1f64..=500.).logarithmic(true)).changed() {
+                    fixed_timestep.set_timestep_hz(ui_state.framerate);
                 }
 
                 if ui
