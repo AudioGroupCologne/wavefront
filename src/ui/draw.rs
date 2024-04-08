@@ -1002,6 +1002,8 @@ pub fn draw_egui(
                 });
 
                 ui.collapsing("Size/Speed", |ui| {
+                    ui.label("WARNING: Increasing the speed may potentially trigger seizures for people with photosensitive epilepsy. Discretion is advised.");
+
                     if ui
                         .add(
                             egui::Slider::new(&mut ui_state.delta_l, 0.0..=10.0)
