@@ -989,33 +989,35 @@ pub fn draw_egui(
                         events.wall_update_ev.send(UpdateWalls);
                     }
 
-                    ui.checkbox(&mut ui_state.reset_on_change, "Reset on change")
+                    ui.checkbox(&mut ui_state.reset_on_change, "Reset on change");
+
+                    if ui
+                        .checkbox(&mut ui_state.show_plots, "Show Plots")
+                        .clicked()
+                    {
+                        for (_, mut mic) in mic_set.p0().iter_mut() {
+                            mic.clear();
+                        }
+                    }
                 });
 
-                if ui
-                    .add(
-                        egui::Slider::new(&mut ui_state.delta_l, 0.0..=10.0)
-                            .text("Delta L (m)")
-                            .logarithmic(true),
-                    )
-                    .on_hover_text("Change the size of one cell in the simulation in meters.")
-                    .changed()
-                {
-                    events.reset_ev.send(Reset::default());
-                }
-
-                if ui.add(egui::Slider::new(&mut ui_state.framerate, 1f64..=500.).logarithmic(true)).changed() {
-                    fixed_timestep.set_timestep_hz(ui_state.framerate);
-                }
-
-                if ui
-                    .checkbox(&mut ui_state.show_plots, "Show Plots")
-                    .clicked()
-                {
-                    for (_, mut mic) in mic_set.p0().iter_mut() {
-                        mic.clear();
+                ui.collapsing("Size/Speed", |ui| {
+                    if ui
+                        .add(
+                            egui::Slider::new(&mut ui_state.delta_l, 0.0..=10.0)
+                                .text("Delta L (m)")
+                                .logarithmic(true),
+                        )
+                        .on_hover_text("Change the size of one cell in the simulation in meters.")
+                        .changed()
+                    {
+                        events.reset_ev.send(Reset::default());
                     }
-                }
+
+                    if ui.add(egui::Slider::new(&mut ui_state.framerate, 1f64..=500.).text("Simulation Frame Rate").logarithmic(true)).changed() {
+                        fixed_timestep.set_timestep_hz(ui_state.framerate);
+                    }
+                });
 
                 ui.collapsing("Gradient", |ui| {
                     ui.label("Adjust the colors used to render the simulation.");
