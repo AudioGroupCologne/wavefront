@@ -212,9 +212,9 @@ pub fn draw_overlays(
                         let b = raw_pixles[index as usize].b;
 
                         raw_pixles[index as usize] = Pixel {
-                            r: map_range(0, 255, 80, 150, r as u32) as u8,
-                            g: map_range(0, 255, 80, 150, g as u32) as u8,
-                            b: map_range(0, 255, 80, 255, b as u32) as u8,
+                            r: map_range(0, 255, 100, 175, r as u32) as u8,
+                            g: map_range(0, 255, 80, 80, g as u32) as u8,
+                            b: map_range(0, 255, 80, 80, b as u32) as u8,
                             a: 255,
                         };
                     }
