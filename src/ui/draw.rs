@@ -1,6 +1,5 @@
 use bevy::ecs::system::SystemParam;
 use bevy::prelude::*;
-use bevy::window::PresentMode;
 use bevy_file_dialog::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::{Color32, Frame, Margin, Vec2};
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
@@ -109,7 +108,6 @@ pub struct QuerySystemParams<'w, 's> {
 
 pub fn draw_egui(
     mut commands: Commands,
-    mut windows: Query<&mut Window>,
     mut pixel_buffers: QueryPixelBuffer,
     mut egui_context: EguiContexts,
     mut ui_state: ResMut<UiState>,
@@ -272,8 +270,8 @@ pub fn draw_egui(
             });
     }
 
-    let mut enable_spectrogram = ui_state.enable_spectrogram;
     if ui_state.show_preferences {
+        let mut enable_spectrogram = ui_state.enable_spectrogram;
         egui::Window::new("Preferences")
             .open(&mut ui_state.show_preferences)
             .default_size(Vec2::new(400., 400.))
@@ -283,17 +281,6 @@ pub fn draw_egui(
             .show(ctx, |ui| {
                 ui.set_min_width(250.);
                 ui.heading("Experimental Settings");
-
-                let mut window = windows.single_mut();
-
-                let mut is_vsync_enabled = matches!(window.present_mode, PresentMode::AutoVsync);
-                ui.label("WARNING: Disabling the Vsync option may potentially trigger seizures for people with photosensitive epilepsy. Discretion is advised.");
-                ui.checkbox(&mut is_vsync_enabled, "Vsync enabled");
-                window.present_mode = if is_vsync_enabled {
-                    PresentMode::AutoVsync
-                } else {
-                    PresentMode::AutoNoVsync
-                };
 
                 ui.checkbox(&mut enable_spectrogram, "Spectrogram enabled");
             });
