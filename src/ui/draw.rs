@@ -122,7 +122,7 @@ pub fn draw_egui(
     mut dock_state: ResMut<DockState>,
     mut fft_mic: ResMut<FftMicrophone>,
     mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
-    sim_time: ResMut<SimTime>,
+    sim_time: Res<SimTime>,
 ) {
     let QuerySystemParams {
         mut rect_wall_set,
@@ -522,7 +522,7 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    events.reset_ev.send(Reset);
+                                    events.reset_ev.send(Reset::default());
                                 }
                                 ui.add_space(10.);
                                 ui.label("y:");
@@ -534,7 +534,7 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    events.reset_ev.send(Reset);
+                                    events.reset_ev.send(Reset::default());
                                 }
                             });
 
@@ -571,7 +571,7 @@ pub fn draw_egui(
                                         )
                                         .changed()
                                     {
-                                        events.reset_ev.send(Reset);
+                                        events.reset_ev.send(Reset::default());
                                     }
                                     if ui
                                         .add(
@@ -580,7 +580,7 @@ pub fn draw_egui(
                                         )
                                         .changed()
                                     {
-                                        events.reset_ev.send(Reset);
+                                        events.reset_ev.send(Reset::default());
                                     }
                                     if ui
                                         .add(
@@ -588,7 +588,7 @@ pub fn draw_egui(
                                         )
                                         .changed()
                                     {
-                                        events.reset_ev.send(Reset);
+                                        events.reset_ev.send(Reset::default());
                                     }
                                 }
                                 SourceType::Gauss {
@@ -603,7 +603,7 @@ pub fn draw_egui(
                                         )
                                         .changed()
                                     {
-                                        events.reset_ev.send(Reset);
+                                        events.reset_ev.send(Reset::default());
                                     }
                                     if ui
                                         .add(
@@ -612,7 +612,7 @@ pub fn draw_egui(
                                         )
                                         .changed()
                                     {
-                                        events.reset_ev.send(Reset);
+                                        events.reset_ev.send(Reset::default());
                                     }
                                     if ui
                                         .add(
@@ -620,7 +620,7 @@ pub fn draw_egui(
                                         )
                                         .changed()
                                     {
-                                        events.reset_ev.send(Reset);
+                                        events.reset_ev.send(Reset::default());
                                     }
                                 }
                                 SourceType::WhiteNoise { amplitude } => {
@@ -631,7 +631,7 @@ pub fn draw_egui(
                                         )
                                         .changed()
                                     {
-                                        events.reset_ev.send(Reset);
+                                        events.reset_ev.send(Reset::default());
                                     }
                                 }
                             }
@@ -725,7 +725,7 @@ pub fn draw_egui(
                                         if wall.rect.min.x > wall.rect.max.x - 1 {
                                             wall.rect.min.x = wall.rect.max.x - 1;
                                         }
-                                        events.reset_ev.send(Reset);
+                                        events.reset_ev.send(Reset::default());
                                     }
                                     ui.add_space(10.);
                                     ui.label("y:");
@@ -741,7 +741,7 @@ pub fn draw_egui(
                                         if wall.rect.min.y > wall.rect.max.y - 1 {
                                             wall.rect.min.y = wall.rect.max.y - 1;
                                         }
-                                        events.reset_ev.send(Reset);
+                                        events.reset_ev.send(Reset::default());
                                     }
                                     ui.add_space(10.);
                                     ui.label("Top Left Corner");
@@ -761,7 +761,7 @@ pub fn draw_egui(
                                         if wall.rect.max.x < wall.rect.min.x + 1 {
                                             wall.rect.max.x = wall.rect.min.x + 1;
                                         }
-                                        events.reset_ev.send(Reset);
+                                        events.reset_ev.send(Reset::default());
                                     }
                                     ui.add_space(10.);
                                     ui.label("y:");
@@ -777,7 +777,7 @@ pub fn draw_egui(
                                         if wall.rect.max.y < wall.rect.min.y + 1 {
                                             wall.rect.max.y = wall.rect.min.y + 1;
                                         }
-                                        events.reset_ev.send(Reset);
+                                        events.reset_ev.send(Reset::default());
                                     }
                                     ui.add_space(10.);
                                     ui.label("Bottom Right Corner");
@@ -805,12 +805,12 @@ pub fn draw_egui(
                                     )
                                     .changed()
                                 {
-                                    events.reset_ev.send(Reset);
+                                    events.reset_ev.send(Reset::default());
                                 }
 
                                 if ui.checkbox(&mut wall.is_hollow, "Hollow").changed() {
                                     events.wall_update_ev.send(UpdateWalls);
-                                    events.reset_ev.send(Reset);
+                                    events.reset_ev.send(Reset::default());
                                 };
 
                                 if ui
@@ -819,7 +819,7 @@ pub fn draw_egui(
                                 {
                                     commands.entity(*entity).despawn();
                                     events.wall_update_ev.send(UpdateWalls);
-                                    events.reset_ev.send(Reset);
+                                    events.reset_ev.send(Reset::default());
                                 }
                             });
 
@@ -850,7 +850,7 @@ pub fn draw_egui(
                                     .changed()
                                 {
                                     commands.entity(*entity).try_insert(WResize::Menu);
-                                    events.reset_ev.send(Reset);
+                                    events.reset_ev.send(Reset::default());
                                 }
                                 ui.add_space(10.);
                                 ui.label("y:");
@@ -863,7 +863,7 @@ pub fn draw_egui(
                                     .changed()
                                 {
                                     commands.entity(*entity).try_insert(WResize::Menu);
-                                    events.reset_ev.send(Reset);
+                                    events.reset_ev.send(Reset::default());
                                 }
                                 ui.add_space(10.);
                                 ui.label("Center");
@@ -882,7 +882,7 @@ pub fn draw_egui(
                                     .changed()
                                 {
                                     commands.entity(*entity).try_insert(WResize::Menu);
-                                    events.reset_ev.send(Reset);
+                                    events.reset_ev.send(Reset::default());
                                 }
                             });
 
@@ -905,7 +905,7 @@ pub fn draw_egui(
                                     .changed()
                                 {
                                     commands.entity(*entity).try_insert(WResize::Menu);
-                                    events.reset_ev.send(Reset);
+                                    events.reset_ev.send(Reset::default());
                                 }
 
                                 if ui
@@ -919,7 +919,7 @@ pub fn draw_egui(
                                     .changed()
                                 {
                                     commands.entity(*entity).try_insert(WResize::Menu);
-                                    events.reset_ev.send(Reset);
+                                    events.reset_ev.send(Reset::default());
                                 }
                             }
 
@@ -930,12 +930,12 @@ pub fn draw_egui(
                                 )
                                 .changed()
                             {
-                                events.reset_ev.send(Reset);
+                                events.reset_ev.send(Reset::default());
                             }
 
                             if ui.checkbox(&mut wall.is_hollow, "Hollow Wall").changed() {
                                 events.wall_update_ev.send(UpdateWalls);
-                                events.reset_ev.send(Reset);
+                                events.reset_ev.send(Reset::default());
                             };
 
                             if ui
@@ -944,7 +944,7 @@ pub fn draw_egui(
                             {
                                 commands.entity(*entity).despawn();
                                 events.wall_update_ev.send(UpdateWalls);
-                                events.reset_ev.send(Reset);
+                                events.reset_ev.send(Reset::default());
                             }
                         });
 
@@ -973,7 +973,9 @@ pub fn draw_egui(
                     }
 
                     if ui.button("Reset").clicked() {
-                        events.reset_ev.send(Reset);
+                        events.reset_ev.send(Reset{
+                            force: true,
+                        });
                     }
 
                     if ui
@@ -1011,7 +1013,7 @@ pub fn draw_egui(
                     .on_hover_text("Change the size of one cell in the simulation in meters.")
                     .changed()
                 {
-                    events.reset_ev.send(Reset);
+                    events.reset_ev.send(Reset::default());
                 }
 
                 if ui
