@@ -39,8 +39,10 @@ pub fn update_wall_event(
     }
 }
 
-#[derive(Event)]
-pub struct Reset;
+#[derive(Event, Default)]
+pub struct Reset {
+    pub force: bool,
+}
 
 pub fn reset_event(
     mut reset_ev: EventReader<Reset>,
@@ -49,8 +51,8 @@ pub fn reset_event(
     ui_state: Res<UiState>,
     mut mics: Query<&mut Microphone>,
 ) {
-    if ui_state.reset_on_change {
-        for _ in reset_ev.read() {
+    for r in reset_ev.read() {
+        if ui_state.reset_on_change || r.force {
             sim_time.time_since_start = 0f32;
             grid.reset_cells(ui_state.boundary_width);
             mics.iter_mut().for_each(|mut mic| mic.clear());

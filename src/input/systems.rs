@@ -401,7 +401,7 @@ pub fn event_input(
         selected.iter_mut().for_each(|entity| {
             commands.entity(entity).despawn();
             wall_update_ev.send(UpdateWalls);
-            reset_ev.send(Reset);
+            reset_ev.send(Reset::default());
         });
     }
 
@@ -410,7 +410,7 @@ pub fn event_input(
         && ui_state.tool_use_enabled
         && ui_state.tools_enabled
     {
-        reset_ev.send(Reset);
+        reset_ev.send(Reset::default());
     }
 
     // load file

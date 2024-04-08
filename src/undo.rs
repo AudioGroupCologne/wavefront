@@ -154,7 +154,7 @@ pub fn undo_event(
             }
 
             wall_update_ev.send(UpdateWalls);
-            reset_ev.send(Reset);
+            reset_ev.send(Reset::default());
 
             *ids = state.ids;
         }
