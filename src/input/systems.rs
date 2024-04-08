@@ -316,8 +316,9 @@ pub fn button_input(
                                     y: (wall.rect.min.y as f32 / 10.).round() as u32 * 10,
                                 };
                                 let max = UVec2 {
-                                    x: (wall.rect.max.x as f32 / 10.).round() as u32 * 10,
-                                    y: (wall.rect.max.y as f32 / 10.).round() as u32 * 10,
+                                    // - 1 because wall bounds are inclusive
+                                    x: (wall.rect.max.x as f32 / 10.).round() as u32 * 10 - 1,
+                                    y: (wall.rect.max.y as f32 / 10.).round() as u32 * 10 - 1,
                                 };
                                 wall.resize(&WResize::TopLeft, min.x, min.y);
                                 wall.resize(&WResize::TopRight, max.x, min.y);
