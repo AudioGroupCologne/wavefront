@@ -471,7 +471,7 @@ pub fn draw_egui(
 
             // Sources
             egui::ScrollArea::vertical()
-                .id_source("source_scroll_area")
+                .id_source("side_scroll_area")
                 .max_height(400.)
                 .show(ui, |ui| {
                     ui.set_min_width(ui.available_width());
