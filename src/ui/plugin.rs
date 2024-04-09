@@ -2,7 +2,6 @@ use bevy::prelude::*;
 use bevy_file_dialog::FileDialogPlugin;
 
 use super::draw::draw_egui;
-use super::fps::{update_fps, Fps};
 use super::loading::{file_loaded, SaveFileContents};
 use super::state::{ClipboardBuffer, FftMicrophone, UiState};
 use super::tabs::DockState;
@@ -15,13 +14,11 @@ impl Plugin for UiPlugin {
             .init_resource::<ClipboardBuffer>()
             .init_resource::<DockState>()
             .init_resource::<FftMicrophone>()
-            .init_resource::<Fps>()
             .add_plugins(
                 FileDialogPlugin::new()
                     .with_save_file::<SaveFileContents>()
                     .with_load_file::<SaveFileContents>(),
             )
-            .add_systems(Update, (draw_egui, file_loaded))
-            .add_systems(FixedUpdate, update_fps);
+            .add_systems(Update, (draw_egui, file_loaded));
     }
 }

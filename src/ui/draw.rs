@@ -6,7 +6,6 @@ use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::prelude::*;
 use egui_extras::{Column, TableBuilder};
 
-use super::fps::Fps;
 use super::loading::SaveFileContents;
 use super::tabs::{DockState, PlotTabs};
 use crate::components::gizmo::GizmoComponent;
@@ -121,7 +120,6 @@ pub fn draw_egui(
     mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
     sim_time: Res<SimTime>,
     mut fixed_timestep: ResMut<Time<Fixed>>,
-    fps: Res<Fps>,
 ) {
     let QuerySystemParams {
         mut rect_wall_set,
@@ -1081,8 +1079,6 @@ pub fn draw_egui(
 
                 ui.add_space(5.);
                 ui.label(format!("Simulation Time: {:.5} ms", sim_time.time_since_start * 1000.));
-
-                ui.label(format!("Simulation FPS: {:.1}", fps.0));
 
                 ui.add_space(5.);
             });
