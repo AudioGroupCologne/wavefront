@@ -19,7 +19,7 @@ fn main() {
             DefaultPlugins.set(WindowPlugin {
                 primary_window: Some(Window {
                     title: "wavefront".into(),
-                    present_mode: PresentMode::AutoNoVsync,
+                    present_mode: PresentMode::AutoVsync,
                     ..default()
                 }),
                 ..default()
