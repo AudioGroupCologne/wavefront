@@ -467,6 +467,8 @@ pub fn draw_egui(
 
             ui.spacing_mut().slider_width = 200.0;
 
+            ui.add_space(3.);
+
             // Sources
             egui::ScrollArea::vertical()
                 .id_source("source_scroll_area")
