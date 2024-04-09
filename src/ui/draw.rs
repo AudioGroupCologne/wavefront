@@ -6,6 +6,7 @@ use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::prelude::*;
 use egui_extras::{Column, TableBuilder};
 
+use super::fps::Fps;
 use super::loading::SaveFileContents;
 use super::tabs::{DockState, PlotTabs};
 use crate::components::gizmo::GizmoComponent;
@@ -120,6 +121,7 @@ pub fn draw_egui(
     mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
     sim_time: Res<SimTime>,
     mut fixed_timestep: ResMut<Time<Fixed>>,
+    fps: Res<Fps>,
 ) {
     let QuerySystemParams {
         mut rect_wall_set,
@@ -466,26 +468,6 @@ pub fn draw_egui(
                 && !ui_state.render_abc_area;
 
             ui.spacing_mut().slider_width = 200.0;
-
-            // ui.add_space(3.);
-            // egui::Grid::new("header_grid")
-            //     .min_col_width(420. / 2.)
-            //     .show(ui, |ui| {
-
-            //         ui.vertical(|ui| {
-            //             ui.heading("Settings");
-            //             if let Some(value) = diagnostics
-            //                 .get(&FrameTimeDiagnosticsPlugin::FPS)
-            //                 .and_then(|fps| fps.smoothed())
-            //             {
-            //                 ui.label(format!("FPS: {:.1}", value));
-            //             }
-            //             //TODO: maybe 1/elapsed_sec_since_last_update as framerate
-            //             ui.label(format!("FPS2: {:.1}", fixed_timestep.));
-            //         });
-            //     });
-
-            // ui.separator();
 
             // Sources
             egui::ScrollArea::vertical()
@@ -1099,6 +1081,8 @@ pub fn draw_egui(
 
                 ui.add_space(5.);
                 ui.label(format!("Simulation Time: {:.5} ms", sim_time.time_since_start * 1000.));
+
+                ui.label(format!("Simulation FPS: {:.1}", fps.0));
 
                 ui.add_space(5.);
             });
