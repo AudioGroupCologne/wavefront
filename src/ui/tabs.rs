@@ -170,7 +170,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
 
                 Plot::new("mic_plot")
                     .allow_zoom([true, true])
-                    .x_axis_label("Time (s)")
+                    .x_axis_label("Simulation Time (s)")
                     .y_axis_label("Amplitude")
                     .label_formatter(|_, value| {
                         format!("Amplitude: {:.2}\nTime: {:.4} s", value.y, value.x)

@@ -20,7 +20,7 @@ pub fn apply_system(
 ) {
     if ui_state.is_running {
         grid.apply_sources(sim_time.time_since_start, &sources, ui_state.boundary_width);
-        grid.apply_microphones(microphones, &ui_state);
+        grid.apply_microphones(microphones, &ui_state, sim_time.time_since_start as f64);
     }
 }
 

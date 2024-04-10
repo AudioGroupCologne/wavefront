@@ -326,15 +326,19 @@ impl Grid {
         }
     }
 
-    pub fn apply_microphones(&self, mut microphones: Query<&mut Microphone>, ui_state: &UiState) {
+    pub fn apply_microphones(
+        &self,
+        mut microphones: Query<&mut Microphone>,
+        ui_state: &UiState,
+        time_since_start: f64,
+    ) {
         if ui_state.show_plots {
             for mut mic in microphones.iter_mut() {
                 let x = mic.x;
                 let y = mic.y;
-                let cur_time = mic.record.last().unwrap()[0] + self.delta_t as f64;
 
                 mic.record.push([
-                    cur_time,
+                    time_since_start,
                     self.pressure[coords_to_index(
                         x + ui_state.boundary_width,
                         y + ui_state.boundary_width,

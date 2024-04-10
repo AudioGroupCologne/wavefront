@@ -24,7 +24,7 @@ impl Microphone {
             x,
             y,
             id,
-            record: vec![[0., 0.]],
+            record: vec![],
         }
     }
 
@@ -38,7 +38,7 @@ impl Microphone {
     }
 
     pub fn clear(&mut self) {
-        self.record = vec![[0., 0.]];
+        self.record = vec![];
     }
 }
 
