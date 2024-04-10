@@ -1152,9 +1152,9 @@ pub fn draw_egui(
                             pixel_buffer: &mut pb,
                             fft_microphone: &mut fft_mic,
                             commands: &mut commands.reborrow(),
-                            enabled_spectrogram: ui_state.enable_spectrogram,
-                            scaling: &mut ui_state.fft_scaling,
                             delta_t: grid.delta_t,
+                            sim_time: sim_time.time_since_start as f64,
+                            ui_state: &mut ui_state,
                         },
                     );
             });

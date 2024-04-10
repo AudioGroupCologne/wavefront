@@ -7,7 +7,7 @@ use egui_plot::{GridMark, Line, Plot, PlotBounds, PlotPoints};
 use plotters::prelude::*;
 
 use super::loading::SaveFileContents;
-use super::state::{FftMicrophone, FftScaling};
+use super::state::{FftMicrophone, FftScaling, UiState};
 use crate::components::microphone::Microphone;
 use crate::math::fft::calc_mic_spectrum;
 
@@ -33,10 +33,10 @@ pub struct PlotTabs<'a> {
     pub mics: &'a [&'a Microphone],
     pub pixel_buffer: &'a mut PixelBuffersItem<'a>,
     pub fft_microphone: &'a mut FftMicrophone,
-    pub scaling: &'a mut FftScaling,
     pub commands: &'a mut Commands<'a, 'a>,
-    pub enabled_spectrogram: bool,
     pub delta_t: f32,
+    pub sim_time: f64,
+    pub ui_state: &'a mut UiState,
 }
 
 impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
@@ -60,34 +60,135 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
     fn ui(&mut self, ui: &mut egui::Ui, tab: &mut Self::Tab) {
         match tab {
             Tab::Volume => {
-                ui.with_layout(egui::Layout::top_down(egui::Align::RIGHT), |ui| {
-                    if ui
-                        .button("Screenshot Plot")
-                        .on_hover_text("Save a screenshot of the plot")
-                        .clicked()
-                    {
-                        let colors = [RED, BLUE, GREEN, CYAN, MAGENTA, BLACK, WHITE];
+                ui.horizontal(|ui| {
+                    ui.checkbox(&mut self.ui_state.scroll_volume_plot, "Scroll Volume Plot");
 
-                        let mut string_buffer = String::new();
+                    ui.with_layout(egui::Layout::top_down(egui::Align::RIGHT), |ui| {
+                        if ui
+                            .button("Screenshot Plot")
+                            .on_hover_text("Save a screenshot of the plot")
+                            .clicked()
                         {
-                            let mut mics = self.mics.to_vec();
-                            mics.sort_by_cached_key(|mic| mic.id);
+                            let colors = [RED, BLUE, GREEN, CYAN, MAGENTA, BLACK, WHITE];
 
-                            // find the highest x and y values to set the plot size
-                            let highest_x = mics
-                                .iter()
-                                .map(|mic| {
-                                    *mic.record
+                            let mut string_buffer = String::new();
+                            {
+                                let mut mics = self.mics.to_vec();
+                                mics.sort_by_cached_key(|mic| mic.id);
+
+                                // find the highest x and y values to set the plot size
+                                let highest_x =
+                                    mics.iter()
+                                        .map(|mic| {
+                                            *mic.record
+                                                .iter()
+                                                .map(|x| x[0])
+                                                .collect::<Vec<_>>()
+                                                .last()
+                                                .unwrap_or(&0.)
+                                        })
+                                        .reduce(f64::max)
+                                        .unwrap_or(0.) as f32;
+
+                                let highest_y = mics
+                                    .iter()
+                                    .map(|mic| {
+                                        mic.record
+                                            .iter()
+                                            .map(|x| x[1])
+                                            .reduce(f64::max)
+                                            .unwrap_or(0.)
+                                    })
+                                    .reduce(f64::max)
+                                    .unwrap_or(0.)
+                                    .abs() as f32;
+
+                                // the resolution is chosen at random
+                                let root = SVGBackend::with_string(&mut string_buffer, (1024, 600))
+                                    .into_drawing_area();
+                                root.fill(&WHITE).unwrap();
+                                let root = root.margin(10, 10, 10, 10);
+
+                                let mut chart = ChartBuilder::on(&root)
+                                    .x_label_area_size(20)
+                                    .y_label_area_size(40)
+                                    .build_cartesian_2d(0f32..highest_x, -highest_y..highest_y)
+                                    .unwrap();
+
+                                chart
+                                    .configure_mesh()
+                                    .x_labels(5)
+                                    .y_labels(5)
+                                    .y_label_formatter(&|x| format!("{:.2}", x))
+                                    .y_desc("Amplitude")
+                                    .x_desc("Simulation Time (s)")
+                                    .draw()
+                                    .unwrap();
+
+                                for (index, &mic) in mics.iter().enumerate() {
+                                    let points = mic
+                                        .record
                                         .iter()
-                                        .map(|x| x[0])
-                                        .collect::<Vec<_>>()
-                                        .last()
-                                        .unwrap_or(&0.)
-                                })
-                                .reduce(f64::max)
-                                .unwrap_or(0.) as f32;
+                                        .map(|x| (x[0] as f32, x[1] as f32))
+                                        .collect::<Vec<_>>();
 
-                            let highest_y = mics
+                                    chart
+                                        .draw_series(LineSeries::new(
+                                            points,
+                                            colors[index % (colors.len() - 1)],
+                                        ))
+                                        .unwrap()
+                                        .label(format!(
+                                            "Microphone {} (x: {}, y: {})",
+                                            mic.id, mic.x, mic.y
+                                        ))
+                                        .legend(move |(x, y)| {
+                                            PathElement::new(
+                                                vec![(x, y), (x + 20, y)],
+                                                colors[index % (colors.len() - 1)],
+                                            )
+                                        });
+                                }
+
+                                chart
+                                    .configure_series_labels()
+                                    .position(SeriesLabelPosition::UpperRight)
+                                    .background_style(WHITE.mix(0.8))
+                                    .border_style(BLACK)
+                                    .draw()
+                                    .unwrap();
+                            }
+
+                            self.commands
+                                .dialog()
+                                .add_filter("SVG", &["svg"])
+                                .set_file_name("function.svg")
+                                .set_directory("./")
+                                .set_title("Select a file to save to")
+                                .save_file::<SaveFileContents>(string_buffer.into_bytes());
+                        }
+                    });
+                });
+
+                ui.separator();
+
+                let scroll_volume_plot = self.ui_state.scroll_volume_plot;
+
+                Plot::new("mic_plot")
+                    .allow_zoom([!scroll_volume_plot, !scroll_volume_plot])
+                    .allow_drag(!scroll_volume_plot)
+                    .allow_scroll(!scroll_volume_plot)
+                    .x_axis_label("Simulation Time (ms)")
+                    .y_axis_label("Amplitude")
+                    .label_formatter(|_, value| {
+                        format!("Amplitude: {:.2}\nTime: {:.4} s", value.y, value.x)
+                    })
+                    .legend(egui_plot::Legend::default())
+                    .show(ui, |plot_ui| {
+                        if scroll_volume_plot {
+                            let highest_x = self.sim_time;
+                            let highest_y = self
+                                .mics
                                 .iter()
                                 .map(|mic| {
                                     mic.record
@@ -98,117 +199,13 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                 })
                                 .reduce(f64::max)
                                 .unwrap_or(0.)
-                                .abs() as f32;
+                                .abs();
 
-                            // the resolution is chosen at random
-                            let root = SVGBackend::with_string(&mut string_buffer, (1024, 600))
-                                .into_drawing_area();
-                            root.fill(&WHITE).unwrap();
-                            let root = root.margin(10, 10, 10, 10);
-
-                            let mut chart = ChartBuilder::on(&root)
-                                .x_label_area_size(20)
-                                .y_label_area_size(40)
-                                .build_cartesian_2d(0f32..highest_x, -highest_y..highest_y)
-                                .unwrap();
-
-                            chart
-                                .configure_mesh()
-                                .x_labels(5)
-                                .y_labels(5)
-                                .y_label_formatter(&|x| format!("{:.2}", x))
-                                .y_desc("Amplitude")
-                                .x_desc("Time (s)")
-                                .draw()
-                                .unwrap();
-
-                            for (index, &mic) in mics.iter().enumerate() {
-                                let points = mic
-                                    .record
-                                    .iter()
-                                    .map(|x| (x[0] as f32, x[1] as f32))
-                                    .collect::<Vec<_>>();
-
-                                chart
-                                    .draw_series(LineSeries::new(
-                                        points,
-                                        colors[index % (colors.len() - 1)],
-                                    ))
-                                    .unwrap()
-                                    .label(format!(
-                                        "Microphone {} (x: {}, y: {})",
-                                        mic.id, mic.x, mic.y
-                                    ))
-                                    .legend(move |(x, y)| {
-                                        PathElement::new(
-                                            vec![(x, y), (x + 20, y)],
-                                            colors[index % (colors.len() - 1)],
-                                        )
-                                    });
-                            }
-
-                            chart
-                                .configure_series_labels()
-                                .position(SeriesLabelPosition::UpperRight)
-                                .background_style(WHITE.mix(0.8))
-                                .border_style(BLACK)
-                                .draw()
-                                .unwrap();
+                            plot_ui.set_plot_bounds(PlotBounds::from_min_max(
+                                [highest_x * 1000. - 5., -(highest_y + 0.2)],
+                                [highest_x * 1000., highest_y + 0.2],
+                            ));
                         }
-
-                        self.commands
-                            .dialog()
-                            .add_filter("SVG", &["svg"])
-                            .set_file_name("function.svg")
-                            .set_directory("./")
-                            .set_title("Select a file to save to")
-                            .save_file::<SaveFileContents>(string_buffer.into_bytes());
-                    }
-                });
-
-                ui.separator();
-
-                Plot::new("mic_plot")
-                    .allow_zoom([true, true])
-                    .x_axis_label("Simulation Time (ms)")
-                    .y_axis_label("Amplitude")
-                    .label_formatter(|_, value| {
-                        format!("Amplitude: {:.2}\nTime: {:.4} s", value.y, value.x)
-                    })
-                    .legend(egui_plot::Legend::default())
-                    .show(ui, |plot_ui| {
-                        let highest_x = self
-                            .mics
-                            .iter()
-                            .map(|mic| {
-                                *mic.record
-                                    .iter()
-                                    .map(|x| x[0])
-                                    .collect::<Vec<_>>()
-                                    .last()
-                                    .unwrap_or(&0.)
-                            })
-                            .reduce(f64::max)
-                            .unwrap_or(0.);
-
-                        let highest_y = self
-                            .mics
-                            .iter()
-                            .map(|mic| {
-                                mic.record
-                                    .iter()
-                                    .map(|x| x[1])
-                                    .reduce(f64::max)
-                                    .unwrap_or(0.)
-                            })
-                            .reduce(f64::max)
-                            .unwrap_or(0.)
-                            .abs();
-                        // TODO: think about proper bounds
-                        // plot_ui.set_plot_bounds(PlotBounds::from_min_max(
-                        //     [0., highest_x],
-                        //     [highest_y, 0.],
-                        // ));
 
                         // TODO: allocation here is not very nice
                         let mut mics = self.mics.to_vec();
@@ -253,15 +250,15 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                     ui.add(egui::Separator::default().vertical());
 
                     egui::ComboBox::from_label("Scaling")
-                        .selected_text(self.scaling.to_string())
+                        .selected_text(self.ui_state.fft_scaling.to_string())
                         .show_ui(ui, |ui| {
                             ui.selectable_value(
-                                self.scaling,
+                                &mut self.ui_state.fft_scaling,
                                 FftScaling::Normalized,
                                 format!("{}", FftScaling::Normalized),
                             );
                             ui.selectable_value(
-                                self.scaling,
+                                &mut self.ui_state.fft_scaling,
                                 FftScaling::Decibels,
                                 format!("{}", FftScaling::Decibels),
                             );
@@ -270,7 +267,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
 
                 ui.separator();
 
-                let unit = match self.scaling {
+                let unit = match self.ui_state.fft_scaling {
                     FftScaling::Normalized => "",
                     FftScaling::Decibels => "(dB)",
                 };
@@ -314,7 +311,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             .find(|m| m.id == self.fft_microphone.mic_id.expect("no mic selected"))
                         {
                             let mapped_spectrum =
-                                calc_mic_spectrum(mic, *self.scaling, self.delta_t);
+                                calc_mic_spectrum(mic, self.ui_state.fft_scaling, self.delta_t);
                             // remove the first element, because of log it is at x=-inf
                             let mapped_spectrum = &mapped_spectrum[1..];
 
@@ -325,7 +322,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                     });
             }
             Tab::Spectrogram => {
-                if !self.enabled_spectrogram {
+                if !self.ui_state.enable_spectrogram {
                     ui.add_space(20.);
                     ui.vertical_centered(|ui| ui.label("Spectrogram is currently experimental. You can enable it in the settings."));
                     return;

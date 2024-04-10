@@ -80,6 +80,7 @@ pub struct UiState {
     pub enable_spectrogram: bool,
     pub fft_scaling: FftScaling,
     pub framerate: f64,
+    pub scroll_volume_plot: bool,
 }
 
 impl Default for UiState {
@@ -108,6 +109,7 @@ impl Default for UiState {
             enable_spectrogram: false,
             fft_scaling: FftScaling::Normalized,
             framerate: 60.,
+            scroll_volume_plot: true,
         }
     }
 }
