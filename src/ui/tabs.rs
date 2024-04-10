@@ -30,13 +30,35 @@ pub enum Tab {
 }
 
 pub struct PlotTabs<'a> {
-    pub mics: &'a [&'a Microphone],
-    pub pixel_buffer: &'a mut PixelBuffersItem<'a>,
-    pub fft_microphone: &'a mut FftMicrophone,
-    pub commands: &'a mut Commands<'a, 'a>,
-    pub delta_t: f32,
-    pub sim_time: f64,
-    pub ui_state: &'a mut UiState,
+    mics: &'a [&'a Microphone],
+    pixel_buffer: &'a mut PixelBuffersItem<'a>,
+    fft_microphone: &'a mut FftMicrophone,
+    commands: &'a mut Commands<'a, 'a>,
+    delta_t: f32,
+    sim_time: f64,
+    ui_state: &'a mut UiState,
+}
+
+impl<'a> PlotTabs<'a> {
+    pub fn new(
+        mics: &'a [&'a Microphone],
+        pixel_buffer: &'a mut PixelBuffersItem<'a>,
+        fft_microphone: &'a mut FftMicrophone,
+        commands: &'a mut Commands<'a, 'a>,
+        delta_t: f32,
+        sim_time: f64,
+        ui_state: &'a mut UiState,
+    ) -> Self {
+        Self {
+            mics,
+            pixel_buffer,
+            fft_microphone,
+            commands,
+            delta_t,
+            sim_time,
+            ui_state,
+        }
+    }
 }
 
 impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
@@ -181,7 +203,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                     .x_axis_label("Simulation Time (ms)")
                     .y_axis_label("Amplitude")
                     .label_formatter(|_, value| {
-                        format!("Amplitude: {:.2}\nTime: {:.4} s", value.y, value.x)
+                        format!("Amplitude: {:.2}\nTime: {:.4} ms", value.y, value.x)
                     })
                     .legend(egui_plot::Legend::default())
                     .show(ui, |plot_ui| {
@@ -190,20 +212,18 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             let highest_y = self
                                 .mics
                                 .iter()
-                                .map(|mic| {
-                                    mic.record
-                                        .iter()
-                                        .map(|x| x[1])
-                                        .reduce(f64::max)
-                                        .unwrap_or(0.)
-                                })
+                                .map(|mic| mic.record.last().unwrap_or(&[0., 0.])[1])
                                 .reduce(f64::max)
                                 .unwrap_or(0.)
                                 .abs();
 
+                            if highest_y > self.ui_state.highest_y_volume_plot {
+                                self.ui_state.highest_y_volume_plot = highest_y;
+                            }
+
                             plot_ui.set_plot_bounds(PlotBounds::from_min_max(
-                                [highest_x * 1000. - 5., -(highest_y + 0.2)],
-                                [highest_x * 1000., highest_y + 0.2],
+                                [highest_x * 1000. - 5., -(self.ui_state.highest_y_volume_plot + 0.2)],
+                                [highest_x * 1000., self.ui_state.highest_y_volume_plot + 0.2],
                             ));
                         }
 
@@ -223,7 +243,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             plot_ui.line(line.name(format!(
                                 "Microphone {} (x: {}, y: {})",
                                 mic.id,
-                                mic.x * 1000,
+                                mic.x,
                                 mic.y
                             )));
                         }

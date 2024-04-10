@@ -1147,15 +1147,15 @@ pub fn draw_egui(
                     .style(style)
                     .show_inside(
                         ui,
-                        &mut PlotTabs {
-                            mics: &mics[..],
-                            pixel_buffer: &mut pb,
-                            fft_microphone: &mut fft_mic,
-                            commands: &mut commands.reborrow(),
-                            delta_t: grid.delta_t,
-                            sim_time: sim_time.time_since_start as f64,
-                            ui_state: &mut ui_state,
-                        },
+                        &mut PlotTabs::new(
+                            &mics[..],
+                            &mut pb,
+                            &mut fft_mic,
+                            &mut commands.reborrow(),
+                            grid.delta_t,
+                            sim_time.time_since_start as f64,
+                            &mut ui_state,
+                        ),
                     );
             });
     }

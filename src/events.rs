@@ -48,7 +48,7 @@ pub fn reset_event(
     mut reset_ev: EventReader<Reset>,
     mut grid: ResMut<Grid>,
     mut sim_time: ResMut<SimTime>,
-    ui_state: Res<UiState>,
+    mut ui_state: ResMut<UiState>,
     mut mics: Query<&mut Microphone>,
 ) {
     for r in reset_ev.read() {
@@ -56,6 +56,7 @@ pub fn reset_event(
             sim_time.time_since_start = 0f32;
             grid.reset_cells(ui_state.boundary_width);
             mics.iter_mut().for_each(|mut mic| mic.clear());
+            ui_state.highest_y_volume_plot = 0f64;
         }
     }
 }

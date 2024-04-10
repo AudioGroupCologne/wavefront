@@ -81,6 +81,7 @@ pub struct UiState {
     pub fft_scaling: FftScaling,
     pub framerate: f64,
     pub scroll_volume_plot: bool,
+    pub highest_y_volume_plot: f64,
 }
 
 impl Default for UiState {
@@ -110,6 +111,7 @@ impl Default for UiState {
             fft_scaling: FftScaling::Normalized,
             framerate: 60.,
             scroll_volume_plot: true,
+            highest_y_volume_plot: 0.,
         }
     }
 }
