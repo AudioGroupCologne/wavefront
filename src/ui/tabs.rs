@@ -170,7 +170,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
 
                 Plot::new("mic_plot")
                     .allow_zoom([true, true])
-                    .x_axis_label("Simulation Time (s)")
+                    .x_axis_label("Simulation Time (ms)")
                     .y_axis_label("Amplitude")
                     .label_formatter(|_, value| {
                         format!("Amplitude: {:.2}\nTime: {:.4} s", value.y, value.x)
@@ -182,11 +182,19 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                         mics.sort_by_cached_key(|mic| mic.id);
                         for mic in mics {
                             //TODO: because of this clone, the app is getting slower as time goes on (because the vec is getting bigger)
-                            let points = PlotPoints::new(mic.record.clone());
+                            let values = mic
+                                .record
+                                .clone()
+                                .iter()
+                                .map(|x| [x[0] * 1000., x[1]])
+                                .collect();
+                            let points = PlotPoints::new(values);
                             let line = Line::new(points);
                             plot_ui.line(line.name(format!(
                                 "Microphone {} (x: {}, y: {})",
-                                mic.id, mic.x, mic.y
+                                mic.id,
+                                mic.x * 1000,
+                                mic.y
                             )));
                         }
                     });
