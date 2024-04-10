@@ -35,16 +35,11 @@ version = "0.13"
 default-features = false
 features = [
     "multi-threaded",
-
     "bevy_winit",
     "bevy_render",
-
     "png",
-
     "x11",
     "wayland",
-
-    # "subpixel_glyph_atlas",
     "serialize",
 ]
 
