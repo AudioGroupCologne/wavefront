@@ -3,7 +3,7 @@ use bevy::math::UVec2;
 use bevy_file_dialog::FileDialogExt;
 use bevy_pixel_buffer::pixel_buffer::PixelBufferSize;
 use bevy_pixel_buffer::query::PixelBuffersItem;
-use egui_plot::{GridMark, Line, Plot, PlotPoints};
+use egui_plot::{GridMark, Line, Plot, PlotBounds, PlotPoints};
 use plotters::prelude::*;
 
 use super::loading::SaveFileContents;
@@ -177,6 +177,39 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                     })
                     .legend(egui_plot::Legend::default())
                     .show(ui, |plot_ui| {
+                        let highest_x = self
+                            .mics
+                            .iter()
+                            .map(|mic| {
+                                *mic.record
+                                    .iter()
+                                    .map(|x| x[0])
+                                    .collect::<Vec<_>>()
+                                    .last()
+                                    .unwrap_or(&0.)
+                            })
+                            .reduce(f64::max)
+                            .unwrap_or(0.);
+
+                        let highest_y = self
+                            .mics
+                            .iter()
+                            .map(|mic| {
+                                mic.record
+                                    .iter()
+                                    .map(|x| x[1])
+                                    .reduce(f64::max)
+                                    .unwrap_or(0.)
+                            })
+                            .reduce(f64::max)
+                            .unwrap_or(0.)
+                            .abs();
+                        // TODO: think about proper bounds
+                        // plot_ui.set_plot_bounds(PlotBounds::from_min_max(
+                        //     [0., highest_x],
+                        //     [highest_y, 0.],
+                        // ));
+
                         // TODO: allocation here is not very nice
                         let mut mics = self.mics.to_vec();
                         mics.sort_by_cached_key(|mic| mic.id);
