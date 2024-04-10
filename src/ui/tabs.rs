@@ -3,6 +3,7 @@ use bevy::math::UVec2;
 use bevy_file_dialog::FileDialogExt;
 use bevy_pixel_buffer::pixel_buffer::PixelBufferSize;
 use bevy_pixel_buffer::query::PixelBuffersItem;
+use biquad::*;
 use egui_plot::{GridMark, Line, Plot, PlotBounds, PlotPoints};
 use plotters::prelude::*;
 
@@ -222,7 +223,10 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             }
 
                             plot_ui.set_plot_bounds(PlotBounds::from_min_max(
-                                [highest_x * 1000. - 5., -(self.ui_state.highest_y_volume_plot + 0.2)],
+                                [
+                                    highest_x * 1000. - 5.,
+                                    -(self.ui_state.highest_y_volume_plot + 0.2),
+                                ],
                                 [highest_x * 1000., self.ui_state.highest_y_volume_plot + 0.2],
                             ));
                         }
@@ -242,9 +246,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             let line = Line::new(points);
                             plot_ui.line(line.name(format!(
                                 "Microphone {} (x: {}, y: {})",
-                                mic.id,
-                                mic.x,
-                                mic.y
+                                mic.id, mic.x, mic.y
                             )));
                         }
                     });
@@ -336,6 +338,32 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             let mapped_spectrum = &mapped_spectrum[1..];
 
                             let points = PlotPoints::new(mapped_spectrum.to_vec());
+                            let line = Line::new(points);
+                            plot_ui.line(line);
+
+                            let coeffs = Coefficients::<f64>::from_params(
+                                Type::LowPass,
+                                (1. / self.delta_t).hz(),
+                                1000.hz(),
+                                Q_BUTTERWORTH_F64,
+                            )
+                            .unwrap();
+
+                            let mut biquad = DirectForm1::<f64>::new(coeffs);
+
+                            let mut result = Vec::with_capacity(mapped_spectrum.len());
+
+                            for elem in mapped_spectrum {
+                                result.push(biquad.run(elem[1]));
+                            }
+
+                            let points = PlotPoints::new(
+                                result
+                                    .iter()
+                                    .enumerate()
+                                    .map(|(i, x)| [mapped_spectrum[i][0], *x])
+                                    .collect(),
+                            );
                             let line = Line::new(points);
                             plot_ui.line(line);
                         }

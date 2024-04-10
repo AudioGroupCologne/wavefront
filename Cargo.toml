@@ -24,6 +24,7 @@ plotters = { version = "0.3.5", default-features = false, features = [
     "line_series",
 ] }
 winit = "0.29.15"
+biquad = "0.4.2"
 
 [dependencies.egui]
 version = "*"
