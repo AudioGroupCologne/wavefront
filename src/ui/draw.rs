@@ -301,7 +301,12 @@ pub fn draw_egui(
                     }
 
                     if ui.add(egui::Slider::new(&mut ui_state_tmp.framerate, 1f64..=500.).text("Simulation Frame Rate").logarithmic(true)).changed() {
-                        fixed_timestep.set_timestep_hz(ui_state_tmp.framerate);
+                        if ui_state_tmp.read_epilepsy_warning {
+                            fixed_timestep.set_timestep_hz(ui_state_tmp.framerate);
+                        } else {
+                            ui_state_tmp.show_epilepsy_warning = true;
+                            ui_state_tmp.framerate = 60.;
+                        }
                     }
                 });
 
@@ -417,6 +422,26 @@ pub fn draw_egui(
                 //TODO: maybe add links to papers?
                 ui.hyperlink("https://github.com/nichilum/wavefront");
             });
+    }
+
+    if ui_state.show_epilepsy_warning {
+        let mut read_epilepsy_warning = ui_state.read_epilepsy_warning;
+        egui::Window::new("Epilepsy Warning")
+            .default_size(Vec2::new(400., 400.))
+            .resizable(false)
+            .collapsible(false)
+            .constrain(true)
+            .show(ctx, |ui| {
+                ui.vertical_centered(|ui| {
+                    ui.heading("WARNING");
+                });
+                ui.strong("Increasing the speed may potentially trigger seizures for people with photosensitive epilepsy. Discretion is advised.");
+
+                if ui.checkbox(&mut read_epilepsy_warning, "Understood").clicked() {
+                    ui_state.show_epilepsy_warning = false;
+                }
+            });
+        ui_state.read_epilepsy_warning = read_epilepsy_warning;
     }
 
     egui::TopBottomPanel::top("top_menu")

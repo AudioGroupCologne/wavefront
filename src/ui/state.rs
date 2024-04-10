@@ -82,6 +82,8 @@ pub struct UiState {
     pub framerate: f64,
     pub scroll_volume_plot: bool,
     pub highest_y_volume_plot: f64,
+    pub show_epilepsy_warning: bool,
+    pub read_epilepsy_warning: bool,
 }
 
 impl Default for UiState {
@@ -112,6 +114,8 @@ impl Default for UiState {
             framerate: 60.,
             scroll_volume_plot: true,
             highest_y_volume_plot: 0.,
+            show_epilepsy_warning: false,
+            read_epilepsy_warning: false,
         }
     }
 }
