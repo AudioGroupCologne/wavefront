@@ -285,6 +285,10 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                 format!("{}", FftScaling::Decibels),
                             );
                         });
+
+                    ui.add(egui::Separator::default().vertical());
+
+                    ui.checkbox(&mut self.ui_state.show_fft_approx, "Show Approximation");
                 });
 
                 ui.separator();
@@ -341,31 +345,33 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             let line = Line::new(points);
                             plot_ui.line(line);
 
-                            let coeffs = Coefficients::<f64>::from_params(
-                                Type::LowPass,
-                                (1. / self.delta_t).hz(),
-                                1000.hz(),
-                                Q_BUTTERWORTH_F64,
-                            )
-                            .unwrap();
+                            if self.ui_state.show_fft_approx {
+                                let coeffs = Coefficients::<f64>::from_params(
+                                    Type::LowPass,
+                                    (1. / self.delta_t).hz(),
+                                    1000.hz(),
+                                    Q_BUTTERWORTH_F64,
+                                )
+                                .unwrap();
 
-                            let mut biquad = DirectForm1::<f64>::new(coeffs);
+                                let mut biquad = DirectForm2Transposed::<f64>::new(coeffs);
 
-                            let mut result = Vec::with_capacity(mapped_spectrum.len());
+                                let mut result = Vec::with_capacity(mapped_spectrum.len());
 
-                            for elem in mapped_spectrum {
-                                result.push(biquad.run(elem[1]));
+                                for elem in mapped_spectrum {
+                                    result.push(biquad.run(elem[1]));
+                                }
+
+                                let points = PlotPoints::new(
+                                    result
+                                        .iter()
+                                        .enumerate()
+                                        .map(|(i, x)| [mapped_spectrum[i][0], *x])
+                                        .collect(),
+                                );
+                                let line = Line::new(points);
+                                plot_ui.line(line);
                             }
-
-                            let points = PlotPoints::new(
-                                result
-                                    .iter()
-                                    .enumerate()
-                                    .map(|(i, x)| [mapped_spectrum[i][0], *x])
-                                    .collect(),
-                            );
-                            let line = Line::new(points);
-                            plot_ui.line(line);
                         }
                     });
             }
