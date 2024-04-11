@@ -159,19 +159,19 @@ impl Grid {
                     }
                 }
 
-                for wall in circ_walls {
-                    if wall.contains(x, y)
-                        || wall.boundary_delete(
-                            x + boundary_width,
-                            y + boundary_width,
-                            boundary_width,
-                        )
-                    {
-                        wall_cell.is_wall = true;
-                        wall_cell.reflection_factor = 0.;
-                        wall_cell.draw_reflection_factor = wall.get_reflection_factor();
-                    }
-                }
+                // for wall in circ_walls {
+                //     if wall.contains(x, y)
+                //         || wall.boundary_delete(
+                //             x + boundary_width,
+                //             y + boundary_width,
+                //             boundary_width,
+                //         )
+                //     {
+                //         wall_cell.is_wall = true;
+                //         wall_cell.reflection_factor = 0.;
+                //         wall_cell.draw_reflection_factor = wall.get_reflection_factor();
+                //     }
+                // }
             });
 
         for wall in circ_walls {
@@ -210,13 +210,24 @@ impl Grid {
 
                         if (angle >= wall.open_circ_segment
                             && angle <= TAU - wall.open_circ_segment)
-                            || !wall.is_hollow
                         {
-                            let index = coords_to_index(x, y, boundary_width);
-                            self.wall_cache[index].is_wall = true;
-                            self.wall_cache[index].reflection_factor = wall.get_reflection_factor();
-                            self.wall_cache[index].draw_reflection_factor =
-                                wall.get_reflection_factor();
+                            if wall.is_hollow {
+                                let index = coords_to_index(x, y, boundary_width);
+                                self.wall_cache[index].is_wall = true;
+                                self.wall_cache[index].reflection_factor =
+                                    wall.get_reflection_factor();
+                                self.wall_cache[index].draw_reflection_factor =
+                                    wall.get_reflection_factor();
+                            } else {
+                                self.draw_line(
+                                    (wall.center.x + boundary_width) as i32,
+                                    (wall.center.y + boundary_width) as i32,
+                                    (x + boundary_width) as i32,
+                                    (y + boundary_width) as i32,
+                                    boundary_width,
+                                    wall.get_reflection_factor(),
+                                )
+                            }
                         }
                     }
                 }
@@ -404,5 +415,48 @@ impl Grid {
 
     fn attenuation_factor(boundary_width: u32, power_order: u32, distance: u32) -> f32 {
         1.0 - (distance as f32 / boundary_width as f32).powi(power_order as i32)
+    }
+
+    fn draw_line(
+        &mut self,
+        mut x0: i32,
+        mut y0: i32,
+        x1: i32,
+        y1: i32,
+        boundary_width: u32,
+        reflection_factor: f32,
+    ) {
+        let dx: i32 = (x1 - x0).abs();
+        let dy: i32 = -(y1 - y0).abs();
+        let sx: i32 = if x0 < x1 { 1 } else { -1 };
+        let sy: i32 = if y0 < y1 { 1 } else { -1 };
+
+        let mut err = dx + dy;
+        let mut e2: i32;
+
+        loop {
+            if (x0 as u32) < SIMULATION_WIDTH + 2 * boundary_width
+                && (y0 as u32) < SIMULATION_HEIGHT + 2 * boundary_width
+            {
+                let index = coords_to_index(x0 as u32, y0 as u32, boundary_width);
+                self.wall_cache[index].is_wall = true;
+                self.wall_cache[index].reflection_factor = reflection_factor;
+                self.wall_cache[index].draw_reflection_factor = reflection_factor;
+            }
+
+            if x0 == x1 && y0 == y1 {
+                return;
+            }
+
+            e2 = 2 * err;
+            if e2 > dy {
+                err += dy;
+                x0 += sx;
+            }
+            if e2 < dx {
+                err += dx;
+                y0 += sy;
+            }
+        }
     }
 }

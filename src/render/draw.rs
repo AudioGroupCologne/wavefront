@@ -133,18 +133,18 @@ pub fn draw_overlays(
     let (query, mut images) = pixel_buffers.split();
     let mut frame = images.frame(query.iter().next().expect("one pixel buffer"));
 
-    let raw_pixles = frame.raw_mut();
+    let raw_pixels = frame.raw_mut();
 
     for wall in rect_walls_overlay.iter() {
         for x in wall.rect.min.x..=wall.rect.max.x {
             for y in wall.rect.min.y..=wall.rect.max.y {
                 let index = x + y * SIMULATION_WIDTH;
 
-                let r = raw_pixles[index as usize].r;
-                let g = raw_pixles[index as usize].g;
-                let b = raw_pixles[index as usize].b;
+                let r = raw_pixels[index as usize].r;
+                let g = raw_pixels[index as usize].g;
+                let b = raw_pixels[index as usize].b;
 
-                raw_pixles[index as usize] = Pixel {
+                raw_pixels[index as usize] = Pixel {
                     r: map_range(0, 255, 80, 200, r as u32) as u8,
                     g: map_range(0, 255, 80, 200, g as u32) as u8,
                     b: map_range(0, 255, 80, 255, b as u32) as u8,
@@ -154,29 +154,29 @@ pub fn draw_overlays(
         }
     }
 
-    for wall in circ_walls_overlay.iter() {
-        if !wall.is_hollow {
-            // center +- radius for smaller rect
-            for x in 0..SIMULATION_WIDTH {
-                for y in 0..SIMULATION_HEIGHT {
-                    if wall.contains(x, y) {
-                        let index = x + y * SIMULATION_WIDTH;
+    // for wall in circ_walls_overlay.iter() {
+    //     if !wall.is_hollow {
+    //         // center +- radius for smaller rect
+    //         for x in 0..SIMULATION_WIDTH {
+    //             for y in 0..SIMULATION_HEIGHT {
+    //                 if wall.contains(x, y) {
+    //                     let index = x + y * SIMULATION_WIDTH;
 
-                        let r = raw_pixles[index as usize].r;
-                        let g = raw_pixles[index as usize].g;
-                        let b = raw_pixles[index as usize].b;
+    //                     let r = raw_pixels[index as usize].r;
+    //                     let g = raw_pixels[index as usize].g;
+    //                     let b = raw_pixels[index as usize].b;
 
-                        raw_pixles[index as usize] = Pixel {
-                            r: map_range(0, 255, 80, 200, r as u32) as u8,
-                            g: map_range(0, 255, 80, 200, g as u32) as u8,
-                            b: map_range(0, 255, 80, 255, b as u32) as u8,
-                            a: 255,
-                        };
-                    }
-                }
-            }
-        }
-    }
+    //                     raw_pixels[index as usize] = Pixel {
+    //                         r: map_range(0, 255, 80, 200, r as u32) as u8,
+    //                         g: map_range(0, 255, 80, 200, g as u32) as u8,
+    //                         b: map_range(0, 255, 80, 255, b as u32) as u8,
+    //                         a: 255,
+    //                     };
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
     for wall in circ_walls_overlay.iter() {
         let mut b_x = 0i32;
@@ -203,20 +203,22 @@ pub fn draw_overlays(
 
                     angle = (angle + wall.rotation_angle) % TAU;
 
-                    if angle >= wall.open_circ_segment && angle <= TAU - wall.open_circ_segment
-                        || !wall.is_hollow
-                    {
-                        let index = x as u32 + y as u32 * SIMULATION_WIDTH;
-                        let r = raw_pixles[index as usize].r;
-                        let g = raw_pixles[index as usize].g;
-                        let b = raw_pixles[index as usize].b;
+                    if angle >= wall.open_circ_segment && angle <= TAU - wall.open_circ_segment {
+                        if wall.is_hollow {
+                            let index = x as u32 + y as u32 * SIMULATION_WIDTH;
+                            let r = raw_pixels[index as usize].r;
+                            let g = raw_pixels[index as usize].g;
+                            let b = raw_pixels[index as usize].b;
 
-                        raw_pixles[index as usize] = Pixel {
-                            r: map_range(0, 255, 100, 175, r as u32) as u8,
-                            g: map_range(0, 255, 80, 80, g as u32) as u8,
-                            b: map_range(0, 255, 80, 80, b as u32) as u8,
-                            a: 255,
-                        };
+                            raw_pixels[index as usize] = Pixel {
+                                r: map_range(0, 255, 100, 175, r as u32) as u8,
+                                g: map_range(0, 255, 80, 80, g as u32) as u8,
+                                b: map_range(0, 255, 80, 80, b as u32) as u8,
+                                a: 255,
+                            };
+                        } else {
+                            draw_line(raw_pixels, wall.center.x as i32, wall.center.y as i32, x, y);
+                        }
                     }
                 }
             }
@@ -229,6 +231,44 @@ pub fn draw_overlays(
                 b_x += 1;
                 b_y -= 1;
             }
+        }
+    }
+}
+
+fn draw_line(raw_pixels: &mut [Pixel], mut x0: i32, mut y0: i32, x1: i32, y1: i32) {
+    let dx: i32 = (x1 - x0).abs();
+    let dy: i32 = -(y1 - y0).abs();
+    let sx: i32 = if x0 < x1 { 1 } else { -1 };
+    let sy: i32 = if y0 < y1 { 1 } else { -1 };
+
+    let mut err = dx + dy;
+    let mut e2: i32;
+
+    loop {
+        let index = x0 as u32 + y0 as u32 * SIMULATION_WIDTH;
+        let r = raw_pixels[index as usize].r;
+        let g = raw_pixels[index as usize].g;
+        let b = raw_pixels[index as usize].b;
+
+        raw_pixels[index as usize] = Pixel {
+            r: map_range(0, 255, 100, 175, r as u32) as u8,
+            g: map_range(0, 255, 80, 80, g as u32) as u8,
+            b: map_range(0, 255, 80, 80, b as u32) as u8,
+            a: 255,
+        };
+
+        if x0 == x1 && y0 == y1 {
+            return;
+        }
+
+        e2 = 2 * err;
+        if e2 > dy {
+            err += dy;
+            x0 += sx;
+        }
+        if e2 < dx {
+            err += dx;
+            y0 += sy;
         }
     }
 }
