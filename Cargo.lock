@@ -962,15 +962,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "biquad"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "820524f5e3e3add696ddf69f79575772e152c0e78e9f0370b56990a7e808ec3e"
-dependencies = [
- "libm 0.1.4",
-]
-
-[[package]]
 name = "bit-set"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2229,12 +2220,6 @@ dependencies = [
 
 [[package]]
 name = "libm"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7fc7aa29613bd6a620df431842069224d8bc9011086b1db4c0e0cd47fa03ec9a"
-
-[[package]]
-name = "libm"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ec2a862134d2a7d32d7983ddcdd1c4923530833c9f2ea1a44fc5fa473989058"
@@ -2475,7 +2460,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "da0df0e5185db44f69b44f26786fe401b6c293d1907744beaa7fa62b2e5a517a"
 dependencies = [
  "autocfg",
- "libm 0.2.8",
+ "libm",
 ]
 
 [[package]]
@@ -3235,7 +3220,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed9fa67f04b0a6424c19937498597aeb8a78fd9b20d3a010bc78b06f721f73e7"
 dependencies = [
  "float-cmp",
- "libm 0.2.8",
+ "libm",
  "microfft",
  "paste",
 ]
@@ -3765,7 +3750,6 @@ dependencies = [
  "bevy",
  "bevy_file_dialog",
  "bevy_pixel_buffer",
- "biquad",
  "egui",
  "egui_dock",
  "egui_extras",

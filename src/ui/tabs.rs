@@ -3,7 +3,6 @@ use bevy::math::UVec2;
 use bevy_file_dialog::FileDialogExt;
 use bevy_pixel_buffer::pixel_buffer::PixelBufferSize;
 use bevy_pixel_buffer::query::PixelBuffersItem;
-use biquad::*;
 use egui_plot::{GridMark, Line, Plot, PlotBounds, PlotPoints};
 use plotters::prelude::*;
 
@@ -346,20 +345,26 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             plot_ui.line(line);
 
                             if self.ui_state.show_fft_approx {
-                                let coeffs = Coefficients::<f64>::from_params(
-                                    Type::LowPass,
-                                    (1. / self.delta_t).hz(),
-                                    1000.hz(),
-                                    Q_BUTTERWORTH_F64,
-                                )
-                                .unwrap();
-
-                                let mut biquad = DirectForm2Transposed::<f64>::new(coeffs);
-
                                 let mut result = Vec::with_capacity(mapped_spectrum.len());
 
-                                for elem in mapped_spectrum {
-                                    result.push(biquad.run(elem[1]));
+                                let n = 50i32;
+                                for i in 0..mapped_spectrum.len() {
+                                    let lower = if i as i32 - n < 0 {
+                                        0usize
+                                    } else {
+                                        (i as i32 - n) as usize
+                                    };
+                                    let upper = if i as i32 + n >= mapped_spectrum.len() as i32 {
+                                        mapped_spectrum.len() - 1
+                                    } else {
+                                        (i as i32 + n) as usize
+                                    };
+
+                                    let window = &mapped_spectrum[lower..upper];
+
+                                    let m =
+                                        window.iter().map(|x| x[1]).sum::<f64>() / (2 * n) as f64;
+                                    result.push(m);
                                 }
 
                                 let points = PlotPoints::new(
