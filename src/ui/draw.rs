@@ -119,6 +119,7 @@ pub fn draw_egui(
     mut fft_mic: ResMut<FftMicrophone>,
     mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
     sim_time: Res<SimTime>,
+    time: Res<Time>,
     mut fixed_timestep: ResMut<Time<Fixed>>,
 ) {
     let QuerySystemParams {
@@ -1186,6 +1187,7 @@ pub fn draw_egui(
                             &mut commands.reborrow(),
                             grid.delta_t,
                             sim_time.time_since_start as f64,
+                            time.delta_seconds_f64(),
                             &mut ui_state,
                         ),
                     );

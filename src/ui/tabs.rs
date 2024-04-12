@@ -10,6 +10,7 @@ use super::loading::SaveFileContents;
 use super::state::{FftMicrophone, FftScaling, UiState};
 use crate::components::microphone::Microphone;
 use crate::math::fft::calc_mic_spectrum;
+use crate::math::transformations::interpolate;
 
 #[derive(Resource)]
 pub struct DockState {
@@ -36,6 +37,7 @@ pub struct PlotTabs<'a> {
     commands: &'a mut Commands<'a, 'a>,
     delta_t: f32,
     sim_time: f64,
+    delta_time: f64,
     ui_state: &'a mut UiState,
 }
 
@@ -47,6 +49,7 @@ impl<'a> PlotTabs<'a> {
         commands: &'a mut Commands<'a, 'a>,
         delta_t: f32,
         sim_time: f64,
+        delta_time: f64,
         ui_state: &'a mut UiState,
     ) -> Self {
         Self {
@@ -57,6 +60,7 @@ impl<'a> PlotTabs<'a> {
             delta_t,
             sim_time,
             ui_state,
+            delta_time,
         }
     }
 }
@@ -377,6 +381,47 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                 let line = Line::new(points);
                                 plot_ui.line(line);
                             }
+
+                            let y_padding = match self.ui_state.fft_scaling {
+                                FftScaling::Normalized => 0.05,
+                                FftScaling::Decibels => 5.,
+                            };
+
+                            // set bounds based on the highest and lowest values (and interpolate to make it smooth)
+                            let highest_y = mapped_spectrum
+                                .iter()
+                                .map(|x| x[1])
+                                .reduce(f64::max)
+                                .unwrap_or(0.)
+                                + y_padding;
+                            let highest_x = mapped_spectrum.last().unwrap_or(&[0., 0.])[0] + 0.1;
+                            let lowest_x = mapped_spectrum.first().unwrap_or(&[0., 0.])[0] - 0.1;
+                            let lowest_y = mapped_spectrum
+                                .iter()
+                                .map(|x| x[1])
+                                .reduce(f64::min)
+                                .unwrap_or(0.)
+                                - y_padding;
+
+                            const ANIMATION_DURATION: f64 = 0.2; // Duration in seconds
+                            const UPDATE_RATE: f64 = 1.0 / ANIMATION_DURATION; // How fast to update based on duration
+
+                            let interpolation_step = self.delta_time * UPDATE_RATE;
+                            let current_bounds = plot_ui.plot_bounds();
+
+                            let lowest_x =
+                                interpolate(current_bounds.min()[0], lowest_x, interpolation_step);
+                            let lowest_y =
+                                interpolate(current_bounds.min()[1], lowest_y, interpolation_step);
+                            let highest_x =
+                                interpolate(current_bounds.max()[0], highest_x, interpolation_step);
+                            let highest_y =
+                                interpolate(current_bounds.max()[1], highest_y, interpolation_step);
+
+                            plot_ui.set_plot_bounds(PlotBounds::from_min_max(
+                                [lowest_x, lowest_y],
+                                [highest_x, highest_y],
+                            ));
                         }
                     });
             }

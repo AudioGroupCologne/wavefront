@@ -99,3 +99,7 @@ pub fn grid_to_image(pos: Pos2, image_rect: &Rect) -> Pos2 {
         ),
     )
 }
+
+pub fn interpolate(current: f64, target: f64, step: f64) -> f64 {
+    current + (target - current) * step.min(1.0)
+}
