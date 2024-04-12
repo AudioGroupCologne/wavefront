@@ -40,6 +40,7 @@ features = [
     "x11",
     "wayland",
     "serialize",
+    "webgpu",
 ]
 
 [build-dependencies]
