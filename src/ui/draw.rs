@@ -275,141 +275,200 @@ pub fn draw_egui(
             .collapsible(false)
             .constrain(true)
             .show(ctx, |ui| {
-                ui.set_min_width(500.);
+                ui.set_min_width(800.);
+                let row_height = 20f32;
 
                 
                 ui.columns(2, |columns| {
                     columns[0].vertical_centered(|ui| {
                         ui.heading("General Settings");
 
-                        egui::Grid::new("settings_grid")
+                        TableBuilder::new(ui)
+                            .resizable(false)
                             .striped(true)
-                            .num_columns(2)
-                            .show(ui, |ui| {
-                                ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                    if ui
-                                        .add(
-                                            egui::Slider::new(&mut ui_state_tmp.delta_l, 0.0..=10.0)
-                                                .logarithmic(true),
-                                        )
-                                        .on_hover_text(
-                                            "Change the size of one cell in the simulation in meters.",
-                                        )
-                                        .changed()
-                                    {
-                                        events.reset_ev.send(Reset::default());
-                                    }
-                                });
-                                ui.label("Delta L (m)");
-                                ui.end_row();
-
-                                ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                    if ui.add(egui::Slider::new(&mut ui_state_tmp.framerate, 1f64..=500.).logarithmic(true)).changed() {
-                                        if ui_state_tmp.read_epilepsy_warning {
-                                            fixed_timestep.set_timestep_hz(ui_state_tmp.framerate);
-                                        } else {
-                                            ui_state_tmp.show_epilepsy_warning = true;
-                                            ui_state_tmp.framerate = 60.;
-                                        }
-                                    }
-                                });
-                                ui.label("Simulation Frame Rate");
-                                ui.end_row();
-
-                                ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                    ui.color_edit_button_srgba(&mut gradient.0).on_hover_text("The color used to show negative pressure values.");
-                                });
-                                ui.label("Negative");
-                                ui.end_row();
-
-                                ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                    ui.color_edit_button_srgba(&mut gradient.1).on_hover_text("The color used to show neutral pressure values.");
-                                });
-                                ui.label("Zero");
-                                ui.end_row();
-
-                                ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                    ui.color_edit_button_srgba(&mut gradient.2).on_hover_text("The color used to show positive pressure values.");
-                                });
-                                ui.label("Positive");
-                                ui.end_row();
-
-                                ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                    ui.add(
-                                        egui::Slider::new(&mut ui_state_tmp.gradient_contrast, 0.0..=10.0),
-                                    ).on_hover_text("Adjust the contrast of the gradient. (this might lead to clipping the colors)");
-                                });
-                                ui.label("Gradient Contrast");
-                                ui.end_row();
-
-                                ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                    if ui
-                                        .checkbox(&mut ui_state_tmp.render_abc_area, "")
-                                        .clicked()
-                                    {
-                                        ui_state_tmp.tools_enabled = !ui_state_tmp.render_abc_area;
-                                        let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
-
-                                        pb.pixel_buffer.size = PixelBufferSize {
-                                            size: if ui_state_tmp.render_abc_area {
-                                                UVec2::new(
-                                                    SIMULATION_WIDTH + 2 * ui_state_tmp.boundary_width,
-                                                    SIMULATION_HEIGHT + 2 * ui_state_tmp.boundary_width,
+                            .column(Column::remainder())
+                            .column(Column::remainder())
+                            .body(|mut body| {
+                                body.row(row_height, |mut row| {
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                            if ui
+                                                .add(
+                                                    egui::Slider::new(&mut ui_state_tmp.delta_l, 0.0..=10.0)
+                                                        .logarithmic(true),
                                                 )
-                                            } else {
-                                                UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
-                                            },
-                                            pixel_size: UVec2::new(1, 1),
-                                        };
-                                    }
-                                });
-                                ui.label("Show absorbing boundary");
-                                ui.end_row();
-
-                                ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                    if ui
-                                        .add(
-                                            egui::Slider::new(&mut ui_state_tmp.boundary_width, 2..=200),
-                                        )
-                                        .on_hover_text("Change the width of the boundary. (higher values lead to slower simulation)")
-                                        .changed()
-                                    {
-                                        grid.reset_cells(ui_state_tmp.boundary_width);
-                                        grid.reset_walls(ui_state_tmp.boundary_width);
-                                        grid.cache_boundaries(ui_state_tmp.boundary_width);
-                                        let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
-                                        pb.pixel_buffer.size = PixelBufferSize {
-                                            size: if ui_state_tmp.render_abc_area {
-                                                UVec2::new(
-                                                    SIMULATION_WIDTH + 2 * ui_state_tmp.boundary_width,
-                                                    SIMULATION_HEIGHT + 2 * ui_state_tmp.boundary_width,
+                                                .on_hover_text(
+                                                    "Change the size of one cell in the simulation in meters.",
                                                 )
-                                            } else {
-                                                UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
-                                            },
-                                            pixel_size: UVec2::new(1, 1),
-                                        };
-                                    }
+                                                .changed()
+                                            {
+                                                events.reset_ev.send(Reset::default());
+                                            }
+                                        });
+                                    });
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
+                                            ui.label("Delta L (m)");
+                                        });
+                                    });
                                 });
-                                ui.label("Boundary Width");
-                                ui.end_row();
+                                body.row(row_height, |mut row| {
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                            if ui.add(egui::Slider::new(&mut ui_state_tmp.framerate, 1f64..=500.).logarithmic(true)).changed() {
+                                                if ui_state_tmp.read_epilepsy_warning {
+                                                    fixed_timestep.set_timestep_hz(ui_state_tmp.framerate);
+                                                } else {
+                                                    ui_state_tmp.show_epilepsy_warning = true;
+                                                    ui_state_tmp.framerate = 60.;
+                                                }
+                                            }
+                                        });
+                                    });
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
+                                            ui.label("Simulation Frame Rate");
+                                        });
+                                    });
+                                });
+                                body.row(row_height, |mut row| {
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                            ui.color_edit_button_srgba(&mut gradient.0).on_hover_text("The color used to show negative pressure values.");
+                                        });
+                                    });
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
+                                            ui.label("Negative");
+                                        });
+                                    });
+                                });
+                                body.row(row_height, |mut row| {
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                            ui.color_edit_button_srgba(&mut gradient.1).on_hover_text("The color used to show neutral pressure values.");
+                                        });
+                                    });
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
+                                            ui.label("Zero");
+                                        });
+                                    });
+                                });
+                                body.row(row_height, |mut row| {
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                            ui.color_edit_button_srgba(&mut gradient.2).on_hover_text("The color used to show positive pressure values.");
+                                        });
+                                    });
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
+                                            ui.label("Positive");
+                                        });
+                                    });
+                                });
+                                body.row(row_height, |mut row| {
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                            ui.add(
+                                                egui::Slider::new(&mut ui_state_tmp.gradient_contrast, 0.0..=10.0),
+                                            ).on_hover_text("Adjust the contrast of the gradient. (this might lead to clipping the colors)");
+                                        });
+                                    });
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
+                                            ui.label("Gradient Contrast");
+                                        });
+                                    });
+                                });
+                                body.row(row_height, |mut row| {
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                            if ui
+                                                .checkbox(&mut ui_state_tmp.render_abc_area, "")
+                                                .clicked()
+                                            {
+                                                ui_state_tmp.tools_enabled = !ui_state_tmp.render_abc_area;
+                                                let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
+        
+                                                pb.pixel_buffer.size = PixelBufferSize {
+                                                    size: if ui_state_tmp.render_abc_area {
+                                                        UVec2::new(
+                                                            SIMULATION_WIDTH + 2 * ui_state_tmp.boundary_width,
+                                                            SIMULATION_HEIGHT + 2 * ui_state_tmp.boundary_width,
+                                                        )
+                                                    } else {
+                                                        UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
+                                                    },
+                                                    pixel_size: UVec2::new(1, 1),
+                                                };
+                                            }
+                                        });
+                                    });
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
+                                            ui.label("Show absorbing boundary");
+                                        });
+                                    });
+                                });
+                                body.row(row_height, |mut row| {
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                            if ui
+                                                .add(
+                                                    egui::Slider::new(&mut ui_state_tmp.boundary_width, 2..=200),
+                                                )
+                                                .on_hover_text("Change the width of the boundary. (higher values lead to slower simulation)")
+                                                .changed()
+                                            {
+                                                grid.reset_cells(ui_state_tmp.boundary_width);
+                                                grid.reset_walls(ui_state_tmp.boundary_width);
+                                                grid.cache_boundaries(ui_state_tmp.boundary_width);
+                                                let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
+                                                pb.pixel_buffer.size = PixelBufferSize {
+                                                    size: if ui_state_tmp.render_abc_area {
+                                                        UVec2::new(
+                                                            SIMULATION_WIDTH + 2 * ui_state_tmp.boundary_width,
+                                                            SIMULATION_HEIGHT + 2 * ui_state_tmp.boundary_width,
+                                                        )
+                                                    } else {
+                                                        UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
+                                                    },
+                                                    pixel_size: UVec2::new(1, 1),
+                                                };
+                                            }
+                                        });
+                                    });
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
+                                            ui.label("Boundary width");
+                                        });
+                                    });
+                                });
                             });
                     });
                     columns[1].vertical_centered(|ui| {
                         ui.heading("Experimental Settings");
 
-                        egui::Grid::new("experimental_grid")
+                        TableBuilder::new(ui)
+                            .resizable(false)
                             .striped(true)
-                            .num_columns(2)
-                            .show(ui, |ui| {
-                                ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                    ui.checkbox(&mut ui_state_tmp.enable_spectrogram, "");
+                            .column(Column::remainder())
+                            .column(Column::remainder())
+                            .body(|mut body| {
+                                body.row(row_height, |mut row| {
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                            ui.checkbox(&mut ui_state_tmp.enable_spectrogram, "");
+                                        });
+                                    });
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
+                                            ui.label("Spectrogram enabled");
+                                        });
+                                    });
                                 });
-                                ui.label("Spectrogram enabled");
-                                ui.end_row();
                             });
-
-                        
                     });
                 });
             });
