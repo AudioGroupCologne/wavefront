@@ -133,18 +133,18 @@ pub fn draw_overlays(
     let (query, mut images) = pixel_buffers.split();
     let mut frame = images.frame(query.iter().next().expect("one pixel buffer"));
 
-    let raw_pixels = frame.raw_mut();
+    let raw_pixles = frame.raw_mut();
 
     for wall in rect_walls_overlay.iter() {
         for x in wall.rect.min.x..=wall.rect.max.x {
             for y in wall.rect.min.y..=wall.rect.max.y {
                 let index = x + y * SIMULATION_WIDTH;
 
-                let r = raw_pixels[index as usize].r;
-                let g = raw_pixels[index as usize].g;
-                let b = raw_pixels[index as usize].b;
+                let r = raw_pixles[index as usize].r;
+                let g = raw_pixles[index as usize].g;
+                let b = raw_pixles[index as usize].b;
 
-                raw_pixels[index as usize] = Pixel {
+                raw_pixles[index as usize] = Pixel {
                     r: map_range(0, 255, 80, 200, r as u32) as u8,
                     g: map_range(0, 255, 80, 200, g as u32) as u8,
                     b: map_range(0, 255, 80, 255, b as u32) as u8,
@@ -155,151 +155,80 @@ pub fn draw_overlays(
     }
 
     for wall in circ_walls_overlay.iter() {
-        // TODO: think of sth better here
-        let raw_pixels_base: &mut [Pixel] =
-            &mut [Pixel::BLACK; (SIMULATION_WIDTH * SIMULATION_HEIGHT) as usize];
-        raw_pixels_base.copy_from_slice(&raw_pixels);
-
-        draw_circle(raw_pixels_base, raw_pixels, wall);
-    }
-}
-
-fn draw_circle(raw_pixels_base: &[Pixel], raw_pixels: &mut [Pixel], wall: &CircWall) {
-    let mut b_x = 0i32;
-    let mut b_y = wall.radius as i32;
-    let mut d = 1 - wall.radius as i32;
-    while b_x <= b_y {
-        let sym_points = [
-            (wall.center.x as i32 + b_x, wall.center.y as i32 + b_y),
-            (wall.center.x as i32 + b_x, wall.center.y as i32 - b_y),
-            (wall.center.x as i32 - b_x, wall.center.y as i32 + b_y),
-            (wall.center.x as i32 - b_x, wall.center.y as i32 - b_y),
-            (wall.center.x as i32 + b_y, wall.center.y as i32 + b_x),
-            (wall.center.x as i32 + b_y, wall.center.y as i32 - b_x),
-            (wall.center.x as i32 - b_y, wall.center.y as i32 + b_x),
-            (wall.center.x as i32 - b_y, wall.center.y as i32 - b_x),
-        ];
-
-        // draw inner
         if !wall.is_hollow {
-            draw_line(
-                raw_pixels_base,
-                raw_pixels,
-                sym_points[2].0,
-                sym_points[2].1,
-                sym_points[0].0,
-                sym_points[0].1,
-            );
-            draw_line(
-                raw_pixels_base,
-                raw_pixels,
-                sym_points[6].0,
-                sym_points[6].1,
-                sym_points[4].0,
-                sym_points[4].1,
-            );
-            draw_line(
-                raw_pixels_base,
-                raw_pixels,
-                sym_points[7].0,
-                sym_points[7].1,
-                sym_points[5].0,
-                sym_points[5].1,
-            );
-            draw_line(
-                raw_pixels_base,
-                raw_pixels,
-                sym_points[3].0,
-                sym_points[3].1,
-                sym_points[1].0,
-                sym_points[1].1,
-            );
-        }
+            // center +- radius for smaller rect
+            for x in 0..SIMULATION_WIDTH {
+                for y in 0..SIMULATION_HEIGHT {
+                    if wall.contains(x, y) {
+                        let index = x + y * SIMULATION_WIDTH;
 
-        // draw outline
-        for (x, y) in sym_points {
-            if x >= 0 && x < SIMULATION_WIDTH as i32 && y >= 0 && y < SIMULATION_HEIGHT as i32 {
-                // angle in [0, 2pi)
-                let mut angle = if (y - wall.center.y as i32) <= 0 {
-                    ((x as f32 - wall.center.x as f32) / wall.radius as f32).acos()
-                } else {
-                    TAU - ((x as f32 - wall.center.x as f32) / wall.radius as f32).acos()
-                };
+                        let r = raw_pixles[index as usize].r;
+                        let g = raw_pixles[index as usize].g;
+                        let b = raw_pixles[index as usize].b;
 
-                angle = (angle + wall.rotation_angle) % TAU;
-
-                if angle >= wall.open_circ_segment && angle <= TAU - wall.open_circ_segment
-                    || !wall.is_hollow
-                {
-                    let index = x as u32 + y as u32 * SIMULATION_WIDTH;
-                    let r = raw_pixels[index as usize].r;
-                    let g = raw_pixels[index as usize].g;
-                    let b = raw_pixels[index as usize].b;
-
-                    raw_pixels[index as usize] = Pixel {
-                        r: map_range(0, 255, 100, 175, r as u32) as u8,
-                        g: map_range(0, 255, 80, 80, g as u32) as u8,
-                        b: map_range(0, 255, 80, 80, b as u32) as u8,
-                        a: 255,
-                    };
+                        raw_pixles[index as usize] = Pixel {
+                            r: map_range(0, 255, 80, 200, r as u32) as u8,
+                            g: map_range(0, 255, 80, 200, g as u32) as u8,
+                            b: map_range(0, 255, 80, 255, b as u32) as u8,
+                            a: 255,
+                        };
+                    }
                 }
             }
         }
-
-        if d < 0 {
-            d = d + 2 * b_x + 3;
-            b_x += 1;
-        } else {
-            d = d + 2 * (b_x - b_y) + 5;
-            b_x += 1;
-            b_y -= 1;
-        }
     }
-}
 
-fn draw_line(
-    raw_pixels_base: &[Pixel],
-    raw_pixels: &mut [Pixel],
-    mut x0: i32,
-    mut y0: i32,
-    x1: i32,
-    y1: i32,
-) {
-    let dx: i32 = (x1 - x0).abs();
-    let dy: i32 = -(y1 - y0).abs();
-    let sx: i32 = if x0 < x1 { 1 } else { -1 };
-    let sy: i32 = if y0 < y1 { 1 } else { -1 };
+    for wall in circ_walls_overlay.iter() {
+        let mut b_x = 0i32;
+        let mut b_y = wall.radius as i32;
+        let mut d = 1 - wall.radius as i32;
+        while b_x <= b_y {
+            for (x, y) in [
+                (wall.center.x as i32 + b_x, wall.center.y as i32 + b_y),
+                (wall.center.x as i32 + b_x, wall.center.y as i32 - b_y),
+                (wall.center.x as i32 - b_x, wall.center.y as i32 + b_y),
+                (wall.center.x as i32 - b_x, wall.center.y as i32 - b_y),
+                (wall.center.x as i32 + b_y, wall.center.y as i32 + b_x),
+                (wall.center.x as i32 + b_y, wall.center.y as i32 - b_x),
+                (wall.center.x as i32 - b_y, wall.center.y as i32 + b_x),
+                (wall.center.x as i32 - b_y, wall.center.y as i32 - b_x),
+            ] {
+                if x >= 0 && x < SIMULATION_WIDTH as i32 && y >= 0 && y < SIMULATION_HEIGHT as i32 {
+                    // angle in [0, 2pi)
+                    let mut angle = if (y - wall.center.y as i32) <= 0 {
+                        ((x as f32 - wall.center.x as f32) / wall.radius as f32).acos()
+                    } else {
+                        TAU - ((x as f32 - wall.center.x as f32) / wall.radius as f32).acos()
+                    };
 
-    let mut err = dx + dy;
-    let mut e2: i32;
+                    angle = (angle + wall.rotation_angle) % TAU;
 
-    loop {
-        if (x0 as u32) < SIMULATION_WIDTH && (y0 as u32) < SIMULATION_HEIGHT {
-            let index = x0 as u32 + y0 as u32 * SIMULATION_WIDTH;
-            let r = raw_pixels_base[index as usize].r;
-            let g = raw_pixels_base[index as usize].g;
-            let b = raw_pixels_base[index as usize].b;
+                    if angle >= wall.open_circ_segment && angle <= TAU - wall.open_circ_segment
+                        || !wall.is_hollow
+                    {
+                        let index = x as u32 + y as u32 * SIMULATION_WIDTH;
+                        let r = raw_pixles[index as usize].r;
+                        let g = raw_pixles[index as usize].g;
+                        let b = raw_pixles[index as usize].b;
 
-            raw_pixels[index as usize] = Pixel {
-                r: map_range(0, 255, 80, 200, r as u32) as u8,
-                g: map_range(0, 255, 80, 200, g as u32) as u8,
-                b: map_range(0, 255, 80, 255, b as u32) as u8,
-                a: 255,
-            };
-        }
+                        raw_pixles[index as usize] = Pixel {
+                            r: map_range(0, 255, 100, 175, r as u32) as u8,
+                            g: map_range(0, 255, 80, 80, g as u32) as u8,
+                            b: map_range(0, 255, 80, 80, b as u32) as u8,
+                            a: 255,
+                        };
+                    }
+                }
+            }
 
-        if x0 == x1 && y0 == y1 {
-            return;
-        }
-
-        e2 = 2 * err;
-        if e2 > dy {
-            err += dy;
-            x0 += sx;
-        }
-        if e2 < dx {
-            err += dx;
-            y0 += sy;
+            if d < 0 {
+                d = d + 2 * b_x + 3;
+                b_x += 1;
+            } else {
+                d = d + 2 * (b_x - b_y) + 5;
+                b_x += 1;
+                b_y -= 1;
+            }
         }
     }
 }
