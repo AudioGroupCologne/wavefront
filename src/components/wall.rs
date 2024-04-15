@@ -545,9 +545,9 @@ impl Wall for CircWall {
         let b_center_x = self.center.x + boundary_width;
         let b_center_y = self.center.y + boundary_width;
 
-        if (x < boundary_width
+        if (x <= boundary_width
             && y == b_center_y
-            && (b_center_x as i32 - self.radius as i32) < boundary_width as i32)
+            && (b_center_x as i32 - self.radius as i32) <= boundary_width as i32)
             || (x >= SIMULATION_WIDTH + boundary_width
                 && y == b_center_y
                 && b_center_x + self.radius >= SIMULATION_WIDTH + boundary_width)
@@ -555,9 +555,9 @@ impl Wall for CircWall {
             return true;
         }
 
-        if (y < boundary_width
+        if (y <= boundary_width
             && x == b_center_x
-            && (b_center_y as i32 - self.radius as i32) < boundary_width as i32)
+            && (b_center_y as i32 - self.radius as i32) <= boundary_width as i32)
             || (y >= SIMULATION_HEIGHT + boundary_width
                 && x == b_center_x
                 && b_center_y + self.radius >= SIMULATION_HEIGHT + boundary_width)
