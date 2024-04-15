@@ -8,7 +8,7 @@ use crate::components::wall::{CircWall, RectWall, WResize, Wall};
 use crate::events::{Load, Reset, Save, UpdateWalls};
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
 use crate::simulation::plugin::ComponentIDs;
-use crate::ui::state::{ClipboardBuffer, ToolType, UiState, WallType};
+use crate::ui::state::{ClipboardBuffer, PlaceType, ToolType, UiState};
 
 /// This system handles the copy and paste functionality
 pub fn copy_paste_system(
@@ -123,21 +123,21 @@ pub fn button_input(
                         }
                     }
                 }
-                ToolType::PlaceSource => {
-                    if let Some((x, y)) =
-                        screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
-                    {
-                        // this produces overlaping sources
-                        commands.spawn(Source::new(
-                            x,
-                            y,
-                            SourceType::default(),
-                            component_ids.get_new_source_id(),
-                        ));
+                ToolType::Place(t) => match t {
+                    PlaceType::Source => {
+                        if let Some((x, y)) =
+                            screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
+                        {
+                            // this produces overlaping sources
+                            commands.spawn(Source::new(
+                                x,
+                                y,
+                                SourceType::default(),
+                                component_ids.get_new_source_id(),
+                            ));
+                        }
                     }
-                }
-                ToolType::DrawWall => match ui_state.wall_type {
-                    WallType::Rectangle => {
+                    PlaceType::RectWall => {
                         if let Some((x, y)) =
                             screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                         {
@@ -155,7 +155,7 @@ pub fn button_input(
                             ));
                         }
                     }
-                    WallType::Circle => {
+                    PlaceType::CircWall => {
                         if let Some((x, y)) =
                             screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                         {
@@ -170,6 +170,13 @@ pub fn button_input(
                                 ),
                                 WResize::Radius,
                             ));
+                        }
+                    }
+                    PlaceType::Mic => {
+                        if let Some((x, y)) =
+                            screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
+                        {
+                            commands.spawn(Microphone::new(x, y, component_ids.get_new_mic_id()));
                         }
                     }
                 },
@@ -222,13 +229,6 @@ pub fn button_input(
                                 break;
                             }
                         }
-                    }
-                }
-                ToolType::PlaceMic => {
-                    if let Some((x, y)) =
-                        screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
-                    {
-                        commands.spawn(Microphone::new(x, y, component_ids.get_new_mic_id()));
                     }
                 }
                 ToolType::MoveMic => {
@@ -295,7 +295,9 @@ pub fn button_input(
                         });
                     }
                 }
-                ToolType::DrawWall | ToolType::ResizeWall => {
+                ToolType::Place(PlaceType::RectWall)
+                | ToolType::Place(PlaceType::CircWall)
+                | ToolType::ResizeWall => {
                     if let Some((x, y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                     {

@@ -10,7 +10,7 @@ use super::gizmo::GizmoComponent;
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::rect::WRect;
 use crate::math::transformations::grid_to_image;
-use crate::ui::state::ToolType;
+use crate::ui::state::{PlaceType, ToolType};
 
 #[derive(Debug, Default, Clone)]
 pub struct WallCell {
@@ -337,7 +337,7 @@ impl GizmoComponent for RectWall {
                     )));
                 }
             }
-            ToolType::DrawWall => {
+            ToolType::Place(PlaceType::RectWall) => {
                 self.draw_scale_text(painter, image_rect, delta_l, text_color);
             }
             _ => {}
@@ -671,7 +671,7 @@ impl GizmoComponent for CircWall {
                     )));
                 }
             }
-            ToolType::DrawWall => {
+            ToolType::Place(PlaceType::CircWall) => {
                 self.draw_scale_text(painter, image_rect, delta_l, text_color);
             }
             _ => {}

@@ -134,16 +134,12 @@ pub fn draw_egui(
 
     let images = [
         (
-            ToolType::PlaceSource,
+            ToolType::Place(PlaceType::Source),
             egui::include_image!("../../assets/place_source.png"),
         ),
         (
             ToolType::MoveSource,
             egui::include_image!("../../assets/move_source.png"),
-        ),
-        (
-            ToolType::DrawWall,
-            egui::include_image!("../../assets/draw_wall.png"),
         ),
         (
             ToolType::ResizeWall,
@@ -152,10 +148,6 @@ pub fn draw_egui(
         (
             ToolType::MoveWall,
             egui::include_image!("../../assets/move_wall.png"),
-        ),
-        (
-            ToolType::PlaceMic,
-            egui::include_image!("../../assets/place_mic.png"),
         ),
         (
             ToolType::MoveMic,
@@ -1125,31 +1117,35 @@ pub fn draw_egui(
                 ui.separator();
 
                 ui.set_enabled(!ui_state.render_abc_area);
-                if ui_state.current_tool == ToolType::DrawWall {
-                    egui::ComboBox::from_label("Select Wall Type")
-                        .selected_text(format!("{:?}", ui_state.wall_type))
-                        .show_ui(ui, |ui| {
-                            ui.style_mut().wrap = Some(false);
-                            ui.selectable_value(
-                                &mut ui_state.wall_type,
-                                WallType::Rectangle,
-                                "Rectangle",
+
+                match &mut ui_state.current_tool {
+                    ToolType::Place(t) => {
+                        egui::ComboBox::from_label("Select Object to Place")
+                            .selected_text(format!("{:?}", t))
+                            .show_ui(ui, |ui| {
+                                ui.style_mut().wrap = Some(false);
+                                ui.selectable_value(t, PlaceType::Source, "Source");
+                                ui.selectable_value(t, PlaceType::Mic, "Microphone");
+                                ui.selectable_value(t, PlaceType::RectWall, "Rectangle Wall");
+                                ui.selectable_value(t, PlaceType::CircWall, "Circular Wall");
+                            });
+
+                        if matches!(t, PlaceType::RectWall | PlaceType::CircWall) {
+                            ui.add(
+                                egui::Slider::new(&mut ui_state.wall_reflection_factor, 0.0..=1.0)
+                                    .text("Wall Reflection Factor"),
                             );
-                            ui.selectable_value(
-                                &mut ui_state.wall_type,
-                                WallType::Circle,
-                                "Circle",
-                            );
+                            ui.checkbox(&mut ui_state.wall_is_hollow, "Hollow");
+                        }
+                    }
+                    _ => {
+                        ui.add_space(10.);
+                        ui.vertical_centered(|ui| {
+                            ui.label("Select another tool to see its options")
                         });
-                    ui.add(
-                        egui::Slider::new(&mut ui_state.wall_reflection_factor, 0.0..=1.0)
-                            .text("Wall Reflection Factor"),
-                    );
-                    ui.checkbox(&mut ui_state.wall_is_hollow, "Hollow");
-                } else {
-                    ui.add_space(10.);
-                    ui.vertical_centered(|ui| ui.label("Select another tool to see its options"));
+                    }
                 }
+
                 ui.add_space(10.);
             });
         });
@@ -1361,7 +1357,7 @@ pub fn draw_egui(
                     for mic in mic_set.p3().iter() {
                         mic.draw_gizmo(
                             painter,
-                            &ToolType::PlaceMic,
+                            &ToolType::Place(PlaceType::Mic),
                             false,
                             &ui_state.image_rect,
                             ui_state.delta_l,
@@ -1372,7 +1368,7 @@ pub fn draw_egui(
                     for (_, mic) in mic_set.p1().iter() {
                         mic.draw_gizmo(
                             painter,
-                            &ToolType::PlaceMic,
+                            &ToolType::Place(PlaceType::Mic),
                             true,
                             &ui_state.image_rect,
                             ui_state.delta_l,
@@ -1383,7 +1379,7 @@ pub fn draw_egui(
                     for source in source_set.p3().iter() {
                         source.draw_gizmo(
                             painter,
-                            &ToolType::PlaceSource,
+                            &ToolType::Place(PlaceType::Source),
                             false,
                             &ui_state.image_rect,
                             ui_state.delta_l,
@@ -1394,7 +1390,7 @@ pub fn draw_egui(
                     for (_, source) in source_set.p1().iter() {
                         source.draw_gizmo(
                             painter,
-                            &ToolType::PlaceSource,
+                            &ToolType::Place(PlaceType::Source),
                             true,
                             &ui_state.image_rect,
                             ui_state.delta_l,

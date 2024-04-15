@@ -15,25 +15,41 @@ pub struct SimTime {
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum ToolType {
-    PlaceSource,
     MoveSource,
-    DrawWall,
     ResizeWall,
     MoveWall,
-    PlaceMic,
     MoveMic,
+
+    Place(PlaceType),
 }
 
 impl fmt::Display for ToolType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ToolType::PlaceSource => write!(f, "Place Source"),
             ToolType::MoveSource => write!(f, "Move Source"),
-            ToolType::DrawWall => write!(f, "Draw Wall"),
             ToolType::ResizeWall => write!(f, "Resize Wall"),
             ToolType::MoveWall => write!(f, "Move Wall"),
-            ToolType::PlaceMic => write!(f, "Place Microphone"),
             ToolType::MoveMic => write!(f, "Move Microphone"),
+            ToolType::Place(_) => write!(f, "Place Object"),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum PlaceType {
+    Source,
+    Mic,
+    RectWall,
+    CircWall,
+}
+
+impl fmt::Display for PlaceType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PlaceType::Source => write!(f, "Source"),
+            PlaceType::Mic => write!(f, "Microphone"),
+            PlaceType::RectWall => write!(f, "Rectangle Wall"),
+            PlaceType::CircWall => write!(f, "Circle Wall"),
         }
     }
 }
@@ -90,16 +106,13 @@ pub struct UiState {
 impl Default for UiState {
     fn default() -> Self {
         Self {
-            #[cfg(debug_assertions)]
-            is_running: true,
-            #[cfg(not(debug_assertions))]
-            is_running: false,
+            is_running: cfg!(debug_assertions),
             delta_l: 0.001,
             boundary_width: 50,
             render_abc_area: false,
             image_rect: egui::Rect::NOTHING,
             show_plots: false,
-            current_tool: ToolType::PlaceSource,
+            current_tool: ToolType::Place(PlaceType::Source),
             wall_reflection_factor: 1.,
             wall_type: WallType::Rectangle,
             wall_is_hollow: false,
