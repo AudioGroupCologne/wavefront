@@ -2,12 +2,6 @@ use std::fmt;
 
 use bevy::prelude::*;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub enum WallType {
-    Rectangle,
-    Circle,
-}
-
 #[derive(Default, Resource)]
 pub struct SimTime {
     pub time_since_start: f32,
@@ -16,9 +10,9 @@ pub struct SimTime {
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum ToolType {
     MoveSource,
-    ResizeWall,
     MoveWall,
     MoveMic,
+    ResizeWall,
 
     Place(PlaceType),
 }
@@ -84,7 +78,6 @@ pub struct UiState {
     pub show_plots: bool,
     pub current_tool: ToolType,
     pub wall_reflection_factor: f32,
-    pub wall_type: WallType,
     pub wall_is_hollow: bool,
     pub tools_enabled: bool,
     pub reset_on_change: bool,
@@ -112,9 +105,8 @@ impl Default for UiState {
             render_abc_area: false,
             image_rect: egui::Rect::NOTHING,
             show_plots: false,
-            current_tool: ToolType::Place(PlaceType::Source),
+            current_tool: ToolType::Place(PlaceType::Mic),
             wall_reflection_factor: 1.,
-            wall_type: WallType::Rectangle,
             wall_is_hollow: false,
             tools_enabled: true,
             reset_on_change: true,
