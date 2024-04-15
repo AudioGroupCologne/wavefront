@@ -1121,7 +1121,7 @@ pub fn draw_egui(
                 match &mut ui_state.current_tool {
                     ToolType::Place(t) => {
                         egui::ComboBox::from_label("Select Object to Place")
-                            .selected_text(format!("{:?}", t))
+                            .selected_text(format!("{}", t))
                             .show_ui(ui, |ui| {
                                 ui.style_mut().wrap = Some(false);
                                 ui.selectable_value(t, PlaceType::Source, "Source");
