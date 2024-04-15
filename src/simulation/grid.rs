@@ -159,77 +159,23 @@ impl Grid {
                     }
                 }
 
-                for wall in circ_walls {
-                    if wall.contains(x, y)
-                        || wall.boundary_delete(
-                            x + boundary_width,
-                            y + boundary_width,
-                            boundary_width,
-                        )
-                    {
-                        wall_cell.is_wall = true;
-                        wall_cell.reflection_factor = 0.;
-                        wall_cell.draw_reflection_factor = wall.get_reflection_factor();
-                    }
-                }
+                // for wall in circ_walls {
+                //     if wall.contains(x, y)
+                //         || wall.boundary_delete(
+                //             x + boundary_width,
+                //             y + boundary_width,
+                //             boundary_width,
+                //         )
+                //     {
+                //         wall_cell.is_wall = true;
+                //         wall_cell.reflection_factor = 0.;
+                //         wall_cell.draw_reflection_factor = wall.get_reflection_factor();
+                //     }
+                // }
             });
 
         for wall in circ_walls {
-            let mut b_x = 0i32;
-            let mut b_y = wall.radius as i32;
-            let mut d = 1 - wall.radius as i32;
-            while b_x <= b_y {
-                for (x, y) in [
-                    (wall.center.x as i32 + b_x, wall.center.y as i32 + b_y),
-                    (wall.center.x as i32 + b_x, wall.center.y as i32 - b_y),
-                    (wall.center.x as i32 - b_x, wall.center.y as i32 + b_y),
-                    (wall.center.x as i32 - b_x, wall.center.y as i32 - b_y),
-                    (wall.center.x as i32 + b_y, wall.center.y as i32 + b_x),
-                    (wall.center.x as i32 + b_y, wall.center.y as i32 - b_x),
-                    (wall.center.x as i32 - b_y, wall.center.y as i32 + b_x),
-                    (wall.center.x as i32 - b_y, wall.center.y as i32 - b_x),
-                ] {
-                    let x = (x + boundary_width as i32) as u32;
-                    let y = (y + boundary_width as i32) as u32;
-                    if x < SIMULATION_WIDTH + 2 * boundary_width
-                        && y < SIMULATION_HEIGHT + 2 * boundary_width
-                    {
-                        // angle in [0, 2pi)
-                        let mut angle =
-                            if (y as i32 - wall.center.y as i32 - boundary_width as i32) <= 0 {
-                                ((x as f32 - wall.center.x as f32 - boundary_width as f32)
-                                    / wall.radius as f32)
-                                    .acos()
-                            } else {
-                                TAU - ((x as f32 - wall.center.x as f32 - boundary_width as f32)
-                                    / wall.radius as f32)
-                                    .acos()
-                            };
-
-                        angle = (angle + wall.rotation_angle) % TAU;
-
-                        if (angle >= wall.open_circ_segment
-                            && angle <= TAU - wall.open_circ_segment)
-                            || !wall.is_hollow
-                        {
-                            let index = coords_to_index(x, y, boundary_width);
-                            self.wall_cache[index].is_wall = true;
-                            self.wall_cache[index].reflection_factor = wall.get_reflection_factor();
-                            self.wall_cache[index].draw_reflection_factor =
-                                wall.get_reflection_factor();
-                        }
-                    }
-                }
-
-                if d < 0 {
-                    d = d + 2 * b_x + 3;
-                    b_x += 1;
-                } else {
-                    d = d + 2 * (b_x - b_y) + 5;
-                    b_x += 1;
-                    b_y -= 1;
-                }
-            }
+            self.draw_circle(&wall, boundary_width);
         }
     }
 
@@ -404,5 +350,144 @@ impl Grid {
 
     fn attenuation_factor(boundary_width: u32, power_order: u32, distance: u32) -> f32 {
         1.0 - (distance as f32 / boundary_width as f32).powi(power_order as i32)
+    }
+
+    fn draw_circle(&mut self, wall: &CircWall, boundary_width: u32) {
+        let mut b_x = 0i32;
+        let mut b_y = wall.radius as i32;
+        let mut d = 1 - wall.radius as i32;
+        while b_x <= b_y {
+            let sym_points = [
+                (wall.center.x as i32 + b_x, wall.center.y as i32 + b_y),
+                (wall.center.x as i32 + b_x, wall.center.y as i32 - b_y),
+                (wall.center.x as i32 - b_x, wall.center.y as i32 + b_y),
+                (wall.center.x as i32 - b_x, wall.center.y as i32 - b_y),
+                (wall.center.x as i32 + b_y, wall.center.y as i32 + b_x),
+                (wall.center.x as i32 + b_y, wall.center.y as i32 - b_x),
+                (wall.center.x as i32 - b_y, wall.center.y as i32 + b_x),
+                (wall.center.x as i32 - b_y, wall.center.y as i32 - b_x),
+            ];
+
+            // draw inner
+            if !wall.is_hollow {
+                self.draw_line(
+                    sym_points[2].0 + boundary_width as i32,
+                    sym_points[2].1 + boundary_width as i32,
+                    sym_points[0].0 + boundary_width as i32,
+                    sym_points[0].1 + boundary_width as i32,
+                    boundary_width,
+                    wall.get_reflection_factor(),
+                );
+                self.draw_line(
+                    sym_points[6].0 + boundary_width as i32,
+                    sym_points[6].1 + boundary_width as i32,
+                    sym_points[4].0 + boundary_width as i32,
+                    sym_points[4].1 + boundary_width as i32,
+                    boundary_width,
+                    wall.get_reflection_factor(),
+                );
+                self.draw_line(
+                    sym_points[7].0 + boundary_width as i32,
+                    sym_points[7].1 + boundary_width as i32,
+                    sym_points[5].0 + boundary_width as i32,
+                    sym_points[5].1 + boundary_width as i32,
+                    boundary_width,
+                    wall.get_reflection_factor(),
+                );
+                self.draw_line(
+                    sym_points[3].0 + boundary_width as i32,
+                    sym_points[3].1 + boundary_width as i32,
+                    sym_points[1].0 + boundary_width as i32,
+                    sym_points[1].1 + boundary_width as i32,
+                    boundary_width,
+                    wall.get_reflection_factor(),
+                );
+            }
+
+            // draw outline
+            for (x, y) in sym_points {
+                let x = x + boundary_width as i32;
+                let y = y + boundary_width as i32;
+                if (x as u32) < SIMULATION_WIDTH + 2 * boundary_width
+                    && (y as u32) < SIMULATION_HEIGHT + 2 * boundary_width
+                {
+                    // angle in [0, 2pi)
+                    let mut angle =
+                        if (y as i32 - wall.center.y as i32 - boundary_width as i32) <= 0 {
+                            ((x as f32 - wall.center.x as f32 - boundary_width as f32)
+                                / wall.radius as f32)
+                                .acos()
+                        } else {
+                            TAU - ((x as f32 - wall.center.x as f32 - boundary_width as f32)
+                                / wall.radius as f32)
+                                .acos()
+                        };
+
+                    angle = (angle + wall.rotation_angle) % TAU;
+
+                    if (angle >= wall.open_circ_segment && angle <= TAU - wall.open_circ_segment)
+                        || !wall.is_hollow
+                    {
+                        let index = coords_to_index(x as u32, y as u32, boundary_width);
+                        self.wall_cache[index].is_wall = true;
+                        self.wall_cache[index].reflection_factor = wall.get_reflection_factor();
+                        self.wall_cache[index].draw_reflection_factor =
+                            wall.get_reflection_factor();
+                    }
+                }
+            }
+
+            if d < 0 {
+                d = d + 2 * b_x + 3;
+                b_x += 1;
+            } else {
+                d = d + 2 * (b_x - b_y) + 5;
+                b_x += 1;
+                b_y -= 1;
+            }
+        }
+    }
+
+    fn draw_line(
+        &mut self,
+        mut x0: i32,
+        mut y0: i32,
+        x1: i32,
+        y1: i32,
+        boundary_width: u32,
+        reflection_factor: f32,
+    ) {
+        let dx: i32 = (x1 - x0).abs();
+        let dy: i32 = -(y1 - y0).abs();
+        let sx: i32 = if x0 < x1 { 1 } else { -1 };
+        let sy: i32 = if y0 < y1 { 1 } else { -1 };
+
+        let mut err = dx + dy;
+        let mut e2: i32;
+
+        loop {
+            if (x0 as u32) < SIMULATION_WIDTH + 2 * boundary_width
+                && (y0 as u32) < SIMULATION_HEIGHT + 2 * boundary_width
+            {
+                let index = coords_to_index(x0 as u32, y0 as u32, boundary_width);
+                self.wall_cache[index].is_wall = true;
+                self.wall_cache[index].reflection_factor = reflection_factor;
+                self.wall_cache[index].draw_reflection_factor = reflection_factor;
+            }
+
+            if x0 == x1 && y0 == y1 {
+                return;
+            }
+
+            e2 = 2 * err;
+            if e2 > dy {
+                err += dy;
+                x0 += sx;
+            }
+            if e2 < dx {
+                err += dx;
+                y0 += sy;
+            }
+        }
     }
 }
