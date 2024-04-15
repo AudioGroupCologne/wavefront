@@ -267,7 +267,8 @@ pub fn draw_egui(
                     columns[0].vertical_centered(|ui| {
                         ui.heading("General Settings");
 
-                        TableBuilder::new(ui)
+                        ui.push_id("general_settings_table", |ui| {
+                            TableBuilder::new(ui)
                             .resizable(false)
                             .striped(true)
                             .column(Column::remainder())
@@ -430,11 +431,13 @@ pub fn draw_egui(
                                     });
                                 });
                             });
+                        });
                     });
                     columns[1].vertical_centered(|ui| {
                         ui.heading("Experimental Settings");
 
-                        TableBuilder::new(ui)
+                        ui.push_id("experimental_settings_table", |ui| {
+                            TableBuilder::new(ui)
                             .resizable(false)
                             .striped(true)
                             .column(Column::remainder())
@@ -453,6 +456,7 @@ pub fn draw_egui(
                                     });
                                 });
                             });
+                        })
                     });
                 });
             });
