@@ -105,7 +105,7 @@ impl Default for UiState {
             render_abc_area: false,
             image_rect: egui::Rect::NOTHING,
             show_plots: false,
-            current_tool: ToolType::Place(PlaceType::Source),
+            current_tool: ToolType::Place(PlaceType::Mic),
             wall_reflection_factor: 1.,
             wall_is_hollow: false,
             tools_enabled: true,

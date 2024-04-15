@@ -134,26 +134,11 @@ pub fn draw_egui(
     egui_extras::install_image_loaders(ctx);
 
     let images = [
-        (
-            ToolType::Place(PlaceType::Source),
-            egui::include_image!("../../assets/place_source.png"),
-        ),
-        (
-            ToolType::MoveSource,
-            egui::include_image!("../../assets/move_source.png"),
-        ),
-        (
-            ToolType::ResizeWall,
-            egui::include_image!("../../assets/resize_wall.png"),
-        ),
-        (
-            ToolType::MoveWall,
-            egui::include_image!("../../assets/move_wall.png"),
-        ),
-        (
-            ToolType::MoveMic,
-            egui::include_image!("../../assets/move_mic.png"),
-        ),
+        egui::include_image!("../../assets/place_source.png"),
+        egui::include_image!("../../assets/move_source.png"),
+        egui::include_image!("../../assets/resize_wall.png"),
+        egui::include_image!("../../assets/move_wall.png"),
+        egui::include_image!("../../assets/move_mic.png"),
     ];
 
     let key = if cfg!(target_os = "macos") {
@@ -277,7 +262,6 @@ pub fn draw_egui(
             .show(ctx, |ui| {
                 ui.set_min_width(500.);
 
-                
                 ui.columns(2, |columns| {
                     columns[0].vertical_centered(|ui| {
                         ui.heading("General Settings");
@@ -409,7 +393,6 @@ pub fn draw_egui(
                                 ui.end_row();
                             });
 
-                        
                     });
                 });
             });
@@ -1236,27 +1219,110 @@ pub fn draw_egui(
         .resizable(false)
         .show(ctx, |ui| {
             ui.set_enabled(ui_state.tools_enabled);
-
-            for (tool_type, icon) in images {
-                if ui
-                    .add(
-                        egui::Button::image(
-                            egui::Image::new(icon).fit_to_exact_size(Vec2::new(25., 25.)),
-                        )
-                        .fill(if tool_type == ui_state.current_tool {
-                            Color32::DARK_GRAY
-                        } else {
-                            Color32::TRANSPARENT
-                        })
-                        .min_size(Vec2::new(0., 35.)),
+            let place_icon = &images[0];
+            let move_source_icon = &images[1];
+            let resize_wall_icon = &images[2];
+            let move_wall_icon = &images[3];
+            let move_mic_icon = &images[4];
+            if ui
+                .add(
+                    egui::Button::image(
+                        egui::Image::new(place_icon.clone()).fit_to_exact_size(Vec2::new(25., 25.)),
                     )
-                    .on_hover_text(format!("{}", tool_type))
-                    .clicked()
-                {
-                    ui_state.current_tool = tool_type;
-                }
-                ui.add_space(4.);
+                    .fill(if matches!(ui_state.current_tool, ToolType::Place(..)) {
+                        Color32::DARK_GRAY
+                    } else {
+                        Color32::TRANSPARENT
+                    })
+                    .min_size(Vec2::new(0., 35.)),
+                )
+                .on_hover_text(format!("{}", ToolType::Place(PlaceType::Source)))
+                .clicked()
+            {
+                // TODO: always resets to source when clicked
+                ui_state.current_tool = ToolType::Place(PlaceType::Source);
             }
+            ui.add_space(4.);
+
+            if ui
+                .add(
+                    egui::Button::image(
+                        egui::Image::new(move_source_icon.clone())
+                            .fit_to_exact_size(Vec2::new(25., 25.)),
+                    )
+                    .fill(if matches!(ui_state.current_tool, ToolType::MoveSource) {
+                        Color32::DARK_GRAY
+                    } else {
+                        Color32::TRANSPARENT
+                    })
+                    .min_size(Vec2::new(0., 35.)),
+                )
+                .on_hover_text(format!("{}", ToolType::MoveSource))
+                .clicked()
+            {
+                ui_state.current_tool = ToolType::MoveSource;
+            }
+            ui.add_space(4.);
+
+            if ui
+                .add(
+                    egui::Button::image(
+                        egui::Image::new(resize_wall_icon.clone())
+                            .fit_to_exact_size(Vec2::new(25., 25.)),
+                    )
+                    .fill(if matches!(ui_state.current_tool, ToolType::ResizeWall) {
+                        Color32::DARK_GRAY
+                    } else {
+                        Color32::TRANSPARENT
+                    })
+                    .min_size(Vec2::new(0., 35.)),
+                )
+                .on_hover_text(format!("{}", ToolType::ResizeWall))
+                .clicked()
+            {
+                ui_state.current_tool = ToolType::ResizeWall;
+            }
+            ui.add_space(4.);
+
+            if ui
+                .add(
+                    egui::Button::image(
+                        egui::Image::new(move_wall_icon.clone())
+                            .fit_to_exact_size(Vec2::new(25., 25.)),
+                    )
+                    .fill(if matches!(ui_state.current_tool, ToolType::MoveWall) {
+                        Color32::DARK_GRAY
+                    } else {
+                        Color32::TRANSPARENT
+                    })
+                    .min_size(Vec2::new(0., 35.)),
+                )
+                .on_hover_text(format!("{}", ToolType::MoveWall))
+                .clicked()
+            {
+                ui_state.current_tool = ToolType::MoveWall;
+            }
+            ui.add_space(4.);
+
+            if ui
+                .add(
+                    egui::Button::image(
+                        egui::Image::new(move_mic_icon.clone())
+                            .fit_to_exact_size(Vec2::new(25., 25.)),
+                    )
+                    .fill(if matches!(ui_state.current_tool, ToolType::MoveMic) {
+                        Color32::DARK_GRAY
+                    } else {
+                        Color32::TRANSPARENT
+                    })
+                    .min_size(Vec2::new(0., 35.)),
+                )
+                .on_hover_text(format!("{}", ToolType::MoveMic))
+                .clicked()
+            {
+                ui_state.current_tool = ToolType::MoveMic;
+            }
+            ui.add_space(4.);
         });
 
     // Main Render Area
