@@ -26,6 +26,7 @@ where
 }
 
 /// converts screen coordinates to grid coordinates
+// TODO: remove boundary_width: the function cannot be called when the boundary is rendered
 pub fn screen_to_grid(x: f32, y: f32, image_rect: Rect, ui_state: &UiState) -> Option<(u32, u32)> {
     let boundary_width = if ui_state.render_abc_area {
         ui_state.boundary_width

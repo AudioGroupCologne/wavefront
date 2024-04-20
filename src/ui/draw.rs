@@ -1289,6 +1289,29 @@ pub fn draw_egui(
             let resize_wall_icon = &images[2];
             let move_wall_icon = &images[3];
             let move_mic_icon = &images[4];
+
+
+            if ui
+                .add(
+                    egui::Button::image(
+                        egui::Image::new(place_icon.clone()).fit_to_exact_size(Vec2::new(25., 25.)),
+                    )
+                    .fill(if matches!(ui_state.current_tool, ToolType::Select) {
+                        Color32::DARK_GRAY
+                    } else {
+                        Color32::TRANSPARENT
+                    })
+                    .min_size(Vec2::new(0., 35.)),
+                )
+                .on_hover_text(format!("{}", ToolType::Select))
+                .clicked()
+            {
+                // TODO: always resets to source when clicked
+                ui_state.current_tool = ToolType::Select;
+            }
+            ui.add_space(4.);
+
+
             if ui
                 .add(
                     egui::Button::image(
@@ -1309,25 +1332,25 @@ pub fn draw_egui(
             }
             ui.add_space(4.);
 
-            if ui
-                .add(
-                    egui::Button::image(
-                        egui::Image::new(move_source_icon.clone())
-                            .fit_to_exact_size(Vec2::new(25., 25.)),
-                    )
-                    .fill(if matches!(ui_state.current_tool, ToolType::MoveSource) {
-                        Color32::DARK_GRAY
-                    } else {
-                        Color32::TRANSPARENT
-                    })
-                    .min_size(Vec2::new(0., 35.)),
-                )
-                .on_hover_text(format!("{}", ToolType::MoveSource))
-                .clicked()
-            {
-                ui_state.current_tool = ToolType::MoveSource;
-            }
-            ui.add_space(4.);
+            // if ui
+            //     .add(
+            //         egui::Button::image(
+            //             egui::Image::new(move_source_icon.clone())
+            //                 .fit_to_exact_size(Vec2::new(25., 25.)),
+            //         )
+            //         .fill(if matches!(ui_state.current_tool, ToolType::MoveSource) {
+            //             Color32::DARK_GRAY
+            //         } else {
+            //             Color32::TRANSPARENT
+            //         })
+            //         .min_size(Vec2::new(0., 35.)),
+            //     )
+            //     .on_hover_text(format!("{}", ToolType::MoveSource))
+            //     .clicked()
+            // {
+            //     ui_state.current_tool = ToolType::MoveSource;
+            // }
+            // ui.add_space(4.);
 
             if ui
                 .add(
@@ -1349,45 +1372,45 @@ pub fn draw_egui(
             }
             ui.add_space(4.);
 
-            if ui
-                .add(
-                    egui::Button::image(
-                        egui::Image::new(move_wall_icon.clone())
-                            .fit_to_exact_size(Vec2::new(25., 25.)),
-                    )
-                    .fill(if matches!(ui_state.current_tool, ToolType::MoveWall) {
-                        Color32::DARK_GRAY
-                    } else {
-                        Color32::TRANSPARENT
-                    })
-                    .min_size(Vec2::new(0., 35.)),
-                )
-                .on_hover_text(format!("{}", ToolType::MoveWall))
-                .clicked()
-            {
-                ui_state.current_tool = ToolType::MoveWall;
-            }
-            ui.add_space(4.);
+            // if ui
+            //     .add(
+            //         egui::Button::image(
+            //             egui::Image::new(move_wall_icon.clone())
+            //                 .fit_to_exact_size(Vec2::new(25., 25.)),
+            //         )
+            //         .fill(if matches!(ui_state.current_tool, ToolType::MoveWall) {
+            //             Color32::DARK_GRAY
+            //         } else {
+            //             Color32::TRANSPARENT
+            //         })
+            //         .min_size(Vec2::new(0., 35.)),
+            //     )
+            //     .on_hover_text(format!("{}", ToolType::MoveWall))
+            //     .clicked()
+            // {
+            //     ui_state.current_tool = ToolType::MoveWall;
+            // }
+            // ui.add_space(4.);
 
-            if ui
-                .add(
-                    egui::Button::image(
-                        egui::Image::new(move_mic_icon.clone())
-                            .fit_to_exact_size(Vec2::new(25., 25.)),
-                    )
-                    .fill(if matches!(ui_state.current_tool, ToolType::MoveMic) {
-                        Color32::DARK_GRAY
-                    } else {
-                        Color32::TRANSPARENT
-                    })
-                    .min_size(Vec2::new(0., 35.)),
-                )
-                .on_hover_text(format!("{}", ToolType::MoveMic))
-                .clicked()
-            {
-                ui_state.current_tool = ToolType::MoveMic;
-            }
-            ui.add_space(4.);
+            // if ui
+            //     .add(
+            //         egui::Button::image(
+            //             egui::Image::new(move_mic_icon.clone())
+            //                 .fit_to_exact_size(Vec2::new(25., 25.)),
+            //         )
+            //         .fill(if matches!(ui_state.current_tool, ToolType::MoveMic) {
+            //             Color32::DARK_GRAY
+            //         } else {
+            //             Color32::TRANSPARENT
+            //         })
+            //         .min_size(Vec2::new(0., 35.)),
+            //     )
+            //     .on_hover_text(format!("{}", ToolType::MoveMic))
+            //     .clicked()
+            // {
+            //     ui_state.current_tool = ToolType::MoveMic;
+            // }
+            // ui.add_space(4.);
         });
 
     // Main Render Area
@@ -1429,7 +1452,7 @@ pub fn draw_egui(
                     for (_, wall) in rect_wall_set.p2().iter() {
                         wall.draw_gizmo(
                             painter,
-                            &ToolType::MoveWall,
+                            &ToolType::Move,
                             true,
                             &ui_state.image_rect,
                             ui_state.delta_l,
@@ -1439,7 +1462,7 @@ pub fn draw_egui(
                     for (_, wall) in circ_wall_set.p2().iter() {
                         wall.draw_gizmo(
                             painter,
-                            &ToolType::MoveWall,
+                            &ToolType::Move,
                             true,
                             &ui_state.image_rect,
                             ui_state.delta_l,
@@ -1450,7 +1473,7 @@ pub fn draw_egui(
                     for (_, mic) in mic_set.p2().iter() {
                         mic.draw_gizmo(
                             painter,
-                            &ToolType::MoveMic,
+                            &ToolType::Move,
                             true,
                             &ui_state.image_rect,
                             ui_state.delta_l,
@@ -1461,7 +1484,7 @@ pub fn draw_egui(
                     for (_, source) in source_set.p2().iter() {
                         source.draw_gizmo(
                             painter,
-                            &ToolType::MoveSource,
+                            &ToolType::Move,
                             true,
                             &ui_state.image_rect,
                             ui_state.delta_l,

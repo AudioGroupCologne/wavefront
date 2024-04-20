@@ -162,7 +162,7 @@ impl Source {
 impl GizmoComponent for Source {
     fn get_gizmo_positions(&self, tool_type: &ToolType) -> Vec<Pos2> {
         match tool_type {
-            ToolType::Place(PlaceType::Source) | ToolType::MoveSource => {
+            ToolType::Place(PlaceType::Source) | ToolType::Move => {
                 vec![Pos2 {
                     x: self.x as f32,
                     y: self.y as f32,
@@ -184,7 +184,7 @@ impl GizmoComponent for Source {
         _text_color: Color32,
     ) {
         match tool_type {
-            ToolType::Place(PlaceType::Source) | ToolType::MoveSource => {
+            ToolType::Place(PlaceType::Source) | ToolType::Move => {
                 for pos in self.get_gizmo_positions(tool_type) {
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         grid_to_image(pos, image_rect),

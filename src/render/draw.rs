@@ -7,7 +7,7 @@ use bevy_pixel_buffer::query::QueryPixelBuffer;
 
 use super::gradient::Gradient;
 use crate::components::microphone::Microphone;
-use crate::components::states::Drag;
+use crate::components::states::Move;
 use crate::components::wall::{CircWall, RectWall, WResize, Wall};
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::transformations::{coords_to_index, map_range};
@@ -120,15 +120,15 @@ pub fn draw_pixels(
     }
 }
 
-type RectWallsResizeOrDrag<'w, 's> =
-    Query<'w, 's, &'static RectWall, Or<(With<WResize>, With<Drag>)>>;
-type CircWallsResizeOrDrag<'w, 's> =
-    Query<'w, 's, &'static CircWall, Or<(With<WResize>, With<Drag>)>>;
+type RectWallsResizeOrMove<'w, 's> =
+    Query<'w, 's, &'static RectWall, Or<(With<WResize>, With<Move>)>>;
+type CircWallsResizeOrMove<'w, 's> =
+    Query<'w, 's, &'static CircWall, Or<(With<WResize>, With<Move>)>>;
 
 pub fn draw_overlays(
     pixel_buffers: QueryPixelBuffer,
-    rect_walls_overlay: RectWallsResizeOrDrag,
-    circ_walls_overlay: CircWallsResizeOrDrag,
+    rect_walls_overlay: RectWallsResizeOrMove,
+    circ_walls_overlay: CircWallsResizeOrMove,
 ) {
     let (query, mut images) = pixel_buffers.split();
     let mut frame = images.frame(query.iter().next().expect("one pixel buffer"));
