@@ -92,6 +92,7 @@ pub struct UiState {
     pub show_epilepsy_warning: bool,
     pub read_epilepsy_warning: bool,
     pub show_fft_approx: bool,
+    pub fft_window_size: usize,
 }
 
 impl Default for UiState {
@@ -122,6 +123,7 @@ impl Default for UiState {
             show_epilepsy_warning: false,
             read_epilepsy_warning: false,
             show_fft_approx: false,
+            fft_window_size: 1024,
         }
     }
 }
