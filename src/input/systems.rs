@@ -157,9 +157,8 @@ pub fn button_input(
                 ToolType::Place(t) => match t {
                     PlaceType::Source => {
                         if let Some((x, y)) =
-                            screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
+                            screen_to_grid(position.x, position.y, ui_state.image_rect)
                         {
-                            // this produces overlaping sources
                             commands.spawn(Source::new(
                                 x,
                                 y,
@@ -205,7 +204,7 @@ pub fn button_input(
                     }
                     PlaceType::Mic => {
                         if let Some((x, y)) =
-                            screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
+                            screen_to_grid(position.x, position.y, ui_state.image_rect)
                         {
                             commands.spawn(Microphone::new(x, y, component_ids.get_new_mic_id()));
                         }
@@ -227,7 +226,7 @@ pub fn button_input(
                             }
                         }
                         if let Some((x, y)) =
-                            screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
+                            screen_to_grid(position.x, position.y, ui_state.image_rect)
                         {
                             let rect_walls = rect_wall_set.p0();
                             let circ_walls = circ_wall_set.p0();
