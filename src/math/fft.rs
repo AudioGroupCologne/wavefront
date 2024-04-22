@@ -10,19 +10,21 @@ use crate::ui::state::FftScaling;
 /// The spectrum is calculated using the FFT algorithm and a Hann window. The corresponding window size is specified in [`FFT_WINDOW_SIZE`].
 /// The spectrum is then mapped to a logarithmic scale on the frequency axis and returned.
 /// * `microphone` - The microphone to calculate the spectrum for.
-/// * `ui_state` - The current state of the UI.
 /// * `scaling` - The scaling to apply to the spectrum on the amplitude axis.
+/// * `delta_t` - The time between each sample in the record.
+/// * `fft_size` - The size of the FFT Window to use.
 pub fn calc_mic_spectrum(
     microphone: &Microphone,
     scaling: FftScaling,
     delta_t: f32,
+    fft_size: usize,
 ) -> Vec<[f64; 2]> {
-    let samples = if microphone.record.len() < FFT_WINDOW_SIZE {
+    let samples = if microphone.record.len() < fft_size {
         let mut s = microphone.record.clone();
-        s.resize(FFT_WINDOW_SIZE, [0.0, 0.0]);
+        s.resize(fft_size, [0.0, 0.0]);
         s
     } else {
-        microphone.record[microphone.record.len() - FFT_WINDOW_SIZE..].to_vec()
+        microphone.record[microphone.record.len() - fft_size..].to_vec()
     };
 
     let hann_window = hann_window(&samples.iter().map(|x| x[1] as f32).collect::<Vec<_>>());

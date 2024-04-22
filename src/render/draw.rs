@@ -84,8 +84,12 @@ pub fn draw_pixels(
             // this way we do not have to save all the values in a vec.
 
             // TODO: maybe reset the frame each time the mic changes
-            let new_spectrum =
-                crate::math::fft::calc_mic_spectrum(mic, FftScaling::Normalized, grid.delta_t);
+            let new_spectrum = crate::math::fft::calc_mic_spectrum(
+                mic,
+                FftScaling::Normalized,
+                grid.delta_t,
+                ui_state.fft_window_size,
+            );
 
             let frame_size = frame.size();
 

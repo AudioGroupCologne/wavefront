@@ -292,6 +292,20 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                     ui.add(egui::Separator::default().vertical());
 
                     ui.checkbox(&mut self.ui_state.show_fft_approx, "Show Approximation");
+
+                    ui.add(egui::Separator::default().vertical());
+
+                    egui::ComboBox::from_label("FFT Window Size")
+                        .selected_text(self.ui_state.fft_window_size.to_string())
+                        .show_ui(ui, |ui| {
+                            for window_size in [256, 512, 1024, 2048, 4096, 8192] {
+                                ui.selectable_value(
+                                    &mut self.ui_state.fft_window_size,
+                                    window_size,
+                                    format!("{}", window_size),
+                                );
+                            }
+                        });
                 });
 
                 ui.separator();
@@ -339,8 +353,12 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             .iter()
                             .find(|m| m.id == self.fft_microphone.mic_id.expect("no mic selected"))
                         {
-                            let mapped_spectrum =
-                                calc_mic_spectrum(mic, self.ui_state.fft_scaling, self.delta_t);
+                            let mapped_spectrum = calc_mic_spectrum(
+                                mic,
+                                self.ui_state.fft_scaling,
+                                self.delta_t,
+                                self.ui_state.fft_window_size,
+                            );
                             // remove the first element, because of log it is at x=-inf
                             let mapped_spectrum = &mapped_spectrum[1..];
 
