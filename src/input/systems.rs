@@ -153,7 +153,6 @@ pub fn button_input(
                                 if (circ_wall.center.x).abs_diff(x) <= 10
                                     && (circ_wall.center.y).abs_diff(y) <= 10
                                 {
-                                    //values should change depending on image size (smaller image -> greater radius)
                                     commands.entity(entity).insert(Selected);
                                     break 'outer;
                                 }

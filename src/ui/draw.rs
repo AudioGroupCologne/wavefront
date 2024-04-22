@@ -137,8 +137,7 @@ pub fn draw_egui(
         egui::include_image!("../../assets/place_source.png"),
         egui::include_image!("../../assets/move_source.png"),
         egui::include_image!("../../assets/resize_wall.png"),
-        egui::include_image!("../../assets/move_wall.png"),
-        egui::include_image!("../../assets/move_mic.png"),
+        egui::include_image!("../../assets/select.png"),
     ];
 
     let key = if cfg!(target_os = "macos") {
@@ -1287,11 +1286,12 @@ pub fn draw_egui(
             let place_icon = &images[0];
             let move_icon = &images[1];
             let resize_wall_icon = &images[2];
+            let select_icon = &images[3];
 
             if ui
                 .add(
                     egui::Button::image(
-                        egui::Image::new(place_icon.clone()).fit_to_exact_size(Vec2::new(25., 25.)),
+                        egui::Image::new(select_icon.clone()).fit_to_exact_size(Vec2::new(25., 25.)),
                     )
                     .fill(if matches!(ui_state.current_tool, ToolType::Select) {
                         Color32::DARK_GRAY
