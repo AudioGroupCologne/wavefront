@@ -1,3 +1,4 @@
+use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::ecs::system::SystemParam;
 use bevy::prelude::*;
 use bevy_file_dialog::prelude::*;
@@ -122,6 +123,7 @@ pub fn draw_egui(
     sim_time: Res<SimTime>,
     time: Res<Time>,
     mut fixed_timestep: ResMut<Time<Fixed>>,
+    diagnostics: Res<DiagnosticsStore>,
 ) {
     let QuerySystemParams {
         mut rect_wall_set,
@@ -1179,11 +1181,21 @@ pub fn draw_egui(
                 });
 
                 ui.add_space(5.);
-                ui.label(format!(
-                    "Simulation Time: {:.5} ms",
-                    sim_time.time_since_start * 1000.
-                ));
-
+                ui.horizontal(|ui| {
+                    ui.label(format!(
+                        "Simulation Time: {:.5} ms",
+                        sim_time.time_since_start * 1000.
+                    ));
+    
+                    ui.add(egui::Separator::default().vertical());
+                    ui.label(format!(
+                        "FPS: {:.1} ms",
+                        diagnostics
+                            .get(&FrameTimeDiagnosticsPlugin::FPS)
+                            .and_then(|fps| fps.smoothed())
+                            .unwrap_or(0.0)
+                    ));
+                });
                 ui.add_space(5.);
             });
 
