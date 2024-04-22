@@ -3,7 +3,6 @@ use spectrum_analyzer::windows::hann_window;
 use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
 
 use crate::components::microphone::Microphone;
-use crate::math::constants::*;
 use crate::ui::state::FftScaling;
 
 /// Calculate the spectrum of a [`Microphone`] based on the record field.

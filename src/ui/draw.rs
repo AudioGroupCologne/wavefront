@@ -1188,7 +1188,7 @@ pub fn draw_egui(
     
                     ui.add(egui::Separator::default().vertical());
                     ui.label(format!(
-                        "FPS: {:.1} ms",
+                        "FPS: {:.1}",
                         diagnostics
                             .get(&FrameTimeDiagnosticsPlugin::FPS)
                             .and_then(|fps| fps.smoothed())
