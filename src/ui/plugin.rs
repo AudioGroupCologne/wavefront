@@ -1,3 +1,4 @@
+use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
 use bevy_file_dialog::FileDialogPlugin;
 
@@ -14,11 +15,12 @@ impl Plugin for UiPlugin {
             .init_resource::<ClipboardBuffer>()
             .init_resource::<DockState>()
             .init_resource::<FftMicrophone>()
-            .add_plugins(
+            .add_plugins((
                 FileDialogPlugin::new()
                     .with_save_file::<SaveFileContents>()
                     .with_load_file::<SaveFileContents>(),
-            )
+                FrameTimeDiagnosticsPlugin,
+            ))
             .add_systems(Update, (draw_egui, file_loaded));
     }
 }
