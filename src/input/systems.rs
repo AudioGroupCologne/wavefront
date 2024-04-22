@@ -221,9 +221,8 @@ pub fn button_input(
                             for (entity, source) in source_set.p0().iter() {
                                 let (s_x, s_y) = (source.x, source.y);
                                 if s_x.abs_diff(x) <= 10 && s_y.abs_diff(y) <= 10 {
-                                    //values should change depending on image size (smaller image -> greater radius)
                                     commands.entity(entity).insert((Move, Selected));
-                                    break; // only drag one at a time
+                                    break 'outer; // only drag one at a time
                                 }
                             }
                         }
@@ -240,7 +239,7 @@ pub fn button_input(
                                 let center = wall.get_center();
                                 if (center.x).abs_diff(x) <= 10 && (center.y).abs_diff(y) <= 10 {
                                     commands.entity(entity).insert((Move, Selected));
-                                    break;
+                                    break 'outer; // only drag one at a time
                                 }
                             }
                         }
@@ -250,61 +249,13 @@ pub fn button_input(
                             for (entity, mic) in mic_set.p0().iter() {
                                 let (m_x, m_y) = (mic.x, mic.y);
                                 if m_x.abs_diff(x) <= 10 && m_y.abs_diff(y) <= 10 {
-                                    //values should change depending on image size (smaller image -> greater radius)
                                     commands.entity(entity).insert((Move, Selected));
-                                    break; // only drag one at a time
+                                    break 'outer; // only drag one at a time
                                 }
                             }
                         }
                     }
                 }
-                // ToolType::MoveSource => {
-                // if let Some((x, y)) =
-                //     screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
-                // {
-                //     for (entity, source) in sources.iter() {
-                //         let (s_x, s_y) = (source.x, source.y);
-                //         if s_x.abs_diff(x) <= 10 && s_y.abs_diff(y) <= 10 {
-                //             //values should change depending on image size (smaller image -> greater radius)
-                //             commands.entity(entity).insert((Move, Selected));
-                //             break; // only drag one at a time
-                //         }
-                //     }
-                // }
-                // }
-                // ToolType::MoveWall => {
-                //     if let Some((x, y)) =
-                //         screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
-                //     {
-                //         let rect_walls = rect_wall_set.p0();
-                //         let circ_walls = circ_wall_set.p0();
-                //         let walls = rect_walls
-                //             .iter()
-                //             .map(|(e, w)| (e, w as &dyn Wall))
-                //             .chain(circ_walls.iter().map(|(e, w)| (e, w as &dyn Wall)));
-                //         for (entity, wall) in walls {
-                //             let center = wall.get_center();
-                //             if (center.x).abs_diff(x) <= 10 && (center.y).abs_diff(y) <= 10 {
-                //                 commands.entity(entity).insert((Move, Selected));
-                //                 break;
-                //             }
-                //         }
-                //     }
-                // }
-                // ToolType::MoveMic => {
-                // if let Some((x, y)) =
-                //     screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
-                // {
-                //     for (entity, mic) in microphones.iter() {
-                //         let (m_x, m_y) = (mic.x, mic.y);
-                //         if m_x.abs_diff(x) <= 10 && m_y.abs_diff(y) <= 10 {
-                //             //values should change depending on image size (smaller image -> greater radius)
-                //             commands.entity(entity).insert((Move, Selected));
-                //             break; // only drag one at a time
-                //         }
-                //     }
-                // }
-                // }
                 ToolType::ResizeWall => {
                     if let Some((x, y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
@@ -376,16 +327,6 @@ pub fn button_input(
 
         if let Some(position) = window.cursor_position() {
             match ui_state.current_tool {
-                // ToolType::MoveSource => {
-                //     if let Some((x, y)) =
-                //         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
-                //     {
-                //         drag_sources.iter_mut().for_each(|(_, mut source)| {
-                //             source.x = x;
-                //             source.y = y;
-                //         });
-                //     }
-                // }
                 ToolType::Move => {
                     if let Some((x, y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
@@ -460,47 +401,6 @@ pub fn button_input(
                         }
                     }
                 }
-                // ToolType::MoveWall => {
-                //     if let Some((x, y)) =
-                //         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
-                //     {
-                //         rect_wall_set.p1().iter_mut().for_each(|(_, mut wall)| {
-                //             wall.set_center(x, y);
-                //         });
-                //         circ_wall_set.p1().iter_mut().for_each(|(_, mut wall)| {
-                //             wall.set_center(x, y);
-                //         });
-
-                //         if ctrl {
-                //             // snap all four corners to grid
-                //             rect_wall_set.p1().iter_mut().for_each(|(_, mut wall)| {
-                //                 let min = UVec2 {
-                //                     x: (wall.rect.min.x as f32 / 10.).round() as u32 * 10,
-                //                     y: (wall.rect.min.y as f32 / 10.).round() as u32 * 10,
-                //                 };
-                //                 let max = UVec2 {
-                //                     x: (wall.rect.max.x as f32 / 10.).round() as u32 * 10,
-                //                     y: (wall.rect.max.y as f32 / 10.).round() as u32 * 10,
-                //                 };
-
-                //                 wall.resize(&WResize::TopLeft, min.x, min.y);
-                //                 wall.resize(&WResize::TopRight, max.x, min.y);
-                //                 wall.resize(&WResize::BottomLeft, min.x, max.y);
-                //                 wall.resize(&WResize::BottomRight, max.x, max.y);
-                //             });
-                //         }
-                //     }
-                // }
-                // ToolType::MoveMic => {
-                //     if let Some((x, y)) =
-                //         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
-                //     {
-                //         drag_microphones.iter_mut().for_each(|(_, mut mic)| {
-                //             mic.x = x;
-                //             mic.y = y;
-                //         });
-                //     }
-                // }
                 _ => {}
             }
         }
