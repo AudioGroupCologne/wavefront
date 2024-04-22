@@ -1,7 +1,7 @@
 use bevy::ecs::component::Component;
 
 #[derive(Component)]
-pub struct Drag;
+pub struct Move;
 
 #[derive(Component, Debug)]
 pub struct Selected;

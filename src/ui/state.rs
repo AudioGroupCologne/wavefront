@@ -9,22 +9,19 @@ pub struct SimTime {
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum ToolType {
-    MoveSource,
-    MoveWall,
-    MoveMic,
-    ResizeWall,
-
+    Select,
     Place(PlaceType),
+    Move,
+    ResizeWall,
 }
 
 impl fmt::Display for ToolType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ToolType::MoveSource => write!(f, "Move Source"),
-            ToolType::ResizeWall => write!(f, "Resize Wall"),
-            ToolType::MoveWall => write!(f, "Move Wall"),
-            ToolType::MoveMic => write!(f, "Move Microphone"),
+            ToolType::Select => write!(f, "Select Object"),
             ToolType::Place(_) => write!(f, "Place Object"),
+            ToolType::Move => write!(f, "Move Object"),
+            ToolType::ResizeWall => write!(f, "Resize Wall"),
         }
     }
 }

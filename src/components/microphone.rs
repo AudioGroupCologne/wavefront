@@ -45,7 +45,7 @@ impl Microphone {
 impl GizmoComponent for Microphone {
     fn get_gizmo_positions(&self, tool_type: &ToolType) -> Vec<Pos2> {
         match tool_type {
-            ToolType::MoveMic | ToolType::Place(PlaceType::Mic) => {
+            ToolType::Move | ToolType::Place(PlaceType::Mic) => {
                 vec![Pos2 {
                     x: self.x as f32,
                     y: self.y as f32,
@@ -67,7 +67,7 @@ impl GizmoComponent for Microphone {
         _text_color: Color32,
     ) {
         match tool_type {
-            ToolType::Place(PlaceType::Mic) | ToolType::MoveMic => {
+            ToolType::Place(PlaceType::Mic) | ToolType::Move => {
                 for pos in self.get_gizmo_positions(tool_type) {
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         grid_to_image(pos, image_rect),

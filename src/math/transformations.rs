@@ -3,7 +3,6 @@ use std::ops::{Add, Div, Mul, Sub};
 use egui::{Pos2, Rect};
 
 use super::constants::*;
-use crate::ui::state::UiState;
 
 /// Calculates 1D array index from x,y coordinates (and an offset `index`)
 pub fn coords_to_index(x: u32, y: u32, boundary_width: u32) -> usize {
@@ -26,13 +25,7 @@ where
 }
 
 /// converts screen coordinates to grid coordinates
-pub fn screen_to_grid(x: f32, y: f32, image_rect: Rect, ui_state: &UiState) -> Option<(u32, u32)> {
-    let boundary_width = if ui_state.render_abc_area {
-        ui_state.boundary_width
-    } else {
-        0
-    };
-
+pub fn screen_to_grid(x: f32, y: f32, image_rect: Rect) -> Option<(u32, u32)> {
     let width = image_rect.width();
     let height = image_rect.height();
     let x = x - image_rect.min.x;
@@ -43,20 +36,8 @@ pub fn screen_to_grid(x: f32, y: f32, image_rect: Rect, ui_state: &UiState) -> O
     }
 
     Some((
-        map_range(
-            0,
-            width as u32,
-            0,
-            SIMULATION_WIDTH + 2 * boundary_width,
-            x as u32,
-        ) - boundary_width,
-        map_range(
-            0,
-            height as u32,
-            0,
-            SIMULATION_HEIGHT + 2 * boundary_width,
-            y as u32,
-        ) - boundary_width,
+        map_range(0, width as u32, 0, SIMULATION_WIDTH, x as u32),
+        map_range(0, height as u32, 0, SIMULATION_HEIGHT, y as u32),
     ))
 }
 
