@@ -341,12 +341,12 @@ pub fn button_input(
     }
 
     if mouse_buttons.just_released(MouseButton::Left) {
-        // drag_sources.iter_mut().for_each(|(entity, _)| {
-        //     commands.entity(entity).remove::<Move>();
-        // });
-        // drag_microphones.iter_mut().for_each(|(entity, _)| {
-        //     commands.entity(entity).remove::<Move>();
-        // });
+        source_set.p2().iter_mut().for_each(|(entity, _)| {
+            commands.entity(entity).remove::<Move>();
+        });
+        mic_set.p2().iter_mut().for_each(|(entity, _)| {
+            commands.entity(entity).remove::<Move>();
+        });
         rect_wall_set
             .p0()
             .iter_mut()
