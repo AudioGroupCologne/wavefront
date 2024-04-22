@@ -64,13 +64,15 @@ type CircWalls<'w, 's> = Query<'w, 's, (Entity, &'static CircWall)>;
 type Mics<'w, 's> = Query<'w, 's, (Entity, &'static Microphone)>;
 type Sources<'w, 's> = Query<'w, 's, (Entity, &'static Source)>;
 
-type ResizeRectWalls<'w, 's> = Query<'w, 's, (Entity, &'static RectWall), With<WResize>>;
-type ResizeCircWalls<'w, 's> = Query<'w, 's, (Entity, &'static CircWall), With<WResize>>;
+type ResizeRectWalls<'w, 's> =
+    Query<'w, 's, (Entity, &'static WResize, &'static mut RectWall), With<WResize>>;
+type ResizeCircWalls<'w, 's> =
+    Query<'w, 's, (Entity, &'static WResize, &'static mut CircWall), With<WResize>>;
 
-type MoveRectWalls<'w, 's> = Query<'w, 's, (Entity, &'static RectWall), With<Move>>;
-type MoveCircWalls<'w, 's> = Query<'w, 's, (Entity, &'static CircWall), With<Move>>;
-type MoveMics<'w, 's> = Query<'w, 's, (Entity, &'static Microphone), With<Move>>;
-type MoveSources<'w, 's> = Query<'w, 's, (Entity, &'static Source), With<Move>>;
+type MoveRectWalls<'w, 's> = Query<'w, 's, (Entity, &'static mut RectWall), With<Move>>;
+type MoveCircWalls<'w, 's> = Query<'w, 's, (Entity, &'static mut CircWall), With<Move>>;
+type MoveMics<'w, 's> = Query<'w, 's, (Entity, &'static mut Microphone), With<Move>>;
+type MoveSources<'w, 's> = Query<'w, 's, (Entity, &'static mut Source), With<Move>>;
 
 type UnselectedRectWalls<'w, 's> = Query<'w, 's, (Entity, &'static RectWall), Without<Selected>>;
 type UnselectedCircWalls<'w, 's> = Query<'w, 's, (Entity, &'static CircWall), Without<Selected>>;
@@ -216,7 +218,7 @@ pub fn button_input(
                         if let Some((x, y)) =
                             screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                         {
-                            for (entity, source) in sources.iter() {
+                            for (entity, source) in source_set.p0().iter() {
                                 let (s_x, s_y) = (source.x, source.y);
                                 if s_x.abs_diff(x) <= 10 && s_y.abs_diff(y) <= 10 {
                                     //values should change depending on image size (smaller image -> greater radius)
@@ -245,7 +247,7 @@ pub fn button_input(
                         if let Some((x, y)) =
                             screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                         {
-                            for (entity, mic) in microphones.iter() {
+                            for (entity, mic) in mic_set.p0().iter() {
                                 let (m_x, m_y) = (mic.x, mic.y);
                                 if m_x.abs_diff(x) <= 10 && m_y.abs_diff(y) <= 10 {
                                     //values should change depending on image size (smaller image -> greater radius)
@@ -384,6 +386,45 @@ pub fn button_input(
                 //         });
                 //     }
                 // }
+                ToolType::Move => {
+                    if let Some((x, y)) =
+                        screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
+                    {
+                        source_set.p2().iter_mut().for_each(|(_, mut source)| {
+                            source.x = x;
+                            source.y = y;
+                        });
+                        rect_wall_set.p2().iter_mut().for_each(|(_, mut wall)| {
+                            wall.set_center(x, y);
+                        });
+                        circ_wall_set.p2().iter_mut().for_each(|(_, mut wall)| {
+                            wall.set_center(x, y);
+                        });
+                        mic_set.p2().iter_mut().for_each(|(_, mut mic)| {
+                            mic.x = x;
+                            mic.y = y;
+                        });
+
+                        if ctrl {
+                            // snap all four corners to grid
+                            rect_wall_set.p2().iter_mut().for_each(|(_, mut wall)| {
+                                let min = UVec2 {
+                                    x: (wall.rect.min.x as f32 / 10.).round() as u32 * 10,
+                                    y: (wall.rect.min.y as f32 / 10.).round() as u32 * 10,
+                                };
+                                let max = UVec2 {
+                                    x: (wall.rect.max.x as f32 / 10.).round() as u32 * 10,
+                                    y: (wall.rect.max.y as f32 / 10.).round() as u32 * 10,
+                                };
+
+                                wall.resize(&WResize::TopLeft, min.x, min.y);
+                                wall.resize(&WResize::TopRight, max.x, min.y);
+                                wall.resize(&WResize::BottomLeft, min.x, max.y);
+                                wall.resize(&WResize::BottomRight, max.x, max.y);
+                            });
+                        }
+                    }
+                }
                 ToolType::Place(PlaceType::RectWall)
                 | ToolType::Place(PlaceType::CircWall)
                 | ToolType::ResizeWall => {
@@ -391,17 +432,17 @@ pub fn button_input(
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                     {
                         rect_wall_set
-                            .p2()
+                            .p3()
                             .iter_mut()
                             .for_each(|(_, wall_resize, mut wall)| wall.resize(wall_resize, x, y));
                         circ_wall_set
-                            .p2()
+                            .p3()
                             .iter_mut()
                             .for_each(|(_, wall_resize, mut wall)| wall.resize(wall_resize, x, y));
 
                         if ctrl {
                             // snap all four corners to grid
-                            rect_wall_set.p2().iter_mut().for_each(|(_, _, mut wall)| {
+                            rect_wall_set.p3().iter_mut().for_each(|(_, _, mut wall)| {
                                 let min = UVec2 {
                                     x: (wall.rect.min.x as f32 / 10.).round() as u32 * 10,
                                     y: (wall.rect.min.y as f32 / 10.).round() as u32 * 10,
