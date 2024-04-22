@@ -59,23 +59,19 @@ pub fn copy_paste_system(
     }
 }
 
-type AllRectWalls<'w, 's> = Query<'w, 's, (Entity, &'static RectWall)>;
-type RectWallsMove<'w, 's> = Query<'w, 's, (Entity, &'static mut RectWall), With<Move>>;
-type RectWallsResizeNoMove<'w, 's> = Query<
-    'w,
-    's,
-    (Entity, &'static WResize, &'static mut RectWall),
-    (With<WResize>, Without<Move>),
->;
+type RectWalls<'w, 's> = Query<'w, 's, (Entity, &'static RectWall)>;
+type CircWalls<'w, 's> = Query<'w, 's, (Entity, &'static CircWall)>;
+type Mics<'w, 's> = Query<'w, 's, (Entity, &'static Microphone)>;
+type Sources<'w, 's> = Query<'w, 's, (Entity, &'static Source)>;
 
-type AllCircWalls<'w, 's> = Query<'w, 's, (Entity, &'static CircWall)>;
-type CircWallsMove<'w, 's> = Query<'w, 's, (Entity, &'static mut CircWall), With<Move>>;
-type CircWallsResizeNoMove<'w, 's> = Query<
-    'w,
-    's,
-    (Entity, &'static WResize, &'static mut CircWall),
-    (With<WResize>, Without<Move>),
->;
+type ResizeRectWalls<'w, 's> = Query<'w, 's, (Entity, &'static RectWall), With<WResize>>;
+type ResizeCircWalls<'w, 's> = Query<'w, 's, (Entity, &'static CircWall), With<WResize>>;
+
+type MoveRectWalls<'w, 's> = Query<'w, 's, (Entity, &'static RectWall), With<Move>>;
+type MoveCircWalls<'w, 's> = Query<'w, 's, (Entity, &'static CircWall), With<Move>>;
+type MoveMics<'w, 's> = Query<'w, 's, (Entity, &'static Microphone), With<Move>>;
+type MoveSources<'w, 's> = Query<'w, 's, (Entity, &'static Source), With<Move>>;
+
 type UnselectedRectWalls<'w, 's> = Query<'w, 's, (Entity, &'static RectWall), Without<Selected>>;
 type UnselectedCircWalls<'w, 's> = Query<'w, 's, (Entity, &'static CircWall), Without<Selected>>;
 type UnselectedMics<'w, 's> = Query<'w, 's, (Entity, &'static Microphone), Without<Selected>>;
@@ -89,23 +85,21 @@ pub fn button_input(
     mut wall_update_ev: EventWriter<UpdateWalls>,
     mut component_ids: ResMut<ComponentIDs>,
     mut ui_state: ResMut<UiState>,
-    // sources: Query<(Entity, &Source), Without<Move>>,
-    // mut drag_sources: Query<(Entity, &mut Source), (With<Move>, With<Selected>)>,
-    // microphones: Query<(Entity, &Microphone), Without<Move>>,
-    // mut drag_microphones: Query<(Entity, &mut Microphone), (With<Move>, With<Selected>)>,
     mut selected: Query<Entity, With<Selected>>,
-    mut unselected: ParamSet<(UnselectedSources, UnselectedMics)>,
+    // Param Sets
+    mut source_set: ParamSet<(Sources, UnselectedSources, MoveSources)>,
+    mut mic_set: ParamSet<(Mics, UnselectedMics, MoveMics)>,
     mut rect_wall_set: ParamSet<(
-        AllRectWalls,
-        RectWallsMove,
-        RectWallsResizeNoMove,
+        RectWalls,
         UnselectedRectWalls,
+        MoveRectWalls,
+        ResizeRectWalls,
     )>,
     mut circ_wall_set: ParamSet<(
-        AllCircWalls,
-        CircWallsMove,
-        CircWallsResizeNoMove,
+        CircWalls,
         UnselectedCircWalls,
+        MoveCircWalls,
+        ResizeCircWalls,
     )>,
 ) {
     #[cfg(not(target_os = "macos"))]
@@ -130,26 +124,26 @@ pub fn button_input(
                     {
                         // This should only allow for one object to be selected
                         'outer: {
-                            for (entity, source) in unselected.p0().iter() {
+                            for (entity, source) in source_set.p1().iter() {
                                 if (source.x).abs_diff(x) <= 10 && (source.y).abs_diff(y) <= 10 {
                                     commands.entity(entity).insert(Selected);
                                     break 'outer;
                                 }
                             }
-                            for (entity, mic) in unselected.p1().iter() {
+                            for (entity, mic) in mic_set.p1().iter() {
                                 if (mic.x).abs_diff(x) <= 10 && (mic.y).abs_diff(y) <= 10 {
                                     commands.entity(entity).insert(Selected);
                                     break 'outer;
                                 }
                             }
-                            for (entity, rect_wall) in rect_wall_set.p3().iter() {
+                            for (entity, rect_wall) in rect_wall_set.p1().iter() {
                                 let center = rect_wall.get_center();
                                 if (center.x).abs_diff(x) <= 10 && (center.y).abs_diff(y) <= 10 {
                                     commands.entity(entity).insert(Selected);
                                     break 'outer;
                                 }
                             }
-                            for (entity, circ_wall) in circ_wall_set.p3().iter() {
+                            for (entity, circ_wall) in circ_wall_set.p1().iter() {
                                 if (circ_wall.center.x).abs_diff(x) <= 10
                                     && (circ_wall.center.y).abs_diff(y) <= 10
                                 {
@@ -217,6 +211,52 @@ pub fn button_input(
                         }
                     }
                 },
+                ToolType::Move => {
+                    // This should only allow for one object to be selected
+                    'outer: {
+                        if let Some((x, y)) =
+                            screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
+                        {
+                            for (entity, source) in sources.iter() {
+                                let (s_x, s_y) = (source.x, source.y);
+                                if s_x.abs_diff(x) <= 10 && s_y.abs_diff(y) <= 10 {
+                                    //values should change depending on image size (smaller image -> greater radius)
+                                    commands.entity(entity).insert((Move, Selected));
+                                    break; // only drag one at a time
+                                }
+                            }
+                        }
+                        if let Some((x, y)) =
+                            screen_to_grid(position.x, position.y, ui_state.image_rect, &ui_state)
+                        {
+                            let rect_walls = rect_wall_set.p0();
+                            let circ_walls = circ_wall_set.p0();
+                            let walls = rect_walls
+                                .iter()
+                                .map(|(e, w)| (e, w as &dyn Wall))
+                                .chain(circ_walls.iter().map(|(e, w)| (e, w as &dyn Wall)));
+                            for (entity, wall) in walls {
+                                let center = wall.get_center();
+                                if (center.x).abs_diff(x) <= 10 && (center.y).abs_diff(y) <= 10 {
+                                    commands.entity(entity).insert((Move, Selected));
+                                    break;
+                                }
+                            }
+                        }
+                        if let Some((x, y)) =
+                            screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
+                        {
+                            for (entity, mic) in microphones.iter() {
+                                let (m_x, m_y) = (mic.x, mic.y);
+                                if m_x.abs_diff(x) <= 10 && m_y.abs_diff(y) <= 10 {
+                                    //values should change depending on image size (smaller image -> greater radius)
+                                    commands.entity(entity).insert((Move, Selected));
+                                    break; // only drag one at a time
+                                }
+                            }
+                        }
+                    }
+                }
                 // ToolType::MoveSource => {
                 // if let Some((x, y)) =
                 //     screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
@@ -264,7 +304,6 @@ pub fn button_input(
                 //     }
                 // }
                 // }
-                ToolType::Move => todo!(),
                 ToolType::ResizeWall => {
                     if let Some((x, y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
