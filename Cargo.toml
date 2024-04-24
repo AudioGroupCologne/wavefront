@@ -11,7 +11,7 @@ image = { version = "0.25.0", features = [
     "png",
     "rayon",
 ], default-features = false }
-egui_plot = "0.26.2"
+egui_plot = "0.27.2"
 rand = "0.8.5"
 rand_distr = "0.4.3"
 rayon = "1.8.0"
