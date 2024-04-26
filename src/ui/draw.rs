@@ -674,7 +674,12 @@ pub fn draw_egui(
                 .show(ui, |ui| {
                     ui.set_min_width(ui.available_width());
                     
-                    let selected_source = source_set.p1();
+                    let selected_source = source_set.p1().iter().next();
+                    let selected_source = if selected_source.is_some() {
+                        selected_source.unwrap().1.id as i32
+                    } else {
+                        -1_i32
+                    };
 
                     let mut binding = source_set.p0();
                     let mut source_vec = binding.iter_mut().collect::<Vec<_>>();
@@ -682,7 +687,7 @@ pub fn draw_egui(
 
 
                     source_vec.iter_mut().for_each(|(entity, ref mut source)| {
-                        let collapse = egui::CollapsingHeader::new(format!("Source {}", source.id)).open(Some(true)).show(ui, |ui| {
+                        let collapse = egui::CollapsingHeader::new(format!("Source {}", source.id)).open(Some(selected_source == source.id as i32)).show(ui, |ui| {
                             ui.horizontal(|ui| {
                                 ui.label("x:");
                                 if ui
