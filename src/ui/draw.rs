@@ -673,13 +673,16 @@ pub fn draw_egui(
                 .max_height(400.)
                 .show(ui, |ui| {
                     ui.set_min_width(ui.available_width());
+                    
+                    let selected_source = source_set.p1();
 
                     let mut binding = source_set.p0();
                     let mut source_vec = binding.iter_mut().collect::<Vec<_>>();
                     source_vec.sort_by_cached_key(|(_, source)| source.id);
 
+
                     source_vec.iter_mut().for_each(|(entity, ref mut source)| {
-                        let collapse = ui.collapsing(format!("Source {}", source.id), |ui| {
+                        let collapse = egui::CollapsingHeader::new(format!("Source {}", source.id)).open(Some(true)).show(ui, |ui| {
                             ui.horizontal(|ui| {
                                 ui.label("x:");
                                 if ui
