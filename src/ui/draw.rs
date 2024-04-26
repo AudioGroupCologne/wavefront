@@ -674,7 +674,8 @@ pub fn draw_egui(
                 .show(ui, |ui| {
                     ui.set_min_width(ui.available_width());
                     
-                    let selected_source = source_set.p1().iter().next();
+                    let binding = source_set.p1(); 
+                    let selected_source = binding.iter().next();
                     let selected_source = if selected_source.is_some() {
                         selected_source.unwrap().1.id as i32
                     } else {
@@ -833,12 +834,21 @@ pub fn draw_egui(
                     }
 
                     // Microphones
+
+                    let binding = mic_set.p1(); 
+                    let selected_mic = binding.iter().next();
+                    let selected_mic = if selected_mic.is_some() {
+                        selected_mic.unwrap().1.id as i32
+                    } else {
+                        -1_i32
+                    };
+
                     let mut binding = mic_set.p0();
                     let mut mic_vec = binding.iter_mut().collect::<Vec<_>>();
                     mic_vec.sort_by_cached_key(|(_, mic)| mic.id);
 
                     mic_vec.iter_mut().for_each(|(entity, ref mut mic)| {
-                        let collapse = ui.collapsing(format!("Microphone {}", mic.id), |ui| {
+                        let collapse = egui::CollapsingHeader::new(format!("Microphone {}", mic.id)).open(Some(selected_mic == mic.id as i32)).show(ui,  |ui| {
                             ui.horizontal(|ui| {
                                 ui.label("x:");
                                 ui.add(
@@ -880,13 +890,22 @@ pub fn draw_egui(
                     }
 
                     // Rect Walls
+
+                    let binding = rect_wall_set.p1(); 
+                    let selected_rect_wall = binding.iter().next();
+                    let selected_rect_wall = if selected_rect_wall.is_some() {
+                        selected_rect_wall.unwrap().1.id as i32
+                    } else {
+                        -1_i32
+                    };
+
                     let mut rect_binding = rect_wall_set.p0();
                     let mut wall_vec = rect_binding.iter_mut().collect::<Vec<_>>();
                     wall_vec.sort_by_cached_key(|(_, wall)| wall.id);
 
                     wall_vec.iter_mut().for_each(|(entity, ref mut wall)| {
                         let collapse =
-                            ui.collapsing(format!("Rectangular Wall {}", wall.id), |ui| {
+                            egui::CollapsingHeader::new(format!("Rectangular Wall {}", wall.id)).open(Some(selected_rect_wall == wall.id as i32)).show(ui, |ui| {
                                 ui.horizontal(|ui| {
                                     ui.label("x:");
                                     if ui
@@ -1009,12 +1028,21 @@ pub fn draw_egui(
                     });
 
                     // Circ Walls
+
+                    let binding = circ_wall_set.p1(); 
+                    let selected_circ_wall = binding.iter().next();
+                    let selected_circ_wall = if selected_circ_wall.is_some() {
+                        selected_circ_wall.unwrap().1.id as i32
+                    } else {
+                        -1_i32
+                    };
+
                     let mut circ_binding = circ_wall_set.p0();
                     let mut wall_vec = circ_binding.iter_mut().collect::<Vec<_>>();
                     wall_vec.sort_by_cached_key(|(_, wall)| wall.id);
 
                     wall_vec.iter_mut().for_each(|(entity, ref mut wall)| {
-                        let collapse = ui.collapsing(format!("Circular Wall {}", wall.id), |ui| {
+                        let collapse = egui::CollapsingHeader::new(format!("Circular Wall {}", wall.id)).open(Some(selected_circ_wall == wall.id as i32)).show(ui, |ui| {
                             ui.horizontal(|ui| {
                                 ui.label("x:");
                                 if ui
