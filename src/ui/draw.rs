@@ -136,10 +136,10 @@ pub fn draw_egui(
     egui_extras::install_image_loaders(ctx);
 
     let images = [
-        egui::include_image!("../../assets/place_source.png"),
-        egui::include_image!("../../assets/move_source.png"),
-        egui::include_image!("../../assets/resize_wall.png"),
         egui::include_image!("../../assets/select.png"),
+        egui::include_image!("../../assets/place.png"),
+        egui::include_image!("../../assets/move.png"),
+        egui::include_image!("../../assets/resize_wall.png"),
     ];
 
     let key = if cfg!(target_os = "macos") {
@@ -1331,10 +1331,10 @@ pub fn draw_egui(
         .resizable(false)
         .show(ctx, |ui| {
             ui.set_enabled(ui_state.tools_enabled);
-            let place_icon = &images[0];
-            let move_icon = &images[1];
-            let resize_wall_icon = &images[2];
-            let select_icon = &images[3];
+            let select_icon = &images[0];
+            let place_icon = &images[1];
+            let move_icon = &images[2];
+            let resize_wall_icon = &images[3];
 
             if ui
                 .add(
@@ -1355,10 +1355,10 @@ pub fn draw_egui(
             }
             ui.add_space(4.);
 
-
             if ui
                 .add(
                     egui::Button::image(
+                        // TODO: change image depending on cur_place_type??
                         egui::Image::new(place_icon.clone()).fit_to_exact_size(Vec2::new(25., 25.)),
                     )
                     .fill(if matches!(ui_state.current_tool, ToolType::Place(..)) {
@@ -1373,8 +1373,8 @@ pub fn draw_egui(
             {
                 ui_state.current_tool = ToolType::Place(ui_state.cur_place_type);
             }
-            ui.add_space(
-                4.);
+            ui.add_space(4.);
+
             if ui
                 .add(
                     egui::Button::image(
