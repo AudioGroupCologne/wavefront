@@ -409,6 +409,38 @@ pub fn button_input(
     if keys.just_pressed(KeyCode::Space) {
         ui_state.is_running = !ui_state.is_running;
     }
+
+    if keys.just_pressed(KeyCode::KeyQ) {
+        ui_state.current_tool = ToolType::Select;
+    }
+
+    if keys.just_pressed(KeyCode::KeyW) {
+        ui_state.current_tool = ToolType::Move;
+    }
+
+    if keys.just_pressed(KeyCode::KeyE) {
+        ui_state.current_tool = ToolType::ResizeWall;
+    }
+
+    if keys.just_pressed(KeyCode::KeyR) {
+        ui_state.current_tool = ToolType::Place(PlaceType::RectWall);
+        ui_state.cur_place_type = PlaceType::RectWall;
+    }
+
+    if keys.just_pressed(KeyCode::KeyC) {
+        ui_state.current_tool = ToolType::Place(PlaceType::CircWall);
+        ui_state.cur_place_type = PlaceType::CircWall;
+    }
+
+    if keys.just_pressed(KeyCode::KeyS) {
+        ui_state.current_tool = ToolType::Place(PlaceType::Source);
+        ui_state.cur_place_type = PlaceType::Source;
+    }
+
+    if keys.just_pressed(KeyCode::KeyM) {
+        ui_state.current_tool = ToolType::Place(PlaceType::Mic);
+        ui_state.cur_place_type = PlaceType::Mic;
+    }
 }
 
 /// This system handles all inputs that dispatch events
