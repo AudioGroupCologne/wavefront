@@ -246,6 +246,62 @@ pub fn draw_egui(
                                 ui.label("Space");
                             });
                         });
+                        body.row(15.0, |mut row| {
+                            row.col(|ui| {
+                                ui.label("Select Tool");
+                            });
+                            row.col(|ui| {
+                                ui.label("Q");
+                            });
+                        });
+                        body.row(15.0, |mut row| {
+                            row.col(|ui| {
+                                ui.label("Move Tool");
+                            });
+                            row.col(|ui| {
+                                ui.label("W");
+                            });
+                        });
+                        body.row(15.0, |mut row| {
+                            row.col(|ui| {
+                                ui.label("Resize Tool");
+                            });
+                            row.col(|ui| {
+                                ui.label("E");
+                            });
+                        });
+                        body.row(15.0, |mut row| {
+                            row.col(|ui| {
+                                ui.label("Place Rectangle Wall Tool");
+                            });
+                            row.col(|ui| {
+                                ui.label("R");
+                            });
+                        });
+                        body.row(15.0, |mut row| {
+                            row.col(|ui| {
+                                ui.label("Place Circular Wall Tool");
+                            });
+                            row.col(|ui| {
+                                ui.label("C");
+                            });
+                        });
+                        body.row(15.0, |mut row| {
+                            row.col(|ui| {
+                                ui.label("Place Source Tool");
+                            });
+                            row.col(|ui| {
+                                ui.label("S");
+                            });
+                        });
+                        body.row(15.0, |mut row| {
+                            row.col(|ui| {
+                                ui.label("Place Microphone Tool");
+                            });
+                            row.col(|ui| {
+                                ui.label("M");
+                            });
+                        });
                     });
             });
     }
