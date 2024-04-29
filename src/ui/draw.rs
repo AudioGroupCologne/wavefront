@@ -686,9 +686,8 @@ pub fn draw_egui(
                     let mut source_vec = binding.iter_mut().collect::<Vec<_>>();
                     source_vec.sort_by_cached_key(|(_, source)| source.id);
 
-
                     source_vec.iter_mut().for_each(|(entity, ref mut source)| {
-                        let collapse = egui::CollapsingHeader::new(format!("Source {}", source.id)).open(Some(selected_source == source.id as i32)).show(ui, |ui| {
+                        let collapse = egui::CollapsingHeader::new(format!("Source {}", source.id)).open(if selected_source == source.id as i32 { Some(true) } else { None }).show(ui, |ui| {
                             ui.horizontal(|ui| {
                                 ui.label("x:");
                                 if ui
@@ -848,7 +847,7 @@ pub fn draw_egui(
                     mic_vec.sort_by_cached_key(|(_, mic)| mic.id);
 
                     mic_vec.iter_mut().for_each(|(entity, ref mut mic)| {
-                        let collapse = egui::CollapsingHeader::new(format!("Microphone {}", mic.id)).open(Some(selected_mic == mic.id as i32)).show(ui,  |ui| {
+                        let collapse = egui::CollapsingHeader::new(format!("Microphone {}", mic.id)).open(if selected_mic == mic.id as i32 { Some(true) } else { None }).show(ui,  |ui| {
                             ui.horizontal(|ui| {
                                 ui.label("x:");
                                 ui.add(
@@ -905,7 +904,7 @@ pub fn draw_egui(
 
                     wall_vec.iter_mut().for_each(|(entity, ref mut wall)| {
                         let collapse =
-                            egui::CollapsingHeader::new(format!("Rectangular Wall {}", wall.id)).open(Some(selected_rect_wall == wall.id as i32)).show(ui, |ui| {
+                            egui::CollapsingHeader::new(format!("Rectangular Wall {}", wall.id)).open(if selected_rect_wall == wall.id as i32 { Some(true) } else { None }).show(ui, |ui| {
                                 ui.horizontal(|ui| {
                                     ui.label("x:");
                                     if ui
@@ -1042,7 +1041,7 @@ pub fn draw_egui(
                     wall_vec.sort_by_cached_key(|(_, wall)| wall.id);
 
                     wall_vec.iter_mut().for_each(|(entity, ref mut wall)| {
-                        let collapse = egui::CollapsingHeader::new(format!("Circular Wall {}", wall.id)).open(Some(selected_circ_wall == wall.id as i32)).show(ui, |ui| {
+                        let collapse = egui::CollapsingHeader::new(format!("Circular Wall {}", wall.id)).open(if selected_circ_wall == wall.id as i32 { Some(true) } else { None }).show(ui, |ui| {
                             ui.horizontal(|ui| {
                                 ui.label("x:");
                                 if ui
