@@ -1538,6 +1538,7 @@ pub fn draw_egui(
                             text_color,
                         );
                     }
+                    // TODO: change back to current_tool, and change component gizmo drawing for select
                     // all mics
                     for mic in mic_set.p3().iter() {
                         mic.draw_gizmo(

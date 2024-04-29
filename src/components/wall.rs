@@ -294,7 +294,7 @@ impl GizmoComponent for RectWall {
 
                 vec![top_left, top_right, bottom_left, bottom_right]
             }
-            ToolType::Move => {
+            ToolType::Move | ToolType::Select => {
                 let center = self.get_center();
                 vec![Pos2 {
                     x: center.x as f32,
@@ -328,7 +328,7 @@ impl GizmoComponent for RectWall {
 
                 self.draw_scale_text(painter, image_rect, delta_l, text_color);
             }
-            ToolType::Move => {
+            ToolType::Move | ToolType::Select => {
                 for pos in self.get_gizmo_positions(tool_type) {
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         grid_to_image(pos, image_rect),
@@ -630,7 +630,7 @@ impl GizmoComponent for CircWall {
                     y: resize_point.y as f32,
                 }]
             }
-            ToolType::Move => {
+            ToolType::Move | ToolType::Select => {
                 vec![Pos2 {
                     x: self.center.x as f32,
                     y: self.center.y as f32,
@@ -662,7 +662,7 @@ impl GizmoComponent for CircWall {
                 }
                 self.draw_scale_text(painter, image_rect, delta_l, text_color);
             }
-            ToolType::Move => {
+            ToolType::Move | ToolType::Select => {
                 for pos in self.get_gizmo_positions(tool_type) {
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         grid_to_image(pos, image_rect),
