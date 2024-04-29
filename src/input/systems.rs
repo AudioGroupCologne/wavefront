@@ -432,7 +432,8 @@ pub fn button_input(
         ui_state.cur_place_type = PlaceType::CircWall;
     }
 
-    if keys.just_pressed(KeyCode::KeyS) && !ctrl { // ctrl + s is reserved for save
+    // ctrl + s is reserved for save
+    if keys.just_pressed(KeyCode::KeyS) && !ctrl {
         ui_state.current_tool = ToolType::Place(PlaceType::Source);
         ui_state.cur_place_type = PlaceType::Source;
     }

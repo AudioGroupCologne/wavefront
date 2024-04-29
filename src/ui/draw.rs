@@ -334,42 +334,7 @@ pub fn draw_egui(
                                 body.row(row_height, |mut row| {
                                     row.col(|ui| {
                                         ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                            if ui
-                                                .add(
-                                                    egui::Slider::new(&mut ui_state_tmp.delta_l, 0.0..=10.0)
-                                                        .logarithmic(true),
-                                                )
-                                                .on_hover_text(
-                                                    "Change the size of one cell in the simulation in meters.",
-                                                )
-                                                .changed()
-                                            {
-                                                events.reset_ev.send(Reset::default());
-                                            }
-                                        });
-                                    });
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
-                                            ui.label("Delta L (m)");
-                                        });
-                                    });
-                                });
-                                body.row(row_height, |mut row| {
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                            if ui.add(egui::Slider::new(&mut ui_state_tmp.framerate, 1f64..=500.).logarithmic(true)).changed() {
-                                                if ui_state_tmp.read_epilepsy_warning {
-                                                    fixed_timestep.set_timestep_hz(ui_state_tmp.framerate);
-                                                } else {
-                                                    ui_state_tmp.show_epilepsy_warning = true;
-                                                    ui_state_tmp.framerate = 60.;
-                                                }
-                                            }
-                                        });
-                                    });
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
-                                            ui.label("Simulation Frame Rate");
+                                            ui.strong("Gradient");
                                         });
                                     });
                                 });
@@ -420,6 +385,13 @@ pub fn draw_egui(
                                     row.col(|ui| {
                                         ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
                                             ui.label("Gradient Contrast");
+                                        });
+                                    });
+                                });
+                                body.row(row_height, |mut row| {
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                            ui.strong("Boundary");
                                         });
                                     });
                                 });
@@ -1305,6 +1277,40 @@ pub fn draw_egui(
                 });
 
                 ui.add_space(5.);
+
+                ui.horizontal(|ui| {
+                    if ui
+                        .add(egui::Slider::new(&mut ui_state.delta_l, 0.0..=10.0).logarithmic(true))
+                        .on_hover_text("Change the size of one cell in the simulation in meters.")
+                        .changed()
+                    {
+                        events.reset_ev.send(Reset::default());
+                    }
+                    ui.add_space(5.);
+                    ui.label("Delta L (m)");
+                });
+
+                ui.horizontal(|ui| {
+                    if ui
+                        .add(
+                            egui::Slider::new(&mut ui_state.framerate, 1f64..=500.)
+                                .logarithmic(true),
+                        )
+                        .changed()
+                    {
+                        if ui_state.read_epilepsy_warning {
+                            fixed_timestep.set_timestep_hz(ui_state.framerate);
+                        } else {
+                            ui_state.show_epilepsy_warning = true;
+                            ui_state.framerate = 60.;
+                        }
+                    }
+                    ui.add_space(5.);
+                    ui.label("Simulation Frame Rate");
+                });
+
+                ui.add_space(5.);
+
                 ui.horizontal(|ui| {
                     ui.label(format!(
                         "Simulation Time: {:.5} ms",
@@ -1320,6 +1326,7 @@ pub fn draw_egui(
                             .unwrap_or(0.0)
                     ));
                 });
+
                 ui.add_space(5.);
             });
 
