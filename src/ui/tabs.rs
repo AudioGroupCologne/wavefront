@@ -136,8 +136,8 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                 let root = root.margin(10, 10, 10, 10);
 
                                 let mut chart = ChartBuilder::on(&root)
-                                    .x_label_area_size(20)
-                                    .y_label_area_size(40)
+                                    .x_label_area_size(40)
+                                    .y_label_area_size(50)
                                     .build_cartesian_2d(0f32..highest_x, -highest_y..highest_y)
                                     .unwrap();
 
