@@ -718,6 +718,8 @@ pub fn draw_egui(
                         let collapse = egui::CollapsingHeader::new(format!("Source {}", source.id))
                             .open(if selected_source == source.id as i32 {
                                 Some(true)
+                            } else if ui_state.collapse_header {
+                                Some(false)
                             } else {
                                 None
                             })
@@ -887,6 +889,8 @@ pub fn draw_egui(
                             egui::CollapsingHeader::new(format!("Microphone {}", mic.id))
                                 .open(if selected_mic == mic.id as i32 {
                                     Some(true)
+                                } else if ui_state.collapse_header {
+                                    Some(false)
                                 } else {
                                     None
                                 })
@@ -950,6 +954,8 @@ pub fn draw_egui(
                             egui::CollapsingHeader::new(format!("Rectangular Wall {}", wall.id))
                                 .open(if selected_rect_wall == wall.id as i32 {
                                     Some(true)
+                                } else if ui_state.collapse_header {
+                                    Some(false)
                                 } else {
                                     None
                                 })
@@ -1097,6 +1103,8 @@ pub fn draw_egui(
                             egui::CollapsingHeader::new(format!("Circular Wall {}", wall.id))
                                 .open(if selected_circ_wall == wall.id as i32 {
                                     Some(true)
+                                } else if ui_state.collapse_header {
+                                    Some(false)
                                 } else {
                                     None
                                 })
@@ -1702,4 +1710,6 @@ pub fn draw_egui(
                 }
             }
         });
+
+    ui_state.collapse_header = false;
 }
