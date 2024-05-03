@@ -65,7 +65,7 @@ fn update_state(
 }
 
 /// Updates the state of the application based on the undo/redo commands.
-fn undo_redo_key(keys: Res<ButtonInput<KeyCode>>, mut undo_ev: EventWriter<UndoEvent>) {
+fn undo_redo_key(keys: Res<ButtonInput<KeyCode>>, mut undo_ev: EventWriter<UndoEvent>, mut wall_update_ev: EventWriter<UpdateWalls>) {
     #[cfg(not(target_os = "macos"))]
     let ctrl = keys.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
 
@@ -77,8 +77,10 @@ fn undo_redo_key(keys: Res<ButtonInput<KeyCode>>, mut undo_ev: EventWriter<UndoE
     // on qwertz keyboards this binds to the z key
     if ctrl && !shift && keys.just_pressed(KeyCode::KeyY) {
         undo_ev.send(UndoEvent(UndoRedo::Undo));
+        wall_update_ev.send(UpdateWalls);
     } else if ctrl && shift && keys.just_pressed(KeyCode::KeyY) {
         undo_ev.send(UndoEvent(UndoRedo::Redo));
+        wall_update_ev.send(UpdateWalls);
     }
 }
 

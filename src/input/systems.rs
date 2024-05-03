@@ -431,7 +431,8 @@ pub fn button_input(
         ui_state.cur_place_type = PlaceType::RectWall;
     }
 
-    if keys.just_pressed(KeyCode::KeyC) {
+    // ctrl + c is reserved for copy
+    if keys.just_pressed(KeyCode::KeyC) && !ctrl {
         ui_state.current_tool = ToolType::Place(PlaceType::CircWall);
         ui_state.cur_place_type = PlaceType::CircWall;
     }
