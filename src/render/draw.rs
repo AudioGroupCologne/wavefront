@@ -186,16 +186,58 @@ pub fn draw_overlays(
         let mut b_x = 0i32;
         let mut b_y = wall.radius as i32;
         let mut d = 1 - wall.radius as i32;
+        // TODO: don't name this var _thickness_, also it is in px
+        let thickness = 5;
         while b_x <= b_y {
-            for (x, y) in [
-                (wall.center.x as i32 + b_x, wall.center.y as i32 + b_y),
-                (wall.center.x as i32 + b_x, wall.center.y as i32 - b_y),
-                (wall.center.x as i32 - b_x, wall.center.y as i32 + b_y),
-                (wall.center.x as i32 - b_x, wall.center.y as i32 - b_y),
-                (wall.center.x as i32 + b_y, wall.center.y as i32 + b_x),
-                (wall.center.x as i32 + b_y, wall.center.y as i32 - b_x),
-                (wall.center.x as i32 - b_y, wall.center.y as i32 + b_x),
-                (wall.center.x as i32 - b_y, wall.center.y as i32 - b_x),
+            for (x, y, t_x, t_y) in [
+                (
+                    wall.center.x as i32 + b_x,
+                    wall.center.y as i32 + b_y,
+                    1,
+                    -thickness,
+                ), // 0
+                (
+                    wall.center.x as i32 + b_x,
+                    wall.center.y as i32 - b_y,
+                    1,
+                    thickness,
+                ), // 1
+                (
+                    wall.center.x as i32 - b_x,
+                    wall.center.y as i32 + b_y,
+                    1,
+                    -thickness,
+                ), // 2
+                (
+                    wall.center.x as i32 - b_x,
+                    wall.center.y as i32 - b_y,
+                    1,
+                    thickness,
+                ), // 3
+                (
+                    wall.center.x as i32 + b_y,
+                    wall.center.y as i32 + b_x,
+                    -thickness,
+                    1,
+                ), // 4
+                (
+                    wall.center.x as i32 + b_y,
+                    wall.center.y as i32 - b_x,
+                    -thickness,
+                    1,
+                ), // 5
+                (
+                    wall.center.x as i32 - b_y,
+                    wall.center.y as i32 + b_x,
+                    thickness,
+                    1,
+                ), // 6
+                (
+                    wall.center.x as i32 - b_y,
+                    wall.center.y as i32 - b_x,
+                    thickness,
+                    1,
+                ), // 7
             ] {
                 if x >= 0 && x < SIMULATION_WIDTH as i32 && y >= 0 && y < SIMULATION_HEIGHT as i32 {
                     // angle in [0, 2pi)
@@ -210,17 +252,22 @@ pub fn draw_overlays(
                     if angle >= wall.open_circ_segment && angle <= TAU - wall.open_circ_segment
                         || !wall.is_hollow
                     {
-                        let index = x as u32 + y as u32 * SIMULATION_WIDTH;
-                        let r = raw_pixles[index as usize].r;
-                        let g = raw_pixles[index as usize].g;
-                        let b = raw_pixles[index as usize].b;
+                        for cur_x in if t_x > 0 { 0..t_x } else { (t_x + 1)..1 } {
+                            for cur_y in if t_y > 0 { 0..t_y } else { (t_y + 1)..1 } {
+                                let index =
+                                    (x + cur_x) as u32 + (y + cur_y) as u32 * SIMULATION_WIDTH;
+                                let r = raw_pixles[index as usize].r;
+                                let g = raw_pixles[index as usize].g;
+                                let b = raw_pixles[index as usize].b;
 
-                        raw_pixles[index as usize] = Pixel {
-                            r: map_range(0, 255, 100, 175, r as u32) as u8,
-                            g: map_range(0, 255, 80, 80, g as u32) as u8,
-                            b: map_range(0, 255, 80, 80, b as u32) as u8,
-                            a: 255,
-                        };
+                                raw_pixles[index as usize] = Pixel {
+                                    r: map_range(0, 255, 100, 175, r as u32) as u8,
+                                    g: map_range(0, 255, 80, 80, g as u32) as u8,
+                                    b: map_range(0, 255, 80, 80, b as u32) as u8,
+                                    a: 255,
+                                };
+                            }
+                        }
                     }
                 }
             }
