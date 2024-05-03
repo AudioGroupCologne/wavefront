@@ -30,9 +30,7 @@ pub fn calc_mic_spectrum(
     // always returns frequencies up to sampling_rate/2
     let spectrum_hann_window = samples_fft_to_spectrum(
         &hann_window,
-        // "Normally" the sample rate should be calculated as: (1. / delta_t) as u32
-        // But because the rate of samples provided does not actually change when changing delta_l,
-        // we can just use the constant value. Calculated as 1/(0.001 / 343) = 343200
+        // TODO: if this only returns up to sampling_rate/2 freqs, then why did we experience a mirrored spectrum?? cannot replicate
         (1. / delta_t) as u32,
         FrequencyLimit::All,
         match scaling {
