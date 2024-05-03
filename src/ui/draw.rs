@@ -473,7 +473,7 @@ pub fn draw_egui(
                                     });
                                     row.col(|ui| {
                                         ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
-                                            ui.label("Boundary width");
+                                            ui.label("Boundary width (px)");
                                         });
                                     });
                                 });
