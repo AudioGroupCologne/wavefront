@@ -12,7 +12,7 @@ use super::gizmo::GizmoComponent;
 use crate::math::constants::*;
 use crate::math::transformations::grid_to_image;
 use crate::simulation::plugin::ComponentIDs;
-use crate::ui::state::{PlaceType, ToolType};
+use crate::ui::state::ToolType;
 
 /// A sound source on the grid
 #[derive(Debug, Default, Component, Serialize, Deserialize, Clone, PartialEq, Copy)]
@@ -163,7 +163,7 @@ impl Source {
 impl GizmoComponent for Source {
     fn get_gizmo_positions(&self, tool_type: &ToolType) -> Vec<Pos2> {
         match tool_type {
-            ToolType::Place(PlaceType::Source) | ToolType::Move => {
+            ToolType::Place(..) | ToolType::Move | ToolType::Select => {
                 vec![Pos2 {
                     x: self.x as f32,
                     y: self.y as f32,
@@ -185,7 +185,7 @@ impl GizmoComponent for Source {
         _delta_l: f32,
     ) {
         match tool_type {
-            ToolType::Place(PlaceType::Source) | ToolType::Move => {
+            ToolType::Place(..) | ToolType::Move | ToolType::Select => {
                 for pos in self.get_gizmo_positions(tool_type) {
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         grid_to_image(pos, image_rect),

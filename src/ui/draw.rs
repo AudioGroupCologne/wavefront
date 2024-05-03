@@ -1673,7 +1673,7 @@ pub fn draw_egui(
                     for mic in mic_set.p3().iter() {
                         mic.draw_gizmo(
                             painter,
-                            &ToolType::Place(PlaceType::Mic),
+                            &ui_state.current_tool,
                             false,
                             &ui_state.image_rect,
                             Some(&format!("{}", mic.id)),
@@ -1684,7 +1684,7 @@ pub fn draw_egui(
                     for (_, mic) in mic_set.p1().iter() {
                         mic.draw_gizmo(
                             painter,
-                            &ToolType::Place(PlaceType::Mic),
+                            &ui_state.current_tool,
                             true,
                             &ui_state.image_rect,
                             Some(&format!("{}", mic.id)),
@@ -1695,7 +1695,7 @@ pub fn draw_egui(
                     for source in source_set.p3().iter() {
                         source.draw_gizmo(
                             painter,
-                            &ToolType::Place(PlaceType::Source),
+                            &ui_state.current_tool,
                             false,
                             &ui_state.image_rect,
                             Some(&format!("{}", source.id)),
@@ -1706,7 +1706,7 @@ pub fn draw_egui(
                     for (_, source) in source_set.p1().iter() {
                         source.draw_gizmo(
                             painter,
-                            &ToolType::Place(PlaceType::Source),
+                            &ui_state.current_tool,
                             true,
                             &ui_state.image_rect,
                             Some(&format!("{}", source.id)),
