@@ -1577,7 +1577,6 @@ pub fn draw_egui(
 
             if !ui_state.render_abc_area {
                 let painter = ui.painter();
-                let text_color = Color32::WHITE;
                 //menu gizmos
                 if !ui_state.tools_enabled {
                     for (_, wall) in rect_wall_set.p2().iter() {
@@ -1586,8 +1585,8 @@ pub fn draw_egui(
                             &ToolType::Move,
                             true,
                             &ui_state.image_rect,
+                            None,
                             ui_state.delta_l,
-                            text_color,
                         );
                     }
                     for (_, wall) in circ_wall_set.p2().iter() {
@@ -1596,8 +1595,8 @@ pub fn draw_egui(
                             &ToolType::Move,
                             true,
                             &ui_state.image_rect,
+                            None,
                             ui_state.delta_l,
-                            text_color,
                         );
                     }
                     // all mics
@@ -1607,8 +1606,8 @@ pub fn draw_egui(
                             &ToolType::Move,
                             true,
                             &ui_state.image_rect,
+                            Some(&format!("{}", mic.id)),
                             ui_state.delta_l,
-                            text_color,
                         );
                     }
                     // all sources
@@ -1618,8 +1617,8 @@ pub fn draw_egui(
                             &ToolType::Move,
                             true,
                             &ui_state.image_rect,
+                            Some(&format!("{}", source.id)),
                             ui_state.delta_l,
-                            text_color,
                         );
                     }
                 } else {
@@ -1631,8 +1630,8 @@ pub fn draw_egui(
                             &ui_state.current_tool,
                             false,
                             &ui_state.image_rect,
+                            None,
                             ui_state.delta_l,
-                            text_color,
                         );
                     }
                     // selected walls
@@ -1642,8 +1641,8 @@ pub fn draw_egui(
                             &ui_state.current_tool,
                             true,
                             &ui_state.image_rect,
+                            None,
                             ui_state.delta_l,
-                            text_color,
                         );
                     }
                     // all circ walls
@@ -1653,8 +1652,8 @@ pub fn draw_egui(
                             &ui_state.current_tool,
                             false,
                             &ui_state.image_rect,
+                            None,
                             ui_state.delta_l,
-                            text_color,
                         );
                     }
                     // selected circ walls
@@ -1664,8 +1663,8 @@ pub fn draw_egui(
                             &ui_state.current_tool,
                             true,
                             &ui_state.image_rect,
+                            None,
                             ui_state.delta_l,
-                            text_color,
                         );
                     }
                     // TODO: change back to current_tool, and change component gizmo drawing for select
@@ -1676,8 +1675,8 @@ pub fn draw_egui(
                             &ToolType::Place(PlaceType::Mic),
                             false,
                             &ui_state.image_rect,
+                            Some(&format!("{}", mic.id)),
                             ui_state.delta_l,
-                            text_color,
                         );
                     }
                     // selected mics
@@ -1687,8 +1686,8 @@ pub fn draw_egui(
                             &ToolType::Place(PlaceType::Mic),
                             true,
                             &ui_state.image_rect,
+                            Some(&format!("{}", mic.id)),
                             ui_state.delta_l,
-                            text_color,
                         );
                     }
                     // all sources
@@ -1698,8 +1697,8 @@ pub fn draw_egui(
                             &ToolType::Place(PlaceType::Source),
                             false,
                             &ui_state.image_rect,
+                            Some(&format!("{}", source.id)),
                             ui_state.delta_l,
-                            text_color,
                         );
                     }
                     // selected sources
@@ -1709,8 +1708,8 @@ pub fn draw_egui(
                             &ToolType::Place(PlaceType::Source),
                             true,
                             &ui_state.image_rect,
+                            Some(&format!("{}", source.id)),
                             ui_state.delta_l,
-                            text_color,
                         );
                     }
                 }

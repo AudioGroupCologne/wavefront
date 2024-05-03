@@ -1,6 +1,7 @@
 use bevy::prelude::*;
-use egui::epaint::CircleShape;
-use egui::{Color32, Pos2, Rect};
+use egui::epaint::{CircleShape, TextShape};
+use egui::text::LayoutJob;
+use egui::{Color32, Pos2, Rect, TextFormat};
 use serde::{Deserialize, Serialize};
 
 use super::gizmo::GizmoComponent;
@@ -63,8 +64,8 @@ impl GizmoComponent for Microphone {
         tool_type: &ToolType,
         highlight: bool,
         image_rect: &Rect,
+        text: Option<&str>,
         _delta_l: f32,
-        _text_color: Color32,
     ) {
         match tool_type {
             ToolType::Place(PlaceType::Mic) | ToolType::Move => {
@@ -74,6 +75,20 @@ impl GizmoComponent for Microphone {
                         if highlight { 10. } else { 5. },
                         Color32::GOLD,
                     )));
+                    if let Some(text) = text {
+                        let galley = {
+                            let layout_job = LayoutJob::single_section(
+                                text.to_owned(),
+                                TextFormat {
+                                    color: Color32::WHITE,
+                                    background: Color32::TRANSPARENT,
+                                    ..Default::default()
+                                },
+                            );
+                            painter.layout_job(layout_job)
+                        };
+                        painter.add(TextShape::new(grid_to_image(pos, image_rect), galley, Color32::BLACK));
+                    }
                 }
             }
             _ => {}

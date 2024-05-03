@@ -313,8 +313,8 @@ impl GizmoComponent for RectWall {
         tool_type: &ToolType,
         highlight: bool,
         image_rect: &Rect,
+        _text: Option<&str>,
         delta_l: f32,
-        text_color: Color32,
     ) {
         match tool_type {
             ToolType::ResizeWall => {
@@ -326,7 +326,7 @@ impl GizmoComponent for RectWall {
                     )));
                 }
 
-                self.draw_scale_text(painter, image_rect, delta_l, text_color);
+                self.draw_scale_text(painter, image_rect, delta_l, Color32::WHITE);
             }
             ToolType::Move | ToolType::Select => {
                 for pos in self.get_gizmo_positions(tool_type) {
@@ -338,7 +338,7 @@ impl GizmoComponent for RectWall {
                 }
             }
             ToolType::Place(PlaceType::RectWall) => {
-                self.draw_scale_text(painter, image_rect, delta_l, text_color);
+                self.draw_scale_text(painter, image_rect, delta_l, Color32::WHITE);
             }
             _ => {}
         }
@@ -648,8 +648,8 @@ impl GizmoComponent for CircWall {
         tool_type: &ToolType,
         highlight: bool,
         image_rect: &Rect,
+        _text: Option<&str>,
         delta_l: f32,
-        text_color: Color32,
     ) {
         match tool_type {
             ToolType::ResizeWall => {
@@ -660,7 +660,7 @@ impl GizmoComponent for CircWall {
                         Color32::LIGHT_RED,
                     )));
                 }
-                self.draw_scale_text(painter, image_rect, delta_l, text_color);
+                self.draw_scale_text(painter, image_rect, delta_l, Color32::WHITE);
             }
             ToolType::Move | ToolType::Select => {
                 for pos in self.get_gizmo_positions(tool_type) {
@@ -672,7 +672,7 @@ impl GizmoComponent for CircWall {
                 }
             }
             ToolType::Place(PlaceType::CircWall) => {
-                self.draw_scale_text(painter, image_rect, delta_l, text_color);
+                self.draw_scale_text(painter, image_rect, delta_l, Color32::WHITE);
             }
             _ => {}
         }

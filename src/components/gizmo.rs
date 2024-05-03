@@ -1,4 +1,4 @@
-use egui::{Color32, Painter, Pos2, Rect};
+use egui::{Painter, Pos2, Rect};
 
 use crate::ui::state::ToolType;
 
@@ -11,7 +11,7 @@ pub trait GizmoComponent {
         tool_type: &ToolType,
         highlight: bool,
         image_rect: &Rect,
+        text: Option<&str>,
         delta_l: f32,
-        text_color: Color32,
     );
 }
