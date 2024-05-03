@@ -1622,8 +1622,9 @@ pub fn draw_egui(
                         );
                     }
                 } else {
+                    // TODO: drawing selected gizmos on top means that the text is also drawn twice
                     // Tool specific gizmos
-                    // all walls
+                    // all rect walls
                     for wall in rect_wall_set.p3().iter() {
                         wall.draw_gizmo(
                             painter,
@@ -1634,7 +1635,7 @@ pub fn draw_egui(
                             ui_state.delta_l,
                         );
                     }
-                    // selected walls
+                    // selected rect walls
                     for (_, wall) in rect_wall_set.p1().iter() {
                         wall.draw_gizmo(
                             painter,
