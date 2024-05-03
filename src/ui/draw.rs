@@ -334,6 +334,24 @@ pub fn draw_egui(
                                 body.row(row_height, |mut row| {
                                     row.col(|ui| {
                                         ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                            if ui
+                                                .add(egui::Slider::new(&mut ui_state_tmp.delta_l, 0.0..=10.0).logarithmic(true))
+                                                .on_hover_text("Change the size of one cell in the simulation in meters.")
+                                                .changed()
+                                            {
+                                                events.reset_ev.send(Reset::default());
+                                            }
+                                        });
+                                    });
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
+                                            ui.label("Delta L (m)");
+                                        });
+                                    });
+                                });
+                                body.row(row_height, |mut row| {
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
                                             ui.strong("Gradient");
                                         });
                                     });
@@ -1285,18 +1303,6 @@ pub fn draw_egui(
                 });
 
                 ui.add_space(5.);
-
-                ui.horizontal(|ui| {
-                    if ui
-                        .add(egui::Slider::new(&mut ui_state.delta_l, 0.0..=10.0).logarithmic(true))
-                        .on_hover_text("Change the size of one cell in the simulation in meters.")
-                        .changed()
-                    {
-                        events.reset_ev.send(Reset::default());
-                    }
-                    ui.add_space(5.);
-                    ui.label("Delta L (m)");
-                });
 
                 ui.horizontal(|ui| {
                     if ui

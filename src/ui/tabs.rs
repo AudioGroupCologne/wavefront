@@ -369,7 +369,8 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             if self.ui_state.show_fft_approx {
                                 let mut result = Vec::with_capacity(mapped_spectrum.len());
 
-                                let n = (self.ui_state.fft_window_size as f64 / 256.).round() as i32;
+                                let n =
+                                    (self.ui_state.fft_window_size as f64 / 256.).round() as i32;
                                 for i in 0..mapped_spectrum.len() {
                                     let lower = if i as i32 - n < 0 {
                                         0usize

@@ -65,7 +65,11 @@ fn update_state(
 }
 
 /// Updates the state of the application based on the undo/redo commands.
-fn undo_redo_key(keys: Res<ButtonInput<KeyCode>>, mut undo_ev: EventWriter<UndoEvent>, mut wall_update_ev: EventWriter<UpdateWalls>) {
+fn undo_redo_key(
+    keys: Res<ButtonInput<KeyCode>>,
+    mut undo_ev: EventWriter<UndoEvent>,
+    mut wall_update_ev: EventWriter<UpdateWalls>,
+) {
     #[cfg(not(target_os = "macos"))]
     let ctrl = keys.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
 
