@@ -189,7 +189,7 @@ impl GizmoComponent for Source {
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         grid_to_image(pos, image_rect),
                         if highlight { 10. } else { 5. },
-                        Color32::LIGHT_BLUE,
+                        Color32::RED,
                     )));
                 }
             }
