@@ -1469,7 +1469,7 @@ pub fn draw_egui(
                 .add(
                     egui::Button::image(
                         egui::Image::new(select_icon.clone())
-                            .fit_to_exact_size(Vec2::new(25., 25.)),
+                            .fit_to_exact_size(Vec2::new(24., 24.)),
                     )
                     .fill(if matches!(ui_state.current_tool, ToolType::Select) {
                         Color32::DARK_GRAY
@@ -1489,7 +1489,7 @@ pub fn draw_egui(
                 .add(
                     egui::Button::image(
                         // TODO: change image depending on cur_place_type??
-                        egui::Image::new(place_icon.clone()).fit_to_exact_size(Vec2::new(25., 25.)),
+                        egui::Image::new(place_icon.clone()).fit_to_exact_size(Vec2::new(24., 24.)),
                     )
                     .fill(if matches!(ui_state.current_tool, ToolType::Place(..)) {
                         Color32::DARK_GRAY
@@ -1508,7 +1508,7 @@ pub fn draw_egui(
             if ui
                 .add(
                     egui::Button::image(
-                        egui::Image::new(move_icon.clone()).fit_to_exact_size(Vec2::new(25., 25.)),
+                        egui::Image::new(move_icon.clone()).fit_to_exact_size(Vec2::new(24., 24.)),
                     )
                     .fill(if matches!(ui_state.current_tool, ToolType::Move) {
                         Color32::DARK_GRAY
@@ -1528,7 +1528,7 @@ pub fn draw_egui(
                 .add(
                     egui::Button::image(
                         egui::Image::new(resize_wall_icon.clone())
-                            .fit_to_exact_size(Vec2::new(25., 25.)),
+                            .fit_to_exact_size(Vec2::new(24., 24.)),
                     )
                     .fill(if matches!(ui_state.current_tool, ToolType::ResizeWall) {
                         Color32::DARK_GRAY
