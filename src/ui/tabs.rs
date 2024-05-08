@@ -391,10 +391,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             } else {
                                 let points = PlotPoints::new(mapped_spectrum.to_vec());
                                 let line = Line::new(points);
-                                plot_ui.line(line.name(format!(
-                                    "Microphone {} (x: {}, y: {})",
-                                    mic.id, mic.x, mic.y
-                                )));
+                                plot_ui.line(line.name(format!("Microphone {}", mic.id)));
                             }
 
                             let y_padding = match self.ui_state.fft_scaling {
@@ -466,7 +463,6 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             [lowest_x, lowest_y],
                             [highest_x, highest_y],
                         ));
-
                     });
             }
             Tab::Spectrogram => {
@@ -476,6 +472,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                     return;
                 }
 
+                // TODO: fix spectrogram for multiple microphones
                 // egui::ComboBox::from_label("FFT Microphone")
                 //     .selected_text(if let Some(index) = self.fft_microphone.mic_id {
                 //         format!("Microphone {index}")
