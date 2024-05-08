@@ -402,7 +402,6 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                 FftScaling::Decibels => 5.,
                             };
 
-                            //TODO do the checking for highest/lowest y for all mics
                             // set bounds based on the highest and lowest values (and interpolate to make it smooth)
                             let highest_y = mapped_spectrum
                                 .iter()
