@@ -26,7 +26,7 @@ pub struct Grid {
     pub pressure: Vec<f32>,
     pub wall_cache: Vec<WallCell>,
     boundary_cache: Vec<[f32; 4]>,
-    /// Delta s in seconds
+    /// Delta t in seconds
     pub delta_t: f32,
 }
 

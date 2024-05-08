@@ -4,6 +4,7 @@ use bevy::prelude::*;
 
 #[derive(Default, Resource)]
 pub struct SimTime {
+    // time since simulation start in seconds
     pub time_since_start: f32,
 }
 
