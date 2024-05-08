@@ -1,4 +1,5 @@
 use std::cmp::Ordering;
+use std::f32::consts::TAU;
 
 use bevy::prelude::*;
 use egui::epaint::{CircleShape, TextShape};
@@ -444,6 +445,7 @@ pub struct CircWall {
     /// rotation angle in radians
     pub rotation_angle: f32,
     pub id: usize,
+    resize_point: UVec2,
 }
 
 impl Wall for CircWall {
@@ -453,47 +455,10 @@ impl Wall for CircWall {
 
     fn get_resize_point(&self, resize_type: &WResize) -> UVec2 {
         match resize_type {
-            WResize::Radius => {
-                let mut b_x = 0i32;
-                let mut b_y = self.radius as i32;
-                let mut d = 1 - self.radius as i32;
-                while b_x <= b_y {
-                    for (x, y) in [
-                        (self.center.x as i32 + b_x, self.center.y as i32 + b_y),
-                        (self.center.x as i32 + b_x, self.center.y as i32 - b_y),
-                        (self.center.x as i32 - b_x, self.center.y as i32 + b_y),
-                        (self.center.x as i32 - b_x, self.center.y as i32 - b_y),
-                        (self.center.x as i32 + b_y, self.center.y as i32 + b_x),
-                        (self.center.x as i32 + b_y, self.center.y as i32 - b_x),
-                        (self.center.x as i32 - b_y, self.center.y as i32 + b_x),
-                        (self.center.x as i32 - b_y, self.center.y as i32 - b_x),
-                    ] {
-                        if x >= 0
-                            && x < SIMULATION_WIDTH as i32
-                            && y >= 0
-                            && y < SIMULATION_HEIGHT as i32
-                        {
-                            return UVec2 {
-                                x: x as u32,
-                                y: y as u32,
-                            };
-                        }
-                    }
-                    if d < 0 {
-                        d = d + 2 * b_x + 3;
-                        b_x += 1;
-                    } else {
-                        d = d + 2 * (b_x - b_y) + 5;
-                        b_x += 1;
-                        b_y -= 1;
-                    }
-                }
-
-                UVec2 {
-                    x: self.center.x,
-                    y: self.center.y,
-                }
-            }
+            WResize::Radius => UVec2 {
+                x: self.resize_point.x,
+                y: self.resize_point.y,
+            },
             _ => {
                 unreachable!()
             }
@@ -530,6 +495,21 @@ impl Wall for CircWall {
     fn resize(&mut self, resize_type: &WResize, x: u32, y: u32) {
         match resize_type {
             WResize::Radius => {
+                self.resize_point.x = x;
+                self.resize_point.y = y;
+
+                // angle in [0, 2pi)
+                let angle = if (y as i32 - self.center.y as i32) <= 0 {
+                    ((x as f32 - self.center.x as f32) / self.radius as f32).acos()
+                //exp before acos can be > 1.0 (prob pixel inaccuracies)
+                } else {
+                    TAU - ((x as f32 - self.center.x as f32) / self.radius as f32).acos()
+                };
+
+                if !angle.is_nan() {
+                    self.rotation_angle = TAU - angle;
+                }
+
                 let x_offset = self.center.x as i32 - x as i32;
                 let y_offset = self.center.y as i32 - y as i32;
                 self.radius = ((x_offset.pow(2) + y_offset.pow(2)) as f32).sqrt() as u32;
@@ -545,7 +525,7 @@ impl Wall for CircWall {
         let b_center_x = self.center.x + boundary_width;
         let b_center_y = self.center.y + boundary_width;
 
-        if (x <= boundary_width
+        if (x < boundary_width
             && y == b_center_y
             && (b_center_x as i32 - self.radius as i32) <= boundary_width as i32)
             || (x >= SIMULATION_WIDTH + boundary_width
@@ -555,7 +535,7 @@ impl Wall for CircWall {
             return true;
         }
 
-        if (y <= boundary_width
+        if (y < boundary_width
             && x == b_center_x
             && (b_center_y as i32 - self.radius as i32) <= boundary_width as i32)
             || (y >= SIMULATION_HEIGHT + boundary_width
@@ -585,6 +565,7 @@ impl CircWall {
             open_circ_segment: 0.,
             rotation_angle: 0.,
             id,
+            resize_point: UVec2 { x, y },
         }
     }
 

@@ -138,20 +138,19 @@ impl Grid {
             .enumerate()
             .for_each(|(index, wall_cell)| {
                 let (x, y) = index_to_coords(index as u32, boundary_width);
-                let x = x.saturating_sub(boundary_width);
-                let y = y.saturating_sub(boundary_width);
 
                 for wall in rect_walls {
-                    if wall.edge_contains(x, y) {
+                    if wall.edge_contains(
+                        x.saturating_sub(boundary_width),
+                        y.saturating_sub(boundary_width),
+                    ) {
                         wall_cell.is_wall = true;
                         wall_cell.reflection_factor = wall.get_reflection_factor();
                         wall_cell.draw_reflection_factor = wall.get_reflection_factor();
-                    } else if wall.contains(x, y)
-                        || wall.boundary_delete(
-                            x + boundary_width,
-                            y + boundary_width,
-                            boundary_width,
-                        )
+                    } else if wall.contains(
+                        x.saturating_sub(boundary_width),
+                        y.saturating_sub(boundary_width),
+                    ) || wall.boundary_delete(x, y, boundary_width)
                     {
                         wall_cell.is_wall = true;
                         wall_cell.reflection_factor = 0.;
@@ -160,12 +159,10 @@ impl Grid {
                 }
 
                 for wall in circ_walls {
-                    if wall.contains(x, y)
-                        || wall.boundary_delete(
-                            x + boundary_width,
-                            y + boundary_width,
-                            boundary_width,
-                        )
+                    if wall.contains(
+                        x.saturating_sub(boundary_width),
+                        y.saturating_sub(boundary_width),
+                    ) || wall.boundary_delete(x, y, boundary_width)
                     {
                         wall_cell.is_wall = true;
                         wall_cell.reflection_factor = 0.;
