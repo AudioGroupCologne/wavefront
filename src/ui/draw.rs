@@ -1417,8 +1417,11 @@ pub fn draw_egui(
                 bottom: 0.,
             }))
             .show(ctx, |ui| {
-                let mut binding = mic_set.p3();
-                let mics = binding.iter_mut().collect::<Vec<_>>();
+                let mut binding = mic_set.p0();
+
+                let mut mics = binding.iter_mut().map(|(_, mic)| mic.into_inner()).collect::<Vec<_>>();
+                mics.sort_by_cached_key(|mic| mic.id);
+
                 let mut pb = pixel_buffers.iter_mut().nth(1).expect("two pixel buffers");
 
                 let mut style = egui_dock::Style::from_egui(ui.style());
@@ -1431,9 +1434,9 @@ pub fn draw_egui(
                     .show_inside(
                         ui,
                         &mut PlotTabs::new(
-                            &mics[..],
+                            &mut mics,
                             &mut pb,
-                            &mut fft_mic,
+                            // &mut fft_mic,
                             &mut commands.reborrow(),
                             grid.delta_t,
                             sim_time.time_since_start as f64,

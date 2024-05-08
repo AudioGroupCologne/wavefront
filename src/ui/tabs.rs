@@ -7,7 +7,7 @@ use egui_plot::{GridMark, Line, Plot, PlotBounds, PlotPoints};
 use plotters::prelude::*;
 
 use super::loading::SaveFileContents;
-use super::state::{FftMicrophone, FftScaling, UiState};
+use super::state::{FftScaling, UiState};
 use crate::components::microphone::Microphone;
 use crate::math::fft::calc_mic_spectrum;
 use crate::math::transformations::interpolate;
@@ -31,9 +31,9 @@ pub enum Tab {
 }
 
 pub struct PlotTabs<'a> {
-    mics: &'a [&'a Microphone],
+    mics: &'a mut Vec<&'a mut Microphone>,
     pixel_buffer: &'a mut PixelBuffersItem<'a>,
-    fft_microphone: &'a mut FftMicrophone,
+    // fft_microphones: &'a [&'a mut FftMicrophone],
     commands: &'a mut Commands<'a, 'a>,
     delta_t: f32,
     sim_time: f64,
@@ -43,9 +43,9 @@ pub struct PlotTabs<'a> {
 
 impl<'a> PlotTabs<'a> {
     pub fn new(
-        mics: &'a [&'a Microphone],
+        mics: &'a mut Vec<&'a mut Microphone>,
         pixel_buffer: &'a mut PixelBuffersItem<'a>,
-        fft_microphone: &'a mut FftMicrophone,
+        // fft_microphones: &'a mut Vec<&'a mut FftMicrophone>,
         commands: &'a mut Commands<'a, 'a>,
         delta_t: f32,
         sim_time: f64,
@@ -55,7 +55,7 @@ impl<'a> PlotTabs<'a> {
         Self {
             mics,
             pixel_buffer,
-            fft_microphone,
+            // fft_microphones,
             commands,
             delta_t,
             sim_time,
@@ -99,12 +99,10 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
 
                             let mut string_buffer = String::new();
                             {
-                                let mut mics = self.mics.to_vec();
-                                mics.sort_by_cached_key(|mic| mic.id);
-
                                 // find the highest x and y values to set the plot size
                                 let highest_x =
-                                    mics.iter()
+                                    self.mics
+                                        .iter()
                                         .map(|mic| {
                                             *mic.record
                                                 .iter()
@@ -116,7 +114,8 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                         .reduce(f64::max)
                                         .unwrap_or(0.) as f32;
 
-                                let highest_y = mics
+                                let highest_y = self
+                                    .mics
                                     .iter()
                                     .map(|mic| {
                                         mic.record
@@ -151,7 +150,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                     .draw()
                                     .unwrap();
 
-                                for (index, &mic) in mics.iter().enumerate() {
+                                for (index, ref mic) in self.mics.iter().enumerate() {
                                     let points = mic
                                         .record
                                         .iter()
@@ -234,17 +233,8 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                             ));
                         }
 
-                        // TODO: allocation here is not very nice
-                        let mut mics = self.mics.to_vec();
-                        mics.sort_by_cached_key(|mic| mic.id);
-                        for mic in mics {
-                            //TODO: because of this clone, the app is getting slower as time goes on (because the vec is getting bigger)
-                            let values = mic
-                                .record
-                                .clone()
-                                .iter()
-                                .map(|x| [x[0] * 1000., x[1]])
-                                .collect();
+                        for mic in &mut *self.mics {
+                            let values = mic.record.iter().map(|x| [x[0] * 1000., x[1]]).collect();
                             let points = PlotPoints::new(values);
                             let line = Line::new(points);
                             plot_ui.line(line.name(format!(
@@ -256,21 +246,11 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
             }
             Tab::Frequency => {
                 ui.horizontal(|ui| {
-                    egui::ComboBox::from_label("FFT Microphone")
-                        .selected_text(if let Some(index) = self.fft_microphone.mic_id {
-                            format!("Microphone {index}")
-                        } else {
-                            "No Microphone Selected".to_string()
-                        })
-                        .show_ui(ui, |ui| {
-                            for mic in self.mics {
-                                ui.selectable_value(
-                                    &mut self.fft_microphone.mic_id,
-                                    Some(mic.id),
-                                    format!("Microphone {}", mic.id),
-                                );
-                            }
-                        });
+                    ui.menu_button("FFT Microhones", |ui| {
+                        for mic in &mut *self.mics {
+                            ui.checkbox(&mut mic.show_fft, format!("Microphone {}", mic.id));
+                        }
+                    });
 
                     ui.add(egui::Separator::default().vertical());
 
@@ -321,6 +301,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                     .allow_boxed_zoom(false)
                     .x_axis_label("Frequency (Hz)")
                     .y_axis_label(format!("Intensity {}", unit))
+                    .legend(egui_plot::Legend::default())
                     .x_grid_spacer(|input| {
                         let mut marks = Vec::with_capacity(
                             input.bounds.1 as usize - input.bounds.0 as usize + 1,
@@ -344,27 +325,18 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                         )
                     })
                     .show(ui, |plot_ui| {
-                        if self.fft_microphone.mic_id.is_none() {
-                            return;
-                        }
+                        let fft_mics = self.mics.iter().filter(|mic| mic.show_fft);
 
-                        if let Some(mic) = self
-                            .mics
-                            .iter()
-                            .find(|m| m.id == self.fft_microphone.mic_id.expect("no mic selected"))
-                        {
+                        for mic in fft_mics {
                             let mapped_spectrum = calc_mic_spectrum(
                                 mic,
                                 self.ui_state.fft_scaling,
                                 self.delta_t,
                                 self.ui_state.fft_window_size,
                             );
+
                             // remove the first element, because of log it is at x=-inf
                             let mapped_spectrum = &mapped_spectrum[1..];
-
-                            let points = PlotPoints::new(mapped_spectrum.to_vec());
-                            let line = Line::new(points);
-                            plot_ui.line(line);
 
                             if self.ui_state.show_fft_approx {
                                 let mut result = Vec::with_capacity(mapped_spectrum.len());
@@ -398,7 +370,14 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                         .collect(),
                                 );
                                 let line = Line::new(points);
-                                plot_ui.line(line);
+                                plot_ui.line(line.name(format!("Approximation {}", mic.id)));
+                            } else {
+                                let points = PlotPoints::new(mapped_spectrum.to_vec());
+                                let line = Line::new(points);
+                                plot_ui.line(line.name(format!(
+                                    "Microphone {} (x: {}, y: {})",
+                                    mic.id, mic.x, mic.y
+                                )));
                             }
 
                             let y_padding = match self.ui_state.fft_scaling {
@@ -451,21 +430,21 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                     return;
                 }
 
-                egui::ComboBox::from_label("FFT Microphone")
-                    .selected_text(if let Some(index) = self.fft_microphone.mic_id {
-                        format!("Microphone {index}")
-                    } else {
-                        "No Microphone Selected".to_string()
-                    })
-                    .show_ui(ui, |ui| {
-                        for mic in self.mics {
-                            ui.selectable_value(
-                                &mut self.fft_microphone.mic_id,
-                                Some(mic.id),
-                                format!("Microphone {}", mic.id),
-                            );
-                        }
-                    });
+                // egui::ComboBox::from_label("FFT Microphone")
+                //     .selected_text(if let Some(index) = self.fft_microphone.mic_id {
+                //         format!("Microphone {index}")
+                //     } else {
+                //         "No Microphone Selected".to_string()
+                //     })
+                //     .show_ui(ui, |ui| {
+                //         for mic in self.mics {
+                //             ui.selectable_value(
+                //                 &mut self.fft_microphone.mic_id,
+                //                 Some(mic.id),
+                //                 format!("Microphone {}", mic.id),
+                //             );
+                //         }
+                //     });
                 ui.separator();
 
                 let spectrum_size = ui.available_size();
