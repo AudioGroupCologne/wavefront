@@ -335,9 +335,16 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                         )
                     })
                     .show(ui, |plot_ui| {
-                        let fft_mics = self.mics.iter().filter(|mic| mic.show_fft);
+                        let mut current_highest_y = 0.;
+                        let mut current_lowest_y = f64::MAX;
+                        let mut current_lowest_x = f64::MAX;
+                        let mut current_highest_x = 0.;
 
-                        for mic in fft_mics {
+                        for mic in &mut *self.mics {
+                            if !mic.show_fft {
+                                continue;
+                            }
+
                             let mapped_spectrum = calc_mic_spectrum(
                                 mic,
                                 self.ui_state.fft_scaling,
@@ -411,26 +418,55 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                 .unwrap_or(0.)
                                 - y_padding;
 
-                            const ANIMATION_DURATION: f64 = 0.2; // Duration in seconds
-                            const UPDATE_RATE: f64 = 1.0 / ANIMATION_DURATION; // How fast to update based on duration
+                            if highest_y > current_highest_y {
+                                current_highest_y = highest_y;
+                            }
 
-                            let interpolation_step = self.delta_time * UPDATE_RATE;
-                            let current_bounds = plot_ui.plot_bounds();
+                            if lowest_y < current_lowest_y {
+                                current_lowest_y = lowest_y;
+                            }
 
-                            let lowest_x =
-                                interpolate(current_bounds.min()[0], lowest_x, interpolation_step);
-                            let lowest_y =
-                                interpolate(current_bounds.min()[1], lowest_y, interpolation_step);
-                            let highest_x =
-                                interpolate(current_bounds.max()[0], highest_x, interpolation_step);
-                            let highest_y =
-                                interpolate(current_bounds.max()[1], highest_y, interpolation_step);
+                            if lowest_x < current_lowest_x {
+                                current_lowest_x = lowest_x;
+                            }
 
-                            plot_ui.set_plot_bounds(PlotBounds::from_min_max(
-                                [lowest_x, lowest_y],
-                                [highest_x, highest_y],
-                            ));
+                            if highest_x > current_highest_x {
+                                current_highest_x = highest_x;
+                            }
                         }
+
+                        const ANIMATION_DURATION: f64 = 0.2; // Duration in seconds
+                        const UPDATE_RATE: f64 = 1.0 / ANIMATION_DURATION; // How fast to update based on duration
+
+                        let interpolation_step = self.delta_time * UPDATE_RATE;
+                        let current_bounds = plot_ui.plot_bounds();
+
+                        let lowest_x = interpolate(
+                            current_bounds.min()[0],
+                            current_lowest_x,
+                            interpolation_step,
+                        );
+                        let lowest_y = interpolate(
+                            current_bounds.min()[1],
+                            current_lowest_y,
+                            interpolation_step,
+                        );
+                        let highest_x = interpolate(
+                            current_bounds.max()[0],
+                            current_highest_x,
+                            interpolation_step,
+                        );
+                        let highest_y = interpolate(
+                            current_bounds.max()[1],
+                            current_highest_y,
+                            interpolation_step,
+                        );
+
+                        plot_ui.set_plot_bounds(PlotBounds::from_min_max(
+                            [lowest_x, lowest_y],
+                            [highest_x, highest_y],
+                        ));
+
                     });
             }
             Tab::Spectrogram => {
