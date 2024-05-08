@@ -128,9 +128,19 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                     .unwrap_or(0.)
                                     .abs() as f32;
 
-                                // the resolution is chosen at random
-                                let root = SVGBackend::with_string(&mut string_buffer, (1024, 600))
-                                    .into_drawing_area();
+                                let longest_recording = self
+                                    .mics
+                                    .iter()
+                                    .map(|mic| mic.record.len())
+                                    .reduce(usize::max)
+                                    .unwrap_or(0);
+
+                                // TODO: the svg now gets longer and longer... maybe restrict to the scroll area when scrolling is enabled?
+                                let root = SVGBackend::with_string(
+                                    &mut string_buffer,
+                                    (longest_recording as u32, 600),
+                                )
+                                .into_drawing_area();
                                 root.fill(&WHITE).unwrap();
                                 let root = root.margin(10, 10, 10, 10);
 
