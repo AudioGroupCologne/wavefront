@@ -91,8 +91,8 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
 
                     ui.with_layout(egui::Layout::top_down(egui::Align::RIGHT), |ui| {
                         if ui
-                            .button("Screenshot Plot")
-                            .on_hover_text("Save a screenshot of the plot")
+                            .button("Export to SVG")
+                            .on_hover_text("Save the plot to an SVG file")
                             .clicked()
                         {
                             let colors = [RED, BLUE, GREEN, CYAN, MAGENTA, BLACK, WHITE];
