@@ -4,7 +4,7 @@ use std::fmt;
 use bevy::prelude::*;
 use egui::epaint::{CircleShape, TextShape};
 use egui::text::LayoutJob;
-use egui::{Color32, Pos2, Rect, TextFormat};
+use egui::{Align2, Color32, Pos2, Rect, TextFormat};
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
@@ -189,7 +189,7 @@ impl GizmoComponent for Source {
                 for pos in self.get_gizmo_positions(tool_type) {
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         grid_to_image(pos, image_rect),
-                        if highlight { 10. } else { 5. },
+                        if highlight { 15. } else { 10. },
                         Color32::RED,
                     )));
                     if let Some(text) = text {
@@ -204,11 +204,17 @@ impl GizmoComponent for Source {
                             );
                             painter.layout_job(layout_job)
                         };
-                        painter.add(TextShape::new(
-                            grid_to_image(pos, image_rect),
-                            galley,
-                            Color32::BLACK,
-                        ));
+                        let rect = Align2::CENTER_CENTER.anchor_size(
+                            grid_to_image(
+                                Pos2 {
+                                    x: self.x as f32,
+                                    y: self.y as f32,
+                                },
+                                image_rect,
+                            ),
+                            galley.size(),
+                        );
+                        painter.add(TextShape::new(rect.min, galley, Color32::BLACK));
                     }
                 }
             }

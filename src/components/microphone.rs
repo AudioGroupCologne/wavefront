@@ -74,7 +74,7 @@ impl GizmoComponent for Microphone {
                 for pos in self.get_gizmo_positions(tool_type) {
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         grid_to_image(pos, image_rect),
-                        if highlight { 10. } else { 5. },
+                        if highlight { 15. } else { 10. },
                         Color32::GOLD,
                     )));
                     if let Some(text) = text {
@@ -82,18 +82,18 @@ impl GizmoComponent for Microphone {
                             let layout_job = LayoutJob::single_section(
                                 text.to_owned(),
                                 TextFormat {
-                                    color: Color32::WHITE,
-                                    background: Color32::BLACK.gamma_multiply(0.9),
+                                    color: Color32::BLACK,
+                                    background: Color32::TRANSPARENT,
                                     ..Default::default()
                                 },
                             );
                             painter.layout_job(layout_job)
                         };
-                        let rect = Align2::CENTER_BOTTOM.anchor_size(
+                        let rect = Align2::CENTER_CENTER.anchor_size(
                             grid_to_image(
                                 Pos2 {
                                     x: self.x as f32,
-                                    y: self.y as f32 - 7.,
+                                    y: self.y as f32,
                                 },
                                 image_rect,
                             ),
