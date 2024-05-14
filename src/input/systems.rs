@@ -110,6 +110,8 @@ pub fn button_input(
     #[cfg(target_os = "macos")]
     let ctrl = keys.any_pressed([KeyCode::SuperLeft, KeyCode::SuperRight]);
 
+    // depending on the tool, a click could relate to different actions
+    // add `Move`, `WResize` or `Selected` tags to the entities as needed
     if mouse_buttons.just_pressed(MouseButton::Left)
         && ui_state.tools_enabled
         && ui_state.tool_use_enabled
@@ -291,6 +293,7 @@ pub fn button_input(
         }
     }
 
+    // a drag has stopped, remove all `Move` and `WResize` tags, then update walls (they could have been resized or moved)
     if mouse_buttons.just_released(MouseButton::Left) {
         source_set.p2().iter_mut().for_each(|(entity, _)| {
             commands.entity(entity).remove::<Move>();
@@ -322,6 +325,7 @@ pub fn button_input(
         wall_update_ev.send(UpdateWalls);
     }
 
+    // while the mouse is held down, move the selected object(s)
     if mouse_buttons.pressed(MouseButton::Left) && ui_state.tools_enabled {
         let window = q_windows.single();
 
@@ -409,7 +413,8 @@ pub fn button_input(
     if mouse_buttons.just_released(MouseButton::Left) && ui_state.tool_use_enabled {
         ui_state.collapse_header = true;
     }
-
+    
+    // handle all other keyboard shortcuts
     if keys.just_pressed(KeyCode::Space) {
         ui_state.is_running = !ui_state.is_running;
     }

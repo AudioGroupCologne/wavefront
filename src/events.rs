@@ -39,6 +39,7 @@ pub fn update_wall_event(
     }
 }
 
+/// Event that resets the simulation. If force is set to true, it will override the `reset_on_change` toggle.
 #[derive(Event, Default)]
 pub struct Reset {
     pub force: bool,

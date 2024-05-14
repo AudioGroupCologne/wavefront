@@ -62,6 +62,7 @@ pub fn screen_to_nearest_grid(x: f32, y: f32, image_rect: Rect) -> Option<(u32, 
     ))
 }
 
+/// converts grid coordinates to image coordinates
 pub fn grid_to_image(pos: Pos2, image_rect: &Rect) -> Pos2 {
     Pos2::new(
         map_range(
@@ -81,6 +82,7 @@ pub fn grid_to_image(pos: Pos2, image_rect: &Rect) -> Pos2 {
     )
 }
 
+/// Linear interpolation (lerp) between two values
 pub fn interpolate(current: f64, target: f64, step: f64) -> f64 {
     current + (target - current) * step.min(1.0)
 }
