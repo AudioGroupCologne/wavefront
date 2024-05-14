@@ -2,9 +2,10 @@ use std::fmt;
 
 use bevy::prelude::*;
 
+/// A resource to store the current simulation time in seconds.
 #[derive(Default, Resource)]
 pub struct SimTime {
-    // time since simulation start in seconds
+    /// Time since simulation start in seconds
     pub time_since_start: f32,
 }
 
@@ -27,6 +28,7 @@ impl fmt::Display for ToolType {
     }
 }
 
+/// The different types of objects that can be placed in the simulation.
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum PlaceType {
     Source,
@@ -66,6 +68,8 @@ impl fmt::Display for FftScaling {
     }
 }
 
+/// A resource to store the current state of the UI.
+/// This includes the current tool, the current place type, and various other settings.
 #[derive(Resource, PartialEq, Clone, Copy)]
 pub struct UiState {
     pub is_running: bool,
@@ -138,14 +142,17 @@ pub struct ClipboardBuffer {
 }
 
 impl ClipboardBuffer {
+    /// Clears the clipboard buffer.
     pub fn clear(&mut self) {
         self.buffer = None;
     }
 
+    /// Returns the [`Entity`] stored in the clipboard buffer. Returns `None` if the buffer is empty.
     pub fn get(&mut self) -> Option<Entity> {
         self.buffer
     }
 
+    /// Copies an [`Entity`] to the clipboard buffer.
     pub fn copy(&mut self, entity: Entity) {
         self.buffer = Some(entity);
     }
