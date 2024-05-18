@@ -115,7 +115,8 @@ impl Grid {
             .par_iter_mut()
             .enumerate()
             .for_each(|(index, pressure)| {
-                *pressure = 0.5
+                // papers etc. use 0.5, but our sources emit in all four directions, so we normalize to 1
+                *pressure = 0.25
                     * (self.cur_cells[index].bottom
                         + self.cur_cells[index].left
                         + self.cur_cells[index].top
