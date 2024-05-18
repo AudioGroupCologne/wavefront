@@ -61,7 +61,7 @@ pub fn draw_pixels(
 
         let p = grid.pressure[current_index];
 
-        let color = gradient.at(p, ui_state.gradient_contrast);
+        let color = gradient.at(p, -2., 2.);
         Pixel {
             r: color.r(),
             g: color.g(),

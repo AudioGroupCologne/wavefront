@@ -4,7 +4,7 @@ use bevy_file_dialog::FileDialogExt;
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::components::wall::{CircWall, RectWall};
-use crate::render::gradient::GradientType;
+use crate::render::gradient::Gradient;
 use crate::simulation::grid::Grid;
 use crate::ui::loading::SaveFileContents;
 use crate::ui::state::{SimTime, UiState};
@@ -72,7 +72,7 @@ pub fn save_event(
     mics: Query<&Microphone>,
     rect_walls: Query<&RectWall>,
     circ_walls: Query<&CircWall>,
-    gradient: Res<GradientType>,
+    gradient: Res<Gradient>,
 ) {
     for _ in save_ev.read() {
         let sources = sources.iter().collect::<Vec<_>>();

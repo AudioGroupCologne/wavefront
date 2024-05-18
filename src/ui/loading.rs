@@ -7,7 +7,7 @@ use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::components::wall::{CircWall, RectWall};
 use crate::events::UpdateWalls;
-use crate::render::gradient::{Gradient, GradientType};
+use crate::render::gradient::Gradient;
 use crate::simulation::grid::Grid;
 use crate::simulation::plugin::ComponentIDs;
 
@@ -21,7 +21,7 @@ pub struct SaveData {
     pub mics: Vec<Microphone>,
     pub rect_walls: Vec<RectWall>,
     pub circ_walls: Vec<CircWall>,
-    pub gradient: GradientType,
+    pub gradient: Gradient,
 }
 
 /// Loads a file when receiving a [`DialogFileLoaded`] event from the file dialog.
@@ -79,6 +79,6 @@ pub fn file_loaded(
         grid.reset_cells(ui_state.boundary_width);
         wall_update_ev.send(UpdateWalls);
 
-        *gradient = save_data.gradient.into();
+        *gradient = save_data.gradient;
     }
 }

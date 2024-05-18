@@ -18,7 +18,7 @@ use crate::components::wall::{CircWall, RectWall, WResize};
 use crate::events::{Load, Reset, Save, UpdateWalls};
 use crate::math::constants::*;
 use crate::math::transformations::coords_to_index;
-use crate::render::gradient::{Gradient, GradientType};
+use crate::render::gradient::Gradient;
 use crate::simulation::grid::Grid;
 use crate::ui::state::*;
 use crate::undo::{UndoEvent, UndoRedo};
@@ -115,7 +115,6 @@ pub fn draw_egui(
     mut ui_state: ResMut<UiState>,
     mut grid: ResMut<Grid>,
     mut gradient: ResMut<Gradient>,
-    mut gradient_type: ResMut<GradientType>,
     mut events: EventSystemParams,
     sets: QuerySystemParams,
     mut dock_state: ResMut<DockState>,
@@ -361,40 +360,19 @@ pub fn draw_egui(
                                     row.col(|ui| {
                                         ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
                                             egui::ComboBox::from_id_source("gradient_select")
-                                                .selected_text(format!("{:?}", gradient_type.as_ref()))
+                                                .selected_text(format!("{:?}", gradient.as_ref()))
                                                 .show_ui(ui, |ui| {
-                                                    let mut g = gradient_type.as_ref();
-                                                    if ui.selectable_value(&mut g, &GradientType::Turbo, "Turbo").clicked() {
-                                                        gradient.0 = colorgrad::turbo();
-                                                    }
-                                                    if ui.selectable_value(&mut g, &GradientType::Viridis, "Viridis").clicked() {
-                                                        gradient.0 = colorgrad::viridis();
-                                                    }
-                                                    if ui.selectable_value(&mut g, &GradientType::Magma, "Magma").clicked() {
-                                                        gradient.0 = colorgrad::magma();
-                                                    }
-                                                
-                                                    *gradient_type = *g;
+                                                    let mut g = gradient.as_ref();
+                                                    ui.selectable_value(&mut g, &Gradient::Turbo, "Turbo");
+                                                    ui.selectable_value(&mut g, &Gradient::Viridis, "Viridis");
+                                                    ui.selectable_value(&mut g, &Gradient::Magma, "Magma");
+                                                    *gradient = *g;
                                                 });
                                         });
                                     });
                                     row.col(|ui| {
                                         ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
                                             ui.label("Colormap");
-                                        });
-                                    });
-                                });
-                                body.row(row_height, |mut row| {
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                            ui.add(
-                                                egui::Slider::new(&mut ui_state_tmp.gradient_contrast, 0.0..=10.0),
-                                            ).on_hover_text("Adjust the contrast of the gradient. (this might lead to clipping the colors)");
-                                        });
-                                    });
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
-                                            ui.label("Gradient Contrast");
                                         });
                                     });
                                 });
@@ -614,7 +592,7 @@ pub fn draw_egui(
                                 } else {
                                     let pressure = grid.pressure[current_index];
 
-                                    let color = gradient.at(pressure, ui_state.gradient_contrast);
+                                    let color = gradient.at(pressure, -2., 2.);
 
                                     // gamma correction to match the brightness/contrast of the simulation
                                     pixels.push(
