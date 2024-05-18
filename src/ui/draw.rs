@@ -322,6 +322,7 @@ pub fn draw_egui(
 
                 ui.columns(1, |columns| {
                     columns[0].vertical_centered(|ui| {
+                        ui.add_space(5.);
                         ui.heading("General Settings");
 
                         ui.push_id("general_settings_table", |ui| {
@@ -366,6 +367,8 @@ pub fn draw_egui(
                                                     ui.selectable_value(&mut g, &Gradient::Turbo, "Turbo");
                                                     ui.selectable_value(&mut g, &Gradient::Viridis, "Viridis");
                                                     ui.selectable_value(&mut g, &Gradient::Magma, "Magma");
+                                                    ui.selectable_value(&mut g, &Gradient::Inferno, "Inferno");
+                                                    ui.selectable_value(&mut g, &Gradient::Plasma, "Plasma");
                                                     *gradient = *g;
                                                 });
                                         });
