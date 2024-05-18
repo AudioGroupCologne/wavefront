@@ -317,10 +317,10 @@ pub fn draw_egui(
             .collapsible(false)
             .constrain(true)
             .show(ctx, |ui| {
-                ui.set_min_width(800.);
+                // ui.set_min_width(800.);
                 let row_height = 20f32;
 
-                ui.columns(2, |columns| {
+                ui.columns(1, |columns| {
                     columns[0].vertical_centered(|ui| {
                         ui.heading("General Settings");
 
@@ -449,32 +449,38 @@ pub fn draw_egui(
                                 });
                             });
                         });
-                    });
-                    columns[1].vertical_centered(|ui| {
-                        ui.heading("Experimental Settings");
 
+                        ui.add_space(5.);
+                        ui.separator();
+                        ui.add_space(5.);
+                        
+                        ui.heading("Experimental Settings");
+                        
                         ui.push_id("experimental_settings_table", |ui| {
                             TableBuilder::new(ui)
-                            .resizable(false)
-                            .striped(true)
-                            .column(Column::remainder())
-                            .column(Column::remainder())
-                            .body(|mut body| {
-                                body.row(row_height, |mut row| {
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                            ui.checkbox(&mut ui_state_tmp.enable_spectrogram, "");
+                                .resizable(false)
+                                .striped(true)
+                                .column(Column::remainder())
+                                .column(Column::remainder())
+                                .body(|mut body| {
+                                    body.row(row_height, |mut row| {
+                                        row.col(|ui| {
+                                            ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                                ui.checkbox(&mut ui_state_tmp.enable_spectrogram, "");
+                                            });
                                         });
-                                    });
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
-                                            ui.label("Spectrogram enabled");
+                                        row.col(|ui| {
+                                            ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
+                                                ui.label("Spectrogram enabled");
+                                            });
                                         });
                                     });
                                 });
                             });
-                        })
-                    });
+
+                            ui.add_space(5.);
+
+                        });
                 });
             });
 
