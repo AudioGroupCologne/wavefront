@@ -31,6 +31,7 @@ impl Gradient {
     }
 }
 
+// https://gist.github.com/mikhailov-work/6a308c20e494d9e0ccc29036b28faa7a
 const TURBO: [[f32; 3]; 256] = [
     [0.18995, 0.07176, 0.23217],
     [0.19483, 0.08339, 0.26149],
@@ -290,6 +291,7 @@ const TURBO: [[f32; 3]; 256] = [
     [0.47960, 0.01583, 0.01055],
 ];
 
+// https://github.com/BIDS/colormap/blob/master/colormaps.py
 const MAGMA: [[f32; 3]; 256] = [
     [0.001462, 0.000466, 0.013866],
     [0.002258, 0.001295, 0.018331],
