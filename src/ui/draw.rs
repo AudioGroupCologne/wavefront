@@ -18,7 +18,7 @@ use crate::components::wall::{CircWall, RectWall, WResize};
 use crate::events::{Load, Reset, Save, UpdateWalls};
 use crate::math::constants::*;
 use crate::math::transformations::coords_to_index;
-use crate::render::gradient::Gradient;
+use crate::render::gradient::{Gradient, GradientType};
 use crate::simulation::grid::Grid;
 use crate::ui::state::*;
 use crate::undo::{UndoEvent, UndoRedo};
@@ -115,6 +115,7 @@ pub fn draw_egui(
     mut ui_state: ResMut<UiState>,
     mut grid: ResMut<Grid>,
     mut gradient: ResMut<Gradient>,
+    mut gradient_type: ResMut<GradientType>,
     mut events: EventSystemParams,
     sets: QuerySystemParams,
     mut dock_state: ResMut<DockState>,
@@ -359,36 +360,24 @@ pub fn draw_egui(
                                 body.row(row_height, |mut row| {
                                     row.col(|ui| {
                                         ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                            ui.color_edit_button_srgba(&mut gradient.0).on_hover_text("The color used to show negative pressure values.");
+                                            egui::ComboBox::from_id_source("gradient_select")
+                                                .selected_text(format!("{:?}", gradient_type))
+                                                .show_ui(ui, |ui| {
+                                                        if ui.selectable_value(&mut gradient_type.as_ref(), &GradientType::Turbo, "Turbo").clicked() {
+                                                            gradient.0 = colorgrad::turbo();
+                                                        }
+                                                        if ui.selectable_value(&mut gradient_type.as_ref(), &GradientType::Viridis, "Viridis").clicked() {
+                                                            gradient.0 = colorgrad::viridis();
+                                                        }
+                                                        if ui.selectable_value(&mut gradient_type.as_ref(), &GradientType::Magma, "Magma").clicked() {
+                                                            gradient.0 = colorgrad::magma();
+                                                        }
+                                                });
                                         });
                                     });
                                     row.col(|ui| {
                                         ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
-                                            ui.label("Negative");
-                                        });
-                                    });
-                                });
-                                body.row(row_height, |mut row| {
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                            ui.color_edit_button_srgba(&mut gradient.1).on_hover_text("The color used to show neutral pressure values.");
-                                        });
-                                    });
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
-                                            ui.label("Zero");
-                                        });
-                                    });
-                                });
-                                body.row(row_height, |mut row| {
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                            ui.color_edit_button_srgba(&mut gradient.2).on_hover_text("The color used to show positive pressure values.");
-                                        });
-                                    });
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
-                                            ui.label("Positive");
+                                            ui.label("Colormap");
                                         });
                                     });
                                 });
@@ -1419,7 +1408,10 @@ pub fn draw_egui(
             .show(ctx, |ui| {
                 let mut binding = mic_set.p0();
 
-                let mut mics = binding.iter_mut().map(|(_, mic)| mic.into_inner()).collect::<Vec<_>>();
+                let mut mics = binding
+                    .iter_mut()
+                    .map(|(_, mic)| mic.into_inner())
+                    .collect::<Vec<_>>();
                 mics.sort_by_cached_key(|mic| mic.id);
 
                 let mut pb = pixel_buffers.iter_mut().nth(1).expect("two pixel buffers");

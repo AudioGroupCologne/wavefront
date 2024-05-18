@@ -3,7 +3,7 @@ use bevy_pixel_buffer::builder::PixelBufferBuilder;
 use bevy_pixel_buffer::pixel_buffer::PixelBufferSize;
 
 use super::draw::{draw_overlays, draw_pixels};
-use super::gradient::Gradient;
+use super::gradient::{Gradient, GradientType};
 use crate::math::constants::*;
 use crate::ui::state::SimTime;
 
@@ -13,6 +13,7 @@ impl Plugin for RenderPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Gradient>()
             .init_resource::<SimTime>()
+            .init_resource::<GradientType>()
             .add_systems(Startup, (setup_buffers,))
             .add_systems(Update, (draw_pixels, draw_overlays).chain());
     }

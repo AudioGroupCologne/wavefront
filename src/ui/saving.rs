@@ -12,7 +12,7 @@ struct SaveData<'a> {
     mics: &'a Vec<&'a Microphone>,
     rect_walls: &'a Vec<&'a RectWall>,
     circ_walls: &'a Vec<&'a CircWall>,
-    gradient: &'a Gradient,
+    // gradient: &'a Gradient,
 }
 
 /// Serializes the given data to a byte vector of JSON.
@@ -28,7 +28,7 @@ pub fn serialize(
         mics,
         rect_walls,
         circ_walls,
-        gradient,
+        // gradient,
     };
 
     serde_json::to_vec(&save_data)

@@ -21,7 +21,7 @@ pub struct SaveData {
     pub mics: Vec<Microphone>,
     pub rect_walls: Vec<RectWall>,
     pub circ_walls: Vec<CircWall>,
-    pub gradient: Gradient,
+    // pub gradient: Gradient,
 }
 
 /// Loads a file when receiving a [`DialogFileLoaded`] event from the file dialog.
@@ -79,6 +79,6 @@ pub fn file_loaded(
         grid.reset_cells(ui_state.boundary_width);
         wall_update_ev.send(UpdateWalls);
 
-        gradient.update(&save_data.gradient);
+        // gradient.update(&save_data.gradient);
     }
 }
