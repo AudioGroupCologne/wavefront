@@ -3,7 +3,7 @@ use serde::Serialize;
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::components::wall::{CircWall, RectWall};
-use crate::render::gradient::Gradient;
+use crate::render::gradient::GradientType;
 
 /// The data that is saved to a file. Used for serialization.
 #[derive(Serialize)]
@@ -12,7 +12,7 @@ struct SaveData<'a> {
     mics: &'a Vec<&'a Microphone>,
     rect_walls: &'a Vec<&'a RectWall>,
     circ_walls: &'a Vec<&'a CircWall>,
-    // gradient: &'a Gradient,
+    gradient: &'a GradientType,
 }
 
 /// Serializes the given data to a byte vector of JSON.
@@ -21,14 +21,14 @@ pub fn serialize(
     mics: &Vec<&Microphone>,
     rect_walls: &Vec<&RectWall>,
     circ_walls: &Vec<&CircWall>,
-    gradient: &Gradient,
+    gradient: &GradientType,
 ) -> Result<Vec<u8>, serde_json::Error> {
     let save_data = SaveData {
         sources,
         mics,
         rect_walls,
         circ_walls,
-        // gradient,
+        gradient,
     };
 
     serde_json::to_vec(&save_data)

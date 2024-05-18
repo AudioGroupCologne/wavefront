@@ -361,17 +361,20 @@ pub fn draw_egui(
                                     row.col(|ui| {
                                         ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
                                             egui::ComboBox::from_id_source("gradient_select")
-                                                .selected_text(format!("{:?}", gradient_type))
+                                                .selected_text(format!("{:?}", gradient_type.as_ref()))
                                                 .show_ui(ui, |ui| {
-                                                        if ui.selectable_value(&mut gradient_type.as_ref(), &GradientType::Turbo, "Turbo").clicked() {
-                                                            gradient.0 = colorgrad::turbo();
-                                                        }
-                                                        if ui.selectable_value(&mut gradient_type.as_ref(), &GradientType::Viridis, "Viridis").clicked() {
-                                                            gradient.0 = colorgrad::viridis();
-                                                        }
-                                                        if ui.selectable_value(&mut gradient_type.as_ref(), &GradientType::Magma, "Magma").clicked() {
-                                                            gradient.0 = colorgrad::magma();
-                                                        }
+                                                    let mut g = gradient_type.as_ref();
+                                                    if ui.selectable_value(&mut g, &GradientType::Turbo, "Turbo").clicked() {
+                                                        gradient.0 = colorgrad::turbo();
+                                                    }
+                                                    if ui.selectable_value(&mut g, &GradientType::Viridis, "Viridis").clicked() {
+                                                        gradient.0 = colorgrad::viridis();
+                                                    }
+                                                    if ui.selectable_value(&mut g, &GradientType::Magma, "Magma").clicked() {
+                                                        gradient.0 = colorgrad::magma();
+                                                    }
+                                                
+                                                    *gradient_type = *g;
                                                 });
                                         });
                                     });
