@@ -1,14 +1,12 @@
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::ecs::system::SystemParam;
 use bevy::prelude::*;
-use bevy_file_dialog::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::{Color32, Frame, Margin, Vec2};
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::prelude::*;
 use egui::ImageSource;
 
 use super::help::draw_help;
-use super::loading::SaveFileContents;
 use super::preferences::draw_preferences;
 use super::tabs::{DockState, PlotTabs};
 use crate::components::gizmo::GizmoComponent;
@@ -18,8 +16,8 @@ use crate::components::states::{MenuSelected, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize};
 use crate::events::{Load, Reset, Save, UpdateWalls};
 use crate::math::constants::*;
-use crate::math::transformations::coords_to_index;
 use crate::render::gradient::Gradient;
+use crate::render::screenshot::screenshot_grid;
 use crate::simulation::grid::Grid;
 use crate::ui::state::*;
 use crate::undo::{UndoEvent, UndoRedo};
@@ -257,61 +255,7 @@ pub fn draw_egui(
                     {
                         ui.close_menu();
 
-                        let mut pixels: Vec<u8> = Vec::new();
-
-                        for y in
-                            ui_state.boundary_width..(SIMULATION_WIDTH + ui_state.boundary_width)
-                        {
-                            for x in ui_state.boundary_width
-                                ..(SIMULATION_HEIGHT + ui_state.boundary_width)
-                            {
-                                let current_index = coords_to_index(x, y, ui_state.boundary_width);
-                                if grid.wall_cache[current_index].is_wall {
-                                    let mut reflection_factor =
-                                        grid.wall_cache[current_index].reflection_factor;
-                                    if reflection_factor == 0. {
-                                        reflection_factor = 1.;
-                                    }
-                                    pixels.push((reflection_factor * 255.) as u8);
-                                    pixels.push((reflection_factor * 255.) as u8);
-                                    pixels.push((reflection_factor * 255.) as u8);
-                                } else {
-                                    let pressure = grid.pressure[current_index];
-
-                                    let color = gradient.at(pressure, -2., 2.);
-
-                                    // gamma correction to match the brightness/contrast of the simulation
-                                    pixels.push(
-                                        ((color.r() as f32 / 255.).powf(1. / 2.2) * 255.) as u8,
-                                    );
-                                    pixels.push(
-                                        ((color.g() as f32 / 255.).powf(1. / 2.2) * 255.) as u8,
-                                    );
-                                    pixels.push(
-                                        ((color.b() as f32 / 255.).powf(1. / 2.2) * 255.) as u8,
-                                    );
-                                }
-                            }
-                        }
-
-                        let mut data = Vec::new();
-                        let encoder = image::codecs::png::PngEncoder::new(&mut data);
-
-                        let image =
-                            image::RgbImage::from_raw(SIMULATION_WIDTH, SIMULATION_HEIGHT, pixels)
-                                .expect("could not create image");
-
-                        image
-                            .write_with_encoder(encoder)
-                            .expect("could not write image");
-
-                        commands
-                            .dialog()
-                            .add_filter("PNG", &["png"])
-                            .set_file_name("screenshot.png")
-                            .set_directory("./")
-                            .set_title("Select a file to save to")
-                            .save_file::<SaveFileContents>(data);
+                        screenshot_grid(&ui_state, &grid, &gradient, &mut commands)
                     }
 
                     if ui
@@ -381,7 +325,9 @@ pub fn draw_egui(
 
                     let binding = source_set.p1();
                     let selected_source = binding.iter().next();
-                    let selected_source = selected_source.map(|(_, wall)| wall.id as i32).unwrap_or(-1_i32);
+                    let selected_source = selected_source
+                        .map(|(_, wall)| wall.id as i32)
+                        .unwrap_or(-1_i32);
 
                     let mut binding = source_set.p0();
                     let mut source_vec = binding.iter_mut().collect::<Vec<_>>();
@@ -547,7 +493,9 @@ pub fn draw_egui(
 
                     let binding = mic_set.p1();
                     let selected_mic = binding.iter().next();
-                    let selected_mic = selected_mic.map(|(_, wall)| wall.id as i32).unwrap_or(-1_i32);
+                    let selected_mic = selected_mic
+                        .map(|(_, wall)| wall.id as i32)
+                        .unwrap_or(-1_i32);
 
                     let mut binding = mic_set.p0();
                     let mut mic_vec = binding.iter_mut().collect::<Vec<_>>();
@@ -603,7 +551,9 @@ pub fn draw_egui(
 
                     let binding = rect_wall_set.p1();
                     let selected_rect_wall = binding.iter().next();
-                    let selected_rect_wall = selected_rect_wall.map(|(_, wall)| wall.id as i32).unwrap_or(-1_i32);
+                    let selected_rect_wall = selected_rect_wall
+                        .map(|(_, wall)| wall.id as i32)
+                        .unwrap_or(-1_i32);
 
                     let mut rect_binding = rect_wall_set.p0();
                     let mut wall_vec = rect_binding.iter_mut().collect::<Vec<_>>();
@@ -748,7 +698,9 @@ pub fn draw_egui(
 
                     let binding = circ_wall_set.p1();
                     let selected_circ_wall = binding.iter().next();
-                    let selected_circ_wall = selected_circ_wall.map(|(_, wall)| wall.id as i32).unwrap_or(-1_i32);
+                    let selected_circ_wall = selected_circ_wall
+                        .map(|(_, wall)| wall.id as i32)
+                        .unwrap_or(-1_i32);
 
                     let mut circ_binding = circ_wall_set.p0();
                     let mut wall_vec = circ_binding.iter_mut().collect::<Vec<_>>();
