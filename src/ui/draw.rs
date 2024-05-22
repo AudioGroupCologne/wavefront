@@ -5,10 +5,10 @@ use bevy_file_dialog::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::{Color32, Frame, Margin, Vec2};
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::prelude::*;
-use egui::Layout;
-use egui_extras::{Column, TableBuilder};
 
+use super::help::draw_help;
 use super::loading::SaveFileContents;
+use super::preferences::draw_preferences;
 use super::tabs::{DockState, PlotTabs};
 use crate::components::gizmo::GizmoComponent;
 use crate::components::microphone::*;
@@ -33,11 +33,11 @@ pub struct EventSystemParams<'w> {
     // Commands<'w, 's>,
     // EventReader<'w, 's, SomeEvent>,
     // EventWriter<'w, SomeEvent>
-    wall_update_ev: EventWriter<'w, UpdateWalls>,
-    reset_ev: EventWriter<'w, Reset>,
-    undo_ev: EventWriter<'w, UndoEvent>,
-    save_ev: EventWriter<'w, Save>,
-    load_ev: EventWriter<'w, Load>,
+    pub wall_update_ev: EventWriter<'w, UpdateWalls>,
+    pub reset_ev: EventWriter<'w, Reset>,
+    pub undo_ev: EventWriter<'w, UndoEvent>,
+    pub save_ev: EventWriter<'w, Save>,
+    pub load_ev: EventWriter<'w, Load>,
 }
 
 type AllRectWallsMut<'w, 's> = Query<'w, 's, (Entity, &'static mut RectWall)>;
@@ -108,6 +108,12 @@ pub struct QuerySystemParams<'w, 's> {
     >,
 }
 
+pub const CTRL_KEY_TEXT: &'static str = if cfg!(target_os = "macos") {
+    "Cmd"
+} else {
+    "Ctrl"
+};
+
 pub fn draw_egui(
     mut commands: Commands,
     mut pixel_buffers: QueryPixelBuffer,
@@ -142,353 +148,23 @@ pub fn draw_egui(
         egui::include_image!("../../assets/resize_wall.png"),
     ];
 
-    let key = if cfg!(target_os = "macos") {
-        "Cmd"
-    } else {
-        "Ctrl"
-    };
-
     if ui_state.show_help {
-        egui::Window::new("Keybinds")
-            .open(&mut ui_state.show_help)
-            .default_size(Vec2::new(400., 400.))
-            .resizable(false)
-            .collapsible(false)
-            .constrain(true)
-            .show(ctx, |ui| {
-                // TODO: add links to documentation/user manual
-
-                ui.heading("Keybinds");
-
-                TableBuilder::new(ui)
-                    .resizable(false)
-                    .striped(true)
-                    .column(Column::remainder())
-                    .column(Column::remainder())
-                    .header(20.0, |mut header| {
-                        header.col(|ui| {
-                            ui.strong("Action");
-                        });
-                        header.col(|ui| {
-                            ui.strong("Keybind");
-                        });
-                    })
-                    .body(|mut body| {
-                        body.row(15.0, |mut row| {
-                            row.col(|ui| {
-                                ui.label("Delete Selected");
-                            });
-                            row.col(|ui| {
-                                ui.label("Backspace or Delete");
-                            });
-                        });
-                        body.row(15.0, |mut row| {
-                            row.col(|ui| {
-                                ui.label("Undo");
-                            });
-                            row.col(|ui| {
-                                ui.label(format!("{key}+Z"));
-                            });
-                        });
-                        body.row(15.0, |mut row| {
-                            row.col(|ui| {
-                                ui.label("Redo");
-                            });
-                            row.col(|ui| {
-                                ui.label(format!("{key}+Shift+Z"));
-                            });
-                        });
-                        body.row(15.0, |mut row| {
-                            row.col(|ui| {
-                                ui.label("Copy Selected");
-                            });
-                            row.col(|ui| {
-                                ui.label(format!("{key}+C"));
-                            });
-                        });
-                        body.row(15.0, |mut row| {
-                            row.col(|ui| {
-                                ui.label("Paste Clipboard");
-                            });
-                            row.col(|ui| {
-                                ui.label(format!("{key}+V"));
-                            });
-                        });
-                        body.row(15.0, |mut row| {
-                            row.col(|ui| {
-                                ui.label("Save Current Simulation");
-                            });
-                            row.col(|ui| {
-                                ui.label(format!("{key}+S"));
-                            });
-                        });
-                        body.row(15.0, |mut row| {
-                            row.col(|ui| {
-                                ui.label("Load Previous Simulation");
-                            });
-                            row.col(|ui| {
-                                ui.label(format!("{key}+L"));
-                            });
-                        });
-                        body.row(15.0, |mut row| {
-                            row.col(|ui| {
-                                ui.label("Snap to Grid");
-                            });
-                            row.col(|ui| {
-                                ui.label(format!("{key} + Move or Resize Wall"));
-                            });
-                        });
-                        body.row(15.0, |mut row| {
-                            row.col(|ui| {
-                                ui.label("Play/Pause");
-                            });
-                            row.col(|ui| {
-                                ui.label("Space");
-                            });
-                        });
-                        body.row(15.0, |mut row| {
-                            row.col(|ui| {
-                                ui.label("Select Tool");
-                            });
-                            row.col(|ui| {
-                                ui.label("Q");
-                            });
-                        });
-                        body.row(15.0, |mut row| {
-                            row.col(|ui| {
-                                ui.label("Move Tool");
-                            });
-                            row.col(|ui| {
-                                ui.label("W");
-                            });
-                        });
-                        body.row(15.0, |mut row| {
-                            row.col(|ui| {
-                                ui.label("Resize Tool");
-                            });
-                            row.col(|ui| {
-                                ui.label("E");
-                            });
-                        });
-                        body.row(15.0, |mut row| {
-                            row.col(|ui| {
-                                ui.label("Place Rectangle Wall Tool");
-                            });
-                            row.col(|ui| {
-                                ui.label("R");
-                            });
-                        });
-                        body.row(15.0, |mut row| {
-                            row.col(|ui| {
-                                ui.label("Place Circular Wall Tool");
-                            });
-                            row.col(|ui| {
-                                ui.label("C");
-                            });
-                        });
-                        body.row(15.0, |mut row| {
-                            row.col(|ui| {
-                                ui.label("Place Source Tool");
-                            });
-                            row.col(|ui| {
-                                ui.label("S");
-                            });
-                        });
-                        body.row(15.0, |mut row| {
-                            row.col(|ui| {
-                                ui.label("Place Microphone Tool");
-                            });
-                            row.col(|ui| {
-                                ui.label("M");
-                            });
-                        });
-                    });
-            });
+        draw_help(&mut ui_state, ctx);
     }
 
     if ui_state.show_preferences {
         let mut show_preferences = ui_state.show_preferences;
-        let mut ui_state_tmp = ui_state;
 
-        egui::Window::new("Preferences")
-            .open(&mut show_preferences)
-            .default_size(Vec2::new(400., 400.))
-            .resizable(false)
-            .collapsible(false)
-            .constrain(true)
-            .show(ctx, |ui| {
-                // ui.set_min_width(800.);
-                let row_height = 20f32;
+        draw_preferences(
+            &mut show_preferences,
+            ctx,
+            &mut ui_state,
+            &mut events,
+            &mut grid,
+            &mut pixel_buffers,
+            &mut gradient,
+        );
 
-                ui.columns(1, |columns| {
-                    columns[0].vertical_centered(|ui| {
-                        ui.add_space(5.);
-                        ui.heading("General Settings");
-
-                        ui.push_id("general_settings_table", |ui| {
-                            TableBuilder::new(ui)
-                            .resizable(false)
-                            .striped(true)
-                            .column(Column::remainder())
-                            .column(Column::remainder())
-                            .body(|mut body| {
-                                body.row(row_height, |mut row| {
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                            if ui
-                                                .add(egui::Slider::new(&mut ui_state_tmp.delta_l, 0.0..=10.0).logarithmic(true))
-                                                .on_hover_text("Change the size of one cell in the simulation in meters.")
-                                                .changed()
-                                            {
-                                                events.reset_ev.send(Reset::default());
-                                            }
-                                        });
-                                    });
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
-                                            ui.label("Delta L (m)");
-                                        });
-                                    });
-                                });
-                                body.row(row_height, |mut row| {
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                            ui.strong("Gradient");
-                                        });
-                                    });
-                                });
-                                body.row(row_height, |mut row| {
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                            egui::ComboBox::from_id_source("gradient_select")
-                                                .selected_text(format!("{:?}", gradient.as_ref()))
-                                                .show_ui(ui, |ui| {
-                                                    let mut g = gradient.as_ref();
-                                                    ui.selectable_value(&mut g, &Gradient::Turbo, "Turbo");
-                                                    ui.selectable_value(&mut g, &Gradient::Viridis, "Viridis");
-                                                    ui.selectable_value(&mut g, &Gradient::Magma, "Magma");
-                                                    ui.selectable_value(&mut g, &Gradient::Inferno, "Inferno");
-                                                    ui.selectable_value(&mut g, &Gradient::Plasma, "Plasma");
-                                                    ui.selectable_value(&mut g, &Gradient::Bw, "Bw");
-                                                    *gradient = *g;
-                                                });
-                                        });
-                                    });
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
-                                            ui.label("Colormap");
-                                        });
-                                    });
-                                });
-                                body.row(row_height, |mut row| {
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                            ui.strong("Boundary");
-                                        });
-                                    });
-                                });
-                                body.row(row_height, |mut row| {
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                            if ui
-                                                .checkbox(&mut ui_state_tmp.render_abc_area, "")
-                                                .clicked()
-                                            {
-                                                ui_state_tmp.tools_enabled = !ui_state_tmp.render_abc_area;
-                                                let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
-
-                                                pb.pixel_buffer.size = PixelBufferSize {
-                                                    size: if ui_state_tmp.render_abc_area {
-                                                        UVec2::new(
-                                                            SIMULATION_WIDTH + 2 * ui_state_tmp.boundary_width,
-                                                            SIMULATION_HEIGHT + 2 * ui_state_tmp.boundary_width,
-                                                        )
-                                                    } else {
-                                                        UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
-                                                    },
-                                                    pixel_size: UVec2::new(1, 1),
-                                                };
-                                            }
-                                        });
-                                    });
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
-                                            ui.label("Show absorbing boundary");
-                                        });
-                                    });
-                                });
-                                body.row(row_height, |mut row| {
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                            if ui
-                                                .add(
-                                                    egui::Slider::new(&mut ui_state_tmp.boundary_width, 2..=200),
-                                                )
-                                                .on_hover_text("Change the width of the boundary. (higher values lead to slower simulation)")
-                                                .changed()
-                                            {
-                                                grid.reset_cells(ui_state_tmp.boundary_width);
-                                                grid.reset_walls(ui_state_tmp.boundary_width);
-                                                grid.cache_boundaries(ui_state_tmp.boundary_width);
-                                                let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
-                                                pb.pixel_buffer.size = PixelBufferSize {
-                                                    size: if ui_state_tmp.render_abc_area {
-                                                        UVec2::new(
-                                                            SIMULATION_WIDTH + 2 * ui_state_tmp.boundary_width,
-                                                            SIMULATION_HEIGHT + 2 * ui_state_tmp.boundary_width,
-                                                        )
-                                                    } else {
-                                                        UVec2::new(SIMULATION_WIDTH, SIMULATION_HEIGHT)
-                                                    },
-                                                    pixel_size: UVec2::new(1, 1),
-                                                };
-                                            }
-                                        });
-                                    });
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
-                                            ui.label("Boundary width (px)");
-                                        });
-                                    });
-                                });
-                            });
-                        });
-
-                        ui.add_space(5.);
-                        ui.separator();
-                        ui.add_space(5.);
-                        
-                        ui.heading("Experimental Settings");
-                        
-                        ui.push_id("experimental_settings_table", |ui| {
-                            TableBuilder::new(ui)
-                                .resizable(false)
-                                .striped(true)
-                                .column(Column::remainder())
-                                .column(Column::remainder())
-                                .body(|mut body| {
-                                    body.row(row_height, |mut row| {
-                                        row.col(|ui| {
-                                            ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                                ui.checkbox(&mut ui_state_tmp.enable_spectrogram, "");
-                                            });
-                                        });
-                                        row.col(|ui| {
-                                            ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
-                                                ui.label("Spectrogram enabled");
-                                            });
-                                        });
-                                    });
-                                });
-                            });
-
-                            ui.add_space(5.);
-
-                        });
-                });
-            });
-
-        ui_state = ui_state_tmp;
         ui_state.show_preferences = show_preferences;
     }
 
@@ -557,7 +233,7 @@ pub fn draw_egui(
                 ui.visuals_mut().button_frame = false;
                 ui.menu_button("File", |ui| {
                     if ui
-                        .add(egui::Button::new("Save").shortcut_text(format!("{key}+S")))
+                        .add(egui::Button::new("Save").shortcut_text(format!("{CTRL_KEY_TEXT}+S")))
                         .on_hover_text("Save the current state of the simulation")
                         .clicked()
                     {
@@ -566,7 +242,7 @@ pub fn draw_egui(
                     }
 
                     if ui
-                        .add(egui::Button::new("Load").shortcut_text(format!("{key}+L")))
+                        .add(egui::Button::new("Load").shortcut_text(format!("{CTRL_KEY_TEXT}+L")))
                         .on_hover_text("Load a previously saved state of the simulation")
                         .clicked()
                     {
@@ -649,14 +325,17 @@ pub fn draw_egui(
 
                 ui.menu_button("Edit", |ui| {
                     if ui
-                        .add(egui::Button::new("Undo").shortcut_text(format!("{key}+Z")))
+                        .add(egui::Button::new("Undo").shortcut_text(format!("{CTRL_KEY_TEXT}+Z")))
                         .clicked()
                     {
                         ui.close_menu();
                         events.undo_ev.send(UndoEvent(UndoRedo::Undo));
                     }
                     if ui
-                        .add(egui::Button::new("Redo").shortcut_text(format!("{key}+Shift+Z")))
+                        .add(
+                            egui::Button::new("Redo")
+                                .shortcut_text(format!("{CTRL_KEY_TEXT}+Shift+Z")),
+                        )
                         .clicked()
                     {
                         ui.close_menu();

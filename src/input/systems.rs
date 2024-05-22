@@ -413,7 +413,7 @@ pub fn button_input(
     if mouse_buttons.just_released(MouseButton::Left) && ui_state.tool_use_enabled {
         ui_state.collapse_header = true;
     }
-    
+
     // handle all other keyboard shortcuts
     if keys.just_pressed(KeyCode::Space) {
         ui_state.is_running = !ui_state.is_running;
