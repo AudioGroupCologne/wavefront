@@ -124,7 +124,6 @@ pub fn draw_egui(
     mut events: EventSystemParams,
     sets: QuerySystemParams,
     mut dock_state: ResMut<DockState>,
-    mut fft_mic: ResMut<FftMicrophone>,
     mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
     sim_time: Res<SimTime>,
     time: Res<Time>,
@@ -591,11 +590,6 @@ pub fn draw_egui(
                                         .add(egui::Button::new("Delete").fill(Color32::DARK_RED))
                                         .clicked()
                                     {
-                                        if let Some(current_id) = fft_mic.mic_id {
-                                            if current_id == mic.id {
-                                                fft_mic.mic_id = None;
-                                            }
-                                        }
                                         commands.entity(*entity).despawn();
                                     }
                                 });
@@ -943,8 +937,6 @@ pub fn draw_egui(
                             commands.entity(e).despawn();
                         }
 
-                        fft_mic.mic_id = None;
-
                         grid.reset_cells(ui_state.boundary_width);
                         events.wall_update_ev.send(UpdateWalls);
                     }
@@ -1098,7 +1090,6 @@ pub fn draw_egui(
                         &mut PlotTabs::new(
                             &mut mics,
                             &mut pb,
-                            // &mut fft_mic,
                             &mut commands.reborrow(),
                             grid.delta_t,
                             sim_time.time_since_start as f64,

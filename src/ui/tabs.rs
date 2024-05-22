@@ -33,7 +33,6 @@ pub enum Tab {
 pub struct PlotTabs<'a> {
     mics: &'a mut Vec<&'a mut Microphone>,
     pixel_buffer: &'a mut PixelBuffersItem<'a>,
-    // fft_microphones: &'a [&'a mut FftMicrophone],
     commands: &'a mut Commands<'a, 'a>,
     delta_t: f32,
     sim_time: f64,
@@ -45,7 +44,6 @@ impl<'a> PlotTabs<'a> {
     pub fn new(
         mics: &'a mut Vec<&'a mut Microphone>,
         pixel_buffer: &'a mut PixelBuffersItem<'a>,
-        // fft_microphones: &'a mut Vec<&'a mut FftMicrophone>,
         commands: &'a mut Commands<'a, 'a>,
         delta_t: f32,
         sim_time: f64,
@@ -55,7 +53,6 @@ impl<'a> PlotTabs<'a> {
         Self {
             mics,
             pixel_buffer,
-            // fft_microphones,
             commands,
             delta_t,
             sim_time,
@@ -473,21 +470,6 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                 }
 
                 // TODO: fix spectrogram for multiple microphones
-                // egui::ComboBox::from_label("FFT Microphone")
-                //     .selected_text(if let Some(index) = self.fft_microphone.mic_id {
-                //         format!("Microphone {index}")
-                //     } else {
-                //         "No Microphone Selected".to_string()
-                //     })
-                //     .show_ui(ui, |ui| {
-                //         for mic in self.mics {
-                //             ui.selectable_value(
-                //                 &mut self.fft_microphone.mic_id,
-                //                 Some(mic.id),
-                //                 format!("Microphone {}", mic.id),
-                //             );
-                //         }
-                //     });
                 ui.separator();
 
                 let spectrum_size = ui.available_size();

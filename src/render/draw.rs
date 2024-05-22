@@ -71,6 +71,7 @@ pub fn draw_pixels(
     });
 
     // draw spectrum
+    // TODO: fft_mic is deprecated, move to mic.show_fft
     if ui_state.show_plots && fft_microphone.mic_id.is_some() {
         let mut frame = images.frame(items.next().expect("two pixel buffers"));
 
