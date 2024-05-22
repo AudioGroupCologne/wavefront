@@ -369,6 +369,7 @@ pub fn draw_egui(
                                                     ui.selectable_value(&mut g, &Gradient::Magma, "Magma");
                                                     ui.selectable_value(&mut g, &Gradient::Inferno, "Inferno");
                                                     ui.selectable_value(&mut g, &Gradient::Plasma, "Plasma");
+                                                    ui.selectable_value(&mut g, &Gradient::Bw, "Bw");
                                                     *gradient = *g;
                                                 });
                                         });
