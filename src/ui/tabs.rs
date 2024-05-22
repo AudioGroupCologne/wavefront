@@ -157,7 +157,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                     .draw()
                                     .unwrap();
 
-                                for (index, ref mic) in self.mics.iter().enumerate() {
+                                for (index, mic) in self.mics.iter().enumerate() {
                                     let points = mic
                                         .record
                                         .iter()

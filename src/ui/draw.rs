@@ -5,6 +5,7 @@ use bevy_file_dialog::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::{Color32, Frame, Margin, Vec2};
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::prelude::*;
+use egui::ImageSource;
 
 use super::help::draw_help;
 use super::loading::SaveFileContents;
@@ -108,11 +109,18 @@ pub struct QuerySystemParams<'w, 's> {
     >,
 }
 
-pub const CTRL_KEY_TEXT: &'static str = if cfg!(target_os = "macos") {
+pub const CTRL_KEY_TEXT: &str = if cfg!(target_os = "macos") {
     "Cmd"
 } else {
     "Ctrl"
 };
+
+pub const IMAGES: [ImageSource; 4] = [
+    egui::include_image!("../../assets/select.png"),
+    egui::include_image!("../../assets/place.png"),
+    egui::include_image!("../../assets/move.png"),
+    egui::include_image!("../../assets/resize_wall.png"),
+];
 
 pub fn draw_egui(
     mut commands: Commands,
@@ -139,13 +147,6 @@ pub fn draw_egui(
 
     let ctx = egui_context.ctx_mut();
     egui_extras::install_image_loaders(ctx);
-
-    let images = [
-        egui::include_image!("../../assets/select.png"),
-        egui::include_image!("../../assets/place.png"),
-        egui::include_image!("../../assets/move.png"),
-        egui::include_image!("../../assets/resize_wall.png"),
-    ];
 
     if ui_state.show_help {
         draw_help(&mut ui_state, ctx);
@@ -380,11 +381,7 @@ pub fn draw_egui(
 
                     let binding = source_set.p1();
                     let selected_source = binding.iter().next();
-                    let selected_source = if selected_source.is_some() {
-                        selected_source.unwrap().1.id as i32
-                    } else {
-                        -1_i32
-                    };
+                    let selected_source = selected_source.map(|(_, wall)| wall.id as i32).unwrap_or(-1_i32);
 
                     let mut binding = source_set.p0();
                     let mut source_vec = binding.iter_mut().collect::<Vec<_>>();
@@ -550,11 +547,7 @@ pub fn draw_egui(
 
                     let binding = mic_set.p1();
                     let selected_mic = binding.iter().next();
-                    let selected_mic = if selected_mic.is_some() {
-                        selected_mic.unwrap().1.id as i32
-                    } else {
-                        -1_i32
-                    };
+                    let selected_mic = selected_mic.map(|(_, wall)| wall.id as i32).unwrap_or(-1_i32);
 
                     let mut binding = mic_set.p0();
                     let mut mic_vec = binding.iter_mut().collect::<Vec<_>>();
@@ -610,11 +603,7 @@ pub fn draw_egui(
 
                     let binding = rect_wall_set.p1();
                     let selected_rect_wall = binding.iter().next();
-                    let selected_rect_wall = if selected_rect_wall.is_some() {
-                        selected_rect_wall.unwrap().1.id as i32
-                    } else {
-                        -1_i32
-                    };
+                    let selected_rect_wall = selected_rect_wall.map(|(_, wall)| wall.id as i32).unwrap_or(-1_i32);
 
                     let mut rect_binding = rect_wall_set.p0();
                     let mut wall_vec = rect_binding.iter_mut().collect::<Vec<_>>();
@@ -759,11 +748,7 @@ pub fn draw_egui(
 
                     let binding = circ_wall_set.p1();
                     let selected_circ_wall = binding.iter().next();
-                    let selected_circ_wall = if selected_circ_wall.is_some() {
-                        selected_circ_wall.unwrap().1.id as i32
-                    } else {
-                        -1_i32
-                    };
+                    let selected_circ_wall = selected_circ_wall.map(|(_, wall)| wall.id as i32).unwrap_or(-1_i32);
 
                     let mut circ_binding = circ_wall_set.p0();
                     let mut wall_vec = circ_binding.iter_mut().collect::<Vec<_>>();
@@ -1116,10 +1101,10 @@ pub fn draw_egui(
         .resizable(false)
         .show(ctx, |ui| {
             ui.set_enabled(ui_state.tools_enabled);
-            let select_icon = &images[0];
-            let place_icon = &images[1];
-            let move_icon = &images[2];
-            let resize_wall_icon = &images[3];
+            let select_icon = &IMAGES[0];
+            let place_icon = &IMAGES[1];
+            let move_icon = &IMAGES[2];
+            let resize_wall_icon = &IMAGES[3];
 
             if ui
                 .add(
