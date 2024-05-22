@@ -48,11 +48,6 @@ impl fmt::Display for PlaceType {
     }
 }
 
-#[derive(Default, Resource)]
-pub struct FftMicrophone {
-    pub mic_id: Option<usize>,
-}
-
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum FftScaling {
     Normalized,

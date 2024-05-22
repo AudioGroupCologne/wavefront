@@ -6,3 +6,4 @@ pub mod preferences;
 pub mod saving;
 pub mod state;
 pub mod tabs;
+pub mod panels;
