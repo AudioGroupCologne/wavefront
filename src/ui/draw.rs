@@ -1165,7 +1165,7 @@ pub fn draw_egui(
                                             .add(
                                                 egui::Slider::new(
                                                     &mut wall.open_circ_segment,
-                                                    0f32..=180f32.to_radians(),
+                                                    0f32..=180f32,
                                                 )
                                                 .text("Open Circle Arc"),
                                             )
@@ -1179,7 +1179,7 @@ pub fn draw_egui(
                                             .add(
                                                 egui::Slider::new(
                                                     &mut wall.rotation_angle,
-                                                    0f32..=360f32.to_radians(),
+                                                    0f32..=360f32,
                                                 )
                                                 .text("Rotation Angle"),
                                             )

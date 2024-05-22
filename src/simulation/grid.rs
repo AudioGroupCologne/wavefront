@@ -203,10 +203,10 @@ impl Grid {
                                     .acos()
                             };
 
-                        angle = (angle + wall.rotation_angle) % TAU;
+                        angle = (angle + wall.rotation_angle.to_radians()) % TAU;
 
-                        if (angle >= wall.open_circ_segment
-                            && angle <= TAU - wall.open_circ_segment)
+                        if (angle >= wall.open_circ_segment.to_radians()
+                            && angle <= TAU - wall.open_circ_segment.to_radians())
                             || !wall.is_hollow
                         {
                             let index = coords_to_index(x, y, boundary_width);

@@ -440,9 +440,9 @@ pub struct CircWall {
     pub is_hollow: bool,
     pub reflection_factor: f32,
     //TODO: Better description
-    /// open segment from x-axis (mirrored) in radians
+    /// open segment from x-axis (mirrored) in degrees
     pub open_circ_segment: f32,
-    /// rotation angle in radians
+    /// rotation angle in degrees
     pub rotation_angle: f32,
     pub id: usize,
     resize_point: UVec2,
@@ -507,7 +507,7 @@ impl Wall for CircWall {
                 };
 
                 if !angle.is_nan() {
-                    self.rotation_angle = TAU - angle;
+                    self.rotation_angle = (TAU - angle).to_degrees();
                 }
 
                 let x_offset = self.center.x as i32 - x as i32;

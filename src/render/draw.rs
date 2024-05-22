@@ -247,9 +247,9 @@ pub fn draw_overlays(
                         TAU - ((x as f32 - wall.center.x as f32) / wall.radius as f32).acos()
                     };
 
-                    angle = (angle + wall.rotation_angle) % TAU;
+                    angle = (angle + wall.rotation_angle.to_radians()) % TAU;
 
-                    if angle >= wall.open_circ_segment && angle <= TAU - wall.open_circ_segment
+                    if angle >= wall.open_circ_segment.to_radians() && angle <= TAU - wall.open_circ_segment.to_radians()
                         || !wall.is_hollow
                     {
                         for cur_x in if t_x > 0 { 0..t_x } else { (t_x + 1)..1 } {
