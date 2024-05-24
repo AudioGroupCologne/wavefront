@@ -240,7 +240,7 @@ pub fn draw_egui(
                     }
 
                     if ui
-                        .add(egui::Button::new("Load").shortcut_text(format!("{CTRL_KEY_TEXT}+O")))
+                        .add(egui::Button::new("Open").shortcut_text(format!("{CTRL_KEY_TEXT}+O")))
                         .on_hover_text("Open a previously saved state of the simulation")
                         .clicked()
                     {
