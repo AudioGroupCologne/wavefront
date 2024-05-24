@@ -80,10 +80,10 @@ pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
                     });
                     body.row(15.0, |mut row| {
                         row.col(|ui| {
-                            ui.label("Load simulation");
+                            ui.label("Open simulation");
                         });
                         row.col(|ui| {
-                            ui.label(format!("{CTRL_KEY_TEXT}+L"));
+                            ui.label(format!("{CTRL_KEY_TEXT}+O"));
                         });
                     });
                     body.row(15.0, |mut row| {

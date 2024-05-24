@@ -489,7 +489,7 @@ pub fn event_input(
     }
 
     // load file
-    if ctrl && keys.just_pressed(KeyCode::KeyL) {
+    if ctrl && keys.just_pressed(KeyCode::KeyO) {
         load_ev.send(Load);
     }
     // save file
