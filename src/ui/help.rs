@@ -32,10 +32,10 @@ pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
                 .body(|mut body| {
                     body.row(15.0, |mut row| {
                         row.col(|ui| {
-                            ui.label("Delete Selected");
+                            ui.label("Delete selected");
                         });
                         row.col(|ui| {
-                            ui.label("Backspace or Delete");
+                            ui.label("Backspace or delete");
                         });
                     });
                     body.row(15.0, |mut row| {
@@ -56,7 +56,7 @@ pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
                     });
                     body.row(15.0, |mut row| {
                         row.col(|ui| {
-                            ui.label("Copy Selected");
+                            ui.label("Copy selected");
                         });
                         row.col(|ui| {
                             ui.label(format!("{CTRL_KEY_TEXT}+C"));
@@ -64,7 +64,7 @@ pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
                     });
                     body.row(15.0, |mut row| {
                         row.col(|ui| {
-                            ui.label("Paste Clipboard");
+                            ui.label("Paste clipboard");
                         });
                         row.col(|ui| {
                             ui.label(format!("{CTRL_KEY_TEXT}+V"));
@@ -72,7 +72,7 @@ pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
                     });
                     body.row(15.0, |mut row| {
                         row.col(|ui| {
-                            ui.label("Save Current Simulation");
+                            ui.label("Save simulation");
                         });
                         row.col(|ui| {
                             ui.label(format!("{CTRL_KEY_TEXT}+S"));
@@ -80,7 +80,7 @@ pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
                     });
                     body.row(15.0, |mut row| {
                         row.col(|ui| {
-                            ui.label("Load Previous Simulation");
+                            ui.label("Load simulation");
                         });
                         row.col(|ui| {
                             ui.label(format!("{CTRL_KEY_TEXT}+L"));
@@ -88,10 +88,10 @@ pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
                     });
                     body.row(15.0, |mut row| {
                         row.col(|ui| {
-                            ui.label("Snap to Grid");
+                            ui.label("Snap to grid");
                         });
                         row.col(|ui| {
-                            ui.label(format!("{CTRL_KEY_TEXT} + Move or Resize Wall"));
+                            ui.label(format!("{CTRL_KEY_TEXT} + Move or resize wall"));
                         });
                     });
                     body.row(15.0, |mut row| {
@@ -104,7 +104,7 @@ pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
                     });
                     body.row(15.0, |mut row| {
                         row.col(|ui| {
-                            ui.label("Select Tool");
+                            ui.label("Select tool");
                         });
                         row.col(|ui| {
                             ui.label("Q");
@@ -112,7 +112,7 @@ pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
                     });
                     body.row(15.0, |mut row| {
                         row.col(|ui| {
-                            ui.label("Move Tool");
+                            ui.label("Move tool");
                         });
                         row.col(|ui| {
                             ui.label("W");
@@ -120,7 +120,7 @@ pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
                     });
                     body.row(15.0, |mut row| {
                         row.col(|ui| {
-                            ui.label("Resize Tool");
+                            ui.label("Resize tool");
                         });
                         row.col(|ui| {
                             ui.label("E");
@@ -128,7 +128,7 @@ pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
                     });
                     body.row(15.0, |mut row| {
                         row.col(|ui| {
-                            ui.label("Place Rectangle Wall Tool");
+                            ui.label("Place rectangular wall tool");
                         });
                         row.col(|ui| {
                             ui.label("R");
@@ -136,7 +136,7 @@ pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
                     });
                     body.row(15.0, |mut row| {
                         row.col(|ui| {
-                            ui.label("Place Circular Wall Tool");
+                            ui.label("Place circular wall tool");
                         });
                         row.col(|ui| {
                             ui.label("C");
@@ -144,7 +144,7 @@ pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
                     });
                     body.row(15.0, |mut row| {
                         row.col(|ui| {
-                            ui.label("Place Source Tool");
+                            ui.label("Place source tool");
                         });
                         row.col(|ui| {
                             ui.label("S");
@@ -152,7 +152,7 @@ pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
                     });
                     body.row(15.0, |mut row| {
                         row.col(|ui| {
-                            ui.label("Place Microphone Tool");
+                            ui.label("Place microphone tool");
                         });
                         row.col(|ui| {
                             ui.label("M");
