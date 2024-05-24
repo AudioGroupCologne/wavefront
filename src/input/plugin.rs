@@ -12,7 +12,6 @@ impl Plugin for InputPlugin {
                 button_input,
                 event_input,
                 copy_paste_system,
-                bevy::window::close_on_esc,
             ),
         );
     }

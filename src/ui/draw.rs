@@ -259,7 +259,7 @@ pub fn draw_egui(
                     }
 
                     if ui
-                        .add(egui::Button::new("Quit").shortcut_text("Esc"))
+                        .add(egui::Button::new("Quit"))
                         .on_hover_text("Quit the application")
                         .clicked()
                     {
