@@ -33,13 +33,9 @@ pub fn screenshot_grid(
                 let [r, g, b] = gradient.at(pressure, -2., 2.);
 
                 // inverse gamma correction to match the brightness/contrast of the simulation
-                // pixels.push(((color.r() as f32 / 255.).powf(1. / 2.2) * 255.) as u8);
-                // pixels.push(((color.g() as f32 / 255.).powf(1. / 2.2) * 255.) as u8);
-                // pixels.push(((color.b() as f32 / 255.).powf(1. / 2.2) * 255.) as u8);
-
-                pixels.push(r);
-                pixels.push(g);
-                pixels.push(b);
+                pixels.push(((r as f32 / 255.).powf(1. / 2.2) * 255.) as u8);
+                pixels.push(((g as f32 / 255.).powf(1. / 2.2) * 255.) as u8);
+                pixels.push(((b as f32 / 255.).powf(1. / 2.2) * 255.) as u8);
             }
         }
     }
