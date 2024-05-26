@@ -427,6 +427,7 @@ pub fn draw_egui(
                                         phase,
                                         frequency,
                                         amplitude,
+                                        std_dev,
                                     } => {
                                         if ui
                                             .add(
@@ -450,6 +451,15 @@ pub fn draw_egui(
                                             .add(
                                                 egui::Slider::new(phase, 0.0..=360.0)
                                                     .text("Phase (°)"),
+                                            )
+                                            .changed()
+                                        {
+                                            events.reset_ev.send(Reset::default());
+                                        }
+                                        if ui
+                                            .add(
+                                                egui::Slider::new(std_dev, 0.0..=1.0)
+                                                    .text("Standard Deviation"),
                                             )
                                             .changed()
                                         {

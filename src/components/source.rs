@@ -35,12 +35,13 @@ pub enum SourceType {
         amplitude: f32,
     },
     Gauss {
-        /// phase shift of the function (in °)
+        /// phase shift of the bell (in °)
         phase: f32,
-        /// frequency of the sin (in Hz)
+        /// frequency of the bell (in Hz)
         frequency: f32,
-        /// amplitude of the sin (currently unitless)
+        /// amplitude of the bell (currently unitless)
         amplitude: f32,
+        std_dev: f32,
     },
     WhiteNoise {
         /// amplitude of the noise (currently unitless)
@@ -71,6 +72,7 @@ impl SourceType {
             amplitude: 10.,
             phase: 0.0,
             frequency: 10000.0,
+            std_dev: 0.45,
         }
     }
     pub fn default_noise() -> SourceType {
@@ -109,7 +111,8 @@ impl Source {
                 phase,
                 amplitude,
                 frequency,
-            } => self.periodic_gaussian(time, frequency, amplitude, phase, 4., 0., 0.45),
+                std_dev
+            } => self.periodic_gaussian(time, frequency, amplitude, phase, 4., 0., std_dev),
             SourceType::WhiteNoise { amplitude } => {
                 thread_rng().sample::<f32, _>(rand_distr::StandardNormal) * amplitude
             }
