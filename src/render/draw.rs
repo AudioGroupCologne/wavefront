@@ -61,13 +61,9 @@ pub fn draw_pixels(
 
         let p = grid.pressure[current_index];
 
-        let color = gradient.at(p, -2., 2.);
-        Pixel {
-            r: color.r(),
-            g: color.g(),
-            b: color.b(),
-            a: 255,
-        }
+        let [r, g, b] = gradient.at(p, -2., 2.);
+
+        Pixel { r, g, b, a: 255 }
     });
 
     // draw spectrum

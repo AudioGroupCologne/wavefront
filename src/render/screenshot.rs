@@ -1,13 +1,12 @@
 use bevy::ecs::system::Commands;
 use bevy_file_dialog::FileDialogExt;
 
+use super::gradient::Gradient;
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::transformations::coords_to_index;
 use crate::simulation::grid::Grid;
 use crate::ui::loading::SaveFileContents;
 use crate::ui::state::UiState;
-
-use super::gradient::Gradient;
 
 pub fn screenshot_grid(
     ui_state: &UiState,
@@ -31,12 +30,16 @@ pub fn screenshot_grid(
             } else {
                 let pressure = grid.pressure[current_index];
 
-                let color = gradient.at(pressure, -2., 2.);
+                let [r, g, b] = gradient.at(pressure, -2., 2.);
 
-                // gamma correction to match the brightness/contrast of the simulation
-                pixels.push(((color.r() as f32 / 255.).powf(1. / 2.2) * 255.) as u8);
-                pixels.push(((color.g() as f32 / 255.).powf(1. / 2.2) * 255.) as u8);
-                pixels.push(((color.b() as f32 / 255.).powf(1. / 2.2) * 255.) as u8);
+                // inverse gamma correction to match the brightness/contrast of the simulation
+                // pixels.push(((color.r() as f32 / 255.).powf(1. / 2.2) * 255.) as u8);
+                // pixels.push(((color.g() as f32 / 255.).powf(1. / 2.2) * 255.) as u8);
+                // pixels.push(((color.b() as f32 / 255.).powf(1. / 2.2) * 255.) as u8);
+
+                pixels.push(r);
+                pixels.push(g);
+                pixels.push(b);
             }
         }
     }
