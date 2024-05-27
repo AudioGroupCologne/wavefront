@@ -30,7 +30,7 @@ pub fn screenshot_grid(
             } else {
                 let pressure = grid.pressure[current_index];
 
-                let [r, g, b] = gradient.at(pressure, -2., 2.);
+                let [r, g, b] = gradient.at(pressure, ui_state.min_gradient, ui_state.max_gradient);
 
                 // inverse gamma correction to match the brightness/contrast of the simulation
                 pixels.push(((r as f32 / 255.).powf(1. / 2.2) * 255.) as u8);

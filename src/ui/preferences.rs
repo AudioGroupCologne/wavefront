@@ -93,6 +93,34 @@ pub fn draw_preferences(
                                 body.row(row_height, |mut row| {
                                     row.col(|ui| {
                                         ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                            ui.add(
+                                                egui::DragValue::new(&mut ui_state_tmp.min_gradient).speed(0.01)
+                                            );
+                                        });
+                                    });
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui| {
+                                            ui.label("Min Gradient");
+                                        });
+                                    });
+                                });
+                                body.row(row_height, |mut row| {
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                            ui.add(
+                                                egui::DragValue::new(&mut ui_state_tmp.max_gradient).speed(0.01)
+                                            );
+                                        });
+                                    });
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui| {
+                                            ui.label("Max Gradient");
+                                        });
+                                    });
+                                });
+                                body.row(row_height, |mut row| {
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
                                             ui.strong("Boundary");
                                         });
                                     });

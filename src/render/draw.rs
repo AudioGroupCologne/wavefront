@@ -61,7 +61,7 @@ pub fn draw_pixels(
 
         let p = grid.pressure[current_index];
 
-        let [r, g, b] = gradient.at(p, -2., 2.);
+        let [r, g, b] = gradient.at(p, ui_state.min_gradient, ui_state.max_gradient);
 
         Pixel { r, g, b, a: 255 }
     });

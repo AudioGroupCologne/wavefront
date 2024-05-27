@@ -98,6 +98,8 @@ pub struct UiState {
     pub show_fft_approx: bool,
     pub fft_window_size: usize,
     pub collapse_header: bool,
+    pub max_gradient: f32,
+    pub min_gradient: f32,
 }
 
 impl Default for UiState {
@@ -129,6 +131,8 @@ impl Default for UiState {
             show_fft_approx: false,
             fft_window_size: 1024,
             collapse_header: false,
+            max_gradient: 2.,
+            min_gradient: -2.,
         }
     }
 }
