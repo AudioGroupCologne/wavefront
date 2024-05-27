@@ -1,5 +1,4 @@
 use bevy::ecs::system::Resource;
-use egui::Color32;
 use serde::{Deserialize, Serialize};
 
 use crate::math::transformations::map_range;
