@@ -38,7 +38,7 @@ pub fn draw_preferences(
                         ui.push_id("general_settings_table", |ui| {
                             TableBuilder::new(ui)
                             .resizable(false)
-                            .striped(true)
+                            .striped(false)
                             .column(Column::remainder())
                             .column(Column::remainder())
                             .body(|mut body| {
@@ -201,7 +201,7 @@ pub fn draw_preferences(
                         ui.push_id("experimental_settings_table", |ui| {
                             TableBuilder::new(ui)
                                 .resizable(false)
-                                .striped(true)
+                                .striped(false)
                                 .column(Column::remainder())
                                 .column(Column::remainder())
                                 .body(|mut body| {
