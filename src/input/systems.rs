@@ -1,3 +1,4 @@
+use bevy::app::AppExit;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
@@ -419,7 +420,7 @@ pub fn button_input(
         ui_state.is_running = !ui_state.is_running;
     }
 
-    if keys.just_pressed(KeyCode::KeyQ) {
+    if keys.just_pressed(KeyCode::KeyQ) && !ctrl {
         ui_state.current_tool = ToolType::Select;
     }
 
@@ -463,6 +464,7 @@ pub fn event_input(
     mut save_ev: EventWriter<Save>,
     mut load_ev: EventWriter<Load>,
     mut wall_update_ev: EventWriter<UpdateWalls>,
+    mut exit_ev: EventWriter<AppExit>,
     mut selected: Query<Entity, With<Selected>>,
     mut commands: Commands,
 ) {
@@ -495,5 +497,9 @@ pub fn event_input(
     // save file
     if ctrl && keys.just_pressed(KeyCode::KeyS) {
         save_ev.send(Save);
+    }
+    // quit program
+    if ctrl && keys.just_pressed(KeyCode::KeyQ) {
+        exit_ev.send(AppExit);
     }
 }
