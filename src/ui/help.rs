@@ -88,6 +88,14 @@ pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
                     });
                     body.row(15.0, |mut row| {
                         row.col(|ui| {
+                            ui.label("Quit simulation");
+                        });
+                        row.col(|ui| {
+                            ui.label(format!("{CTRL_KEY_TEXT}+Q"));
+                        });
+                    });
+                    body.row(15.0, |mut row| {
+                        row.col(|ui| {
                             ui.label("Snap to grid");
                         });
                         row.col(|ui| {
