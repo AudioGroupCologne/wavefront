@@ -18,7 +18,7 @@
   <p align="center">
     a TLM wave simulation engine.
     <br />
-    <a href="https://nichilum.github.io/wavefront-manual/"><strong>Explore the docs »</strong></a>
+    <a href="https://nichilum.github.io/wavefront-manual/" target="_blank"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     <a href="https://github.com/nichilum/wavefront/issues">Report Bug</a>
