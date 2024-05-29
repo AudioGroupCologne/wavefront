@@ -16,12 +16,14 @@ pub struct SaveFileContents;
 
 /// The data that is loaded from a file. Used for deserialization.
 #[derive(Deserialize)]
-pub struct SaveData {
-    pub sources: Vec<Source>,
-    pub mics: Vec<Microphone>,
-    pub rect_walls: Vec<RectWall>,
-    pub circ_walls: Vec<CircWall>,
-    pub gradient: Gradient,
+struct SaveData {
+    sources: Vec<Source>,
+    mics: Vec<Microphone>,
+    rect_walls: Vec<RectWall>,
+    circ_walls: Vec<CircWall>,
+    gradient: Gradient,
+    max_gradient: f32,
+    min_gradient: f32,
 }
 
 /// Loads a file when receiving a [`DialogFileLoaded`] event from the file dialog.
@@ -37,7 +39,7 @@ pub fn file_loaded(
     mics: Query<(Entity, &Microphone)>,
     rect_walls: Query<(Entity, &RectWall)>,
     circ_walls: Query<(Entity, &CircWall)>,
-    ui_state: Res<UiState>,
+    mut ui_state: ResMut<UiState>,
 ) {
     if let Some(data) = ev_loaded.read().next() {
         let save_data = serde_json::from_slice::<SaveData>(&data.contents).unwrap();
@@ -80,5 +82,7 @@ pub fn file_loaded(
         wall_update_ev.send(UpdateWalls);
 
         *gradient = save_data.gradient;
+        ui_state.max_gradient = save_data.max_gradient;
+        ui_state.min_gradient = save_data.min_gradient;
     }
 }

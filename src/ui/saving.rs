@@ -13,6 +13,8 @@ struct SaveData<'a> {
     rect_walls: &'a Vec<&'a RectWall>,
     circ_walls: &'a Vec<&'a CircWall>,
     gradient: &'a Gradient,
+    max_gradient: f32,
+    min_gradient: f32,
 }
 
 /// Serializes the given data to a byte vector of JSON.
@@ -22,6 +24,8 @@ pub fn serialize(
     rect_walls: &Vec<&RectWall>,
     circ_walls: &Vec<&CircWall>,
     gradient: &Gradient,
+    max_gradient: f32,
+    min_gradient: f32,
 ) -> Result<Vec<u8>, serde_json::Error> {
     let save_data = SaveData {
         sources,
@@ -29,6 +33,8 @@ pub fn serialize(
         rect_walls,
         circ_walls,
         gradient,
+        max_gradient,
+        min_gradient,
     };
 
     serde_json::to_vec(&save_data)

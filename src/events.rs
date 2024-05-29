@@ -73,6 +73,7 @@ pub fn save_event(
     rect_walls: Query<&RectWall>,
     circ_walls: Query<&CircWall>,
     gradient: Res<Gradient>,
+    ui_state: Res<UiState>,
 ) {
     for _ in save_ev.read() {
         let sources = sources.iter().collect::<Vec<_>>();
@@ -80,9 +81,16 @@ pub fn save_event(
         let rect_walls = rect_walls.iter().collect::<Vec<_>>();
         let circ_walls = circ_walls.iter().collect::<Vec<_>>();
 
-        let data =
-            crate::ui::saving::serialize(&sources, &mics, &rect_walls, &circ_walls, &gradient)
-                .unwrap();
+        let data = crate::ui::saving::serialize(
+            &sources,
+            &mics,
+            &rect_walls,
+            &circ_walls,
+            &gradient,
+            ui_state.max_gradient,
+            ui_state.min_gradient,
+        )
+        .unwrap();
 
         commands
             .dialog()
