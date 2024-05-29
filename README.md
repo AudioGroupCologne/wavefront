@@ -9,7 +9,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/github_username/repo_name">
+  <a href="https://github.com/nichilum/wavefront">
     <img src="assets/icon.png" alt="Logo" width="80" height="80">
   </a>
 
@@ -18,7 +18,7 @@
   <p align="center">
     a TLM wave simulation engine.
     <br />
-    <a href="https://github.com/github_username/repo_name"><strong>Explore the docs »</strong></a>
+    <a href="https://nichilum.github.io/wavefront-manual/"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     <a href="https://github.com/nichilum/wavefront/issues">Report Bug</a>
