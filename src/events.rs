@@ -15,12 +15,19 @@ impl Plugin for EventPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             PostUpdate,
-            (update_wall_event, reset_event, save_event, load_event),
+            (
+                update_wall_event,
+                reset_event,
+                save_event,
+                load_event,
+                new_event,
+            ),
         )
         .add_event::<UpdateWalls>()
         .add_event::<Reset>()
         .add_event::<Load>()
-        .add_event::<Save>();
+        .add_event::<Save>()
+        .add_event::<New>();
     }
 }
 
@@ -59,6 +66,44 @@ pub fn reset_event(
             mics.iter_mut().for_each(|mut mic| mic.clear());
             ui_state.highest_y_volume_plot = 0f64;
         }
+    }
+}
+
+#[derive(Event)]
+pub struct New;
+
+pub fn new_event(
+    mut commands: Commands,
+    mut new_ev: EventReader<New>,
+    sources: Query<(Entity, &Source)>,
+    mics: Query<(Entity, &Microphone)>,
+    rect_walls: Query<(Entity, &RectWall)>,
+    circ_walls: Query<(Entity, &CircWall)>,
+    mut ui_state: ResMut<UiState>,
+    mut grid: ResMut<Grid>,
+    mut wall_update_ev: EventWriter<UpdateWalls>,
+    mut fixed_timestep: ResMut<Time<Fixed>>,
+) {
+    for _ in new_ev.read() {
+        for (e, _) in sources.iter() {
+            commands.entity(e).despawn();
+        }
+        for (e, _) in rect_walls.iter() {
+            commands.entity(e).despawn();
+        }
+        for (e, _) in circ_walls.iter() {
+            commands.entity(e).despawn();
+        }
+        for (e, _) in mics.iter() {
+            commands.entity(e).despawn();
+        }
+
+        grid.reset_cells(ui_state.boundary_width);
+        wall_update_ev.send(UpdateWalls);
+        *ui_state = UiState::default();
+        fixed_timestep.set_timestep_hz(ui_state.framerate);
+
+        // TODO: clear undoer
     }
 }
 

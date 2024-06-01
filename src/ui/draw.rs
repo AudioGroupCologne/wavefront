@@ -14,7 +14,7 @@ use crate::components::microphone::*;
 use crate::components::source::*;
 use crate::components::states::{MenuSelected, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize};
-use crate::events::{Load, Reset, Save, UpdateWalls};
+use crate::events::{Load, New, Reset, Save, UpdateWalls};
 use crate::math::constants::*;
 use crate::render::gradient::Gradient;
 use crate::render::screenshot::screenshot_grid;
@@ -37,6 +37,7 @@ pub struct EventSystemParams<'w> {
     pub undo_ev: EventWriter<'w, UndoEvent>,
     pub save_ev: EventWriter<'w, Save>,
     pub load_ev: EventWriter<'w, Load>,
+    pub new_ev: EventWriter<'w, New>,
 }
 
 type AllRectWallsMut<'w, 's> = Query<'w, 's, (Entity, &'static mut RectWall)>;
@@ -233,6 +234,15 @@ pub fn draw_egui(
             ui.horizontal(|ui| {
                 ui.visuals_mut().button_frame = false;
                 ui.menu_button("File", |ui| {
+                    if ui
+                        .add(egui::Button::new("New").shortcut_text(format!("{CTRL_KEY_TEXT}+N")))
+                        .on_hover_text("Create a new simulation")
+                        .clicked()
+                    {
+                        ui.close_menu();
+                        events.new_ev.send(New);
+                    }
+
                     if ui
                         .add(egui::Button::new("Save").shortcut_text(format!("{CTRL_KEY_TEXT}+S")))
                         .on_hover_text("Save the current state of the simulation")
