@@ -72,6 +72,14 @@ pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
                     });
                     body.row(15.0, |mut row| {
                         row.col(|ui| {
+                            ui.label("New simulation");
+                        });
+                        row.col(|ui| {
+                            ui.label(format!("{CTRL_KEY_TEXT}+N"));
+                        });
+                    });
+                    body.row(15.0, |mut row| {
+                        row.col(|ui| {
                             ui.label("Save simulation");
                         });
                         row.col(|ui| {
