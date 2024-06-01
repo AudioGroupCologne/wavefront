@@ -135,6 +135,9 @@ pub fn draw_egui(
     time: Res<Time>,
     mut fixed_timestep: ResMut<Time<Fixed>>,
     diagnostics: Res<DiagnosticsStore>,
+    // TODO: these values could (at least quick settings because tool settings change in height) be baked once the panels are finalized
+    mut quick_settings_height: Local<f32>,
+    mut tool_settings_height: Local<f32>,
 ) {
     let QuerySystemParams {
         mut rect_wall_set,
@@ -316,13 +319,16 @@ pub fn draw_egui(
 
             ui.add_space(3.);
 
-            // Sources
+            // Outline
             egui::ScrollArea::vertical()
                 .id_source("side_scroll_area")
-                .max_height(400.)
+                .max_height(
+                    ui.available_height() - *tool_settings_height - *quick_settings_height - 25.,
+                )
                 .show(ui, |ui| {
                     ui.set_min_width(ui.available_width());
 
+                    // Sources
                     let binding = source_set.p1();
                     let selected_source = binding.iter().next();
                     let selected_source = selected_source
@@ -849,8 +855,10 @@ pub fn draw_egui(
                     });
                 });
 
-            // General Settings
+            // Quick Settings
             egui::TopBottomPanel::bottom("quick_settings_bottom_panel").show_inside(ui, |ui| {
+                *quick_settings_height = ui.available_height();
+
                 ui.add_space(3.);
                 ui.heading("Quick Settings");
                 ui.separator();
@@ -924,6 +932,12 @@ pub fn draw_egui(
                 ui.add_space(5.);
 
                 ui.horizontal(|ui| {
+                    ui.checkbox(&mut ui_state.hide_gizmos, "Always hide gizmos");
+                });
+
+                ui.add_space(5.);
+
+                ui.horizontal(|ui| {
                     ui.label(format!(
                         "Simulation Time: {:.5} ms",
                         sim_time.time_since_start * 1000.
@@ -944,6 +958,8 @@ pub fn draw_egui(
 
             // Tool Options
             egui::TopBottomPanel::bottom("tool_options_panel").show_inside(ui, |ui| {
+                *tool_settings_height = ui.available_height();
+
                 ui.add_space(3.);
                 ui.heading("Tool Options");
                 ui.separator();
@@ -1178,7 +1194,7 @@ pub fn draw_egui(
 
             // Gizmos
 
-            if !ui_state.render_abc_area {
+            if !ui_state.render_abc_area && !ui_state.hide_gizmos {
                 let painter = ui.painter();
                 //menu gizmos
                 if !ui_state.tools_enabled {

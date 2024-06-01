@@ -100,6 +100,7 @@ pub struct UiState {
     pub collapse_header: bool,
     pub max_gradient: f32,
     pub min_gradient: f32,
+    pub hide_gizmos: bool,
 }
 
 impl Default for UiState {
@@ -133,6 +134,7 @@ impl Default for UiState {
             collapse_header: false,
             max_gradient: 2.,
             min_gradient: -2.,
+            hide_gizmos: false,
         }
     }
 }
