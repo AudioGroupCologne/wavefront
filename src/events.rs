@@ -86,6 +86,7 @@ pub fn new_event(
     mut fixed_timestep: ResMut<Time<Fixed>>,
     mut ids: ResMut<ComponentIDs>,
     mut gradient: ResMut<Gradient>,
+    mut sim_time: ResMut<SimTime>,
 ) {
     for _ in new_ev.read() {
         for (e, _) in sources.iter() {
@@ -107,17 +108,20 @@ pub fn new_event(
         fixed_timestep.set_timestep_hz(ui_state.framerate);
         ids.reset();
         *gradient = Gradient::default();
-
+        sim_time.time_since_start = 0f32;
         // TODO: clear undoer
     }
 }
 
 #[derive(Event)]
-pub struct Save;
+pub struct Save {
+    pub new_file: bool,
+}
 
 pub fn save_event(
     mut commands: Commands,
     mut save_ev: EventReader<Save>,
+    mut new_ev: EventWriter<New>,
     sources: Query<&Source>,
     mics: Query<&Microphone>,
     rect_walls: Query<&RectWall>,
@@ -125,7 +129,7 @@ pub fn save_event(
     gradient: Res<Gradient>,
     ui_state: Res<UiState>,
 ) {
-    for _ in save_ev.read() {
+    for event in save_ev.read() {
         let sources = sources.iter().collect::<Vec<_>>();
         let mics = mics.iter().collect::<Vec<_>>();
         let rect_walls = rect_walls.iter().collect::<Vec<_>>();
@@ -149,6 +153,10 @@ pub fn save_event(
             .set_directory("./")
             .set_title("Select a file to save to")
             .save_file::<SaveFileContents>(data);
+
+        if event.new_file {
+            new_ev.send(New);
+        }
     }
 }
 

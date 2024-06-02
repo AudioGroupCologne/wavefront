@@ -6,7 +6,7 @@ use crate::components::microphone::Microphone;
 use crate::components::source::{Source, SourceType};
 use crate::components::states::{Move, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize, Wall};
-use crate::events::{Load, New, Reset, Save, UpdateWalls};
+use crate::events::{Load, Reset, Save, UpdateWalls};
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
 use crate::simulation::plugin::ComponentIDs;
 use crate::ui::state::{ClipboardBuffer, PlaceType, ToolType, UiState};
@@ -459,13 +459,12 @@ pub fn button_input(
 pub fn event_input(
     mouse_buttons: Res<ButtonInput<MouseButton>>,
     keys: Res<ButtonInput<KeyCode>>,
-    ui_state: ResMut<UiState>,
+    mut ui_state: ResMut<UiState>,
     mut reset_ev: EventWriter<Reset>,
     mut save_ev: EventWriter<Save>,
     mut load_ev: EventWriter<Load>,
     mut wall_update_ev: EventWriter<UpdateWalls>,
     mut exit_ev: EventWriter<AppExit>,
-    mut new_ev: EventWriter<New>,
     mut selected: Query<Entity, With<Selected>>,
     mut commands: Commands,
 ) {
@@ -493,7 +492,7 @@ pub fn event_input(
 
     // new file
     if ctrl && keys.just_pressed(KeyCode::KeyN) {
-        new_ev.send(New);
+        ui_state.show_new_warning = true;
     }
     // load file
     if ctrl && keys.just_pressed(KeyCode::KeyO) {
@@ -501,7 +500,7 @@ pub fn event_input(
     }
     // save file
     if ctrl && keys.just_pressed(KeyCode::KeyS) {
-        save_ev.send(Save);
+        save_ev.send(Save { new_file: false });
     }
     // quit program
     if ctrl && keys.just_pressed(KeyCode::KeyQ) {
