@@ -1,11 +1,9 @@
-use bevy::app::{App, FixedUpdate, Plugin, Startup};
+use bevy::app::{App, FixedUpdate, Plugin};
 use bevy::ecs::schedule::IntoSystemConfigs;
 use bevy::ecs::system::Resource;
 
 use super::grid::Grid;
 use super::systems::{apply_system, calc_system, update_system};
-use crate::components::microphone::Microphone;
-use crate::components::source::Source;
 use crate::math::constants::INIT_BOUNDARY_WIDTH;
 
 pub struct GridPlugin;
@@ -23,13 +21,19 @@ impl Plugin for GridPlugin {
             );
 
         #[cfg(debug_assertions)]
-        app.add_systems(
-            Startup,
-            (
-                Source::spawn_initial_sources,
-                Microphone::spawn_initial_microphones,
-            ),
-        );
+        {
+            use bevy::app::Startup;
+
+            use crate::components::microphone::Microphone;
+            use crate::components::source::Source;
+            app.add_systems(
+                Startup,
+                (
+                    Source::spawn_initial_sources,
+                    Microphone::spawn_initial_microphones,
+                ),
+            );
+        }
     }
 }
 
