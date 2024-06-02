@@ -930,7 +930,7 @@ pub fn draw_egui(
                         )
                         .changed()
                     {
-                        if ui_state.read_epilepsy_warning {
+                        if ui_state.read_epilepsy_warning || ui_state.framerate <= 60. {
                             fixed_timestep.set_timestep_hz(ui_state.framerate);
                         } else {
                             ui_state.show_epilepsy_warning = true;
@@ -1218,6 +1218,7 @@ pub fn draw_egui(
                             &ui_state.image_rect,
                             None,
                             ui_state.delta_l,
+                            *gradient,
                         );
                     }
                     for (_, wall) in circ_wall_set.p2().iter() {
@@ -1228,6 +1229,7 @@ pub fn draw_egui(
                             &ui_state.image_rect,
                             None,
                             ui_state.delta_l,
+                            *gradient,
                         );
                     }
                     // all mics
@@ -1239,6 +1241,7 @@ pub fn draw_egui(
                             &ui_state.image_rect,
                             Some(&format!("{}", mic.id)),
                             ui_state.delta_l,
+                            *gradient,
                         );
                     }
                     // all sources
@@ -1250,6 +1253,7 @@ pub fn draw_egui(
                             &ui_state.image_rect,
                             Some(&format!("{}", source.id)),
                             ui_state.delta_l,
+                            *gradient,
                         );
                     }
                 } else {
@@ -1264,6 +1268,7 @@ pub fn draw_egui(
                             &ui_state.image_rect,
                             None,
                             ui_state.delta_l,
+                            *gradient,
                         );
                     }
                     // selected rect walls
@@ -1275,6 +1280,7 @@ pub fn draw_egui(
                             &ui_state.image_rect,
                             None,
                             ui_state.delta_l,
+                            *gradient,
                         );
                     }
                     // all circ walls
@@ -1286,6 +1292,7 @@ pub fn draw_egui(
                             &ui_state.image_rect,
                             None,
                             ui_state.delta_l,
+                            *gradient,
                         );
                     }
                     // selected circ walls
@@ -1297,6 +1304,7 @@ pub fn draw_egui(
                             &ui_state.image_rect,
                             None,
                             ui_state.delta_l,
+                            *gradient,
                         );
                     }
                     // all mics
@@ -1308,6 +1316,7 @@ pub fn draw_egui(
                             &ui_state.image_rect,
                             Some(&format!("{}", mic.id)),
                             ui_state.delta_l,
+                            *gradient,
                         );
                     }
                     // selected mics
@@ -1319,6 +1328,7 @@ pub fn draw_egui(
                             &ui_state.image_rect,
                             Some(&format!("{}", mic.id)),
                             ui_state.delta_l,
+                            *gradient,
                         );
                     }
                     // all sources
@@ -1330,6 +1340,7 @@ pub fn draw_egui(
                             &ui_state.image_rect,
                             Some(&format!("{}", source.id)),
                             ui_state.delta_l,
+                            *gradient,
                         );
                     }
                     // selected sources
@@ -1341,6 +1352,7 @@ pub fn draw_egui(
                             &ui_state.image_rect,
                             Some(&format!("{}", source.id)),
                             ui_state.delta_l,
+                            *gradient,
                         );
                     }
                 }

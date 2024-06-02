@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use super::gizmo::GizmoComponent;
 use crate::math::transformations::grid_to_image;
+use crate::render::gradient::Gradient;
 use crate::simulation::plugin::ComponentIDs;
 use crate::ui::state::ToolType;
 
@@ -68,21 +69,24 @@ impl GizmoComponent for Microphone {
         image_rect: &Rect,
         text: Option<&str>,
         _delta_l: f32,
+        _current_gradient: Gradient,
     ) {
+        let (gizmo_color, text_color) = (Color32::LIGHT_BLUE, Color32::BLACK);
+
         match tool_type {
             ToolType::Place(..) | ToolType::Move | ToolType::Select => {
                 for pos in self.get_gizmo_positions(tool_type) {
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         grid_to_image(pos, image_rect),
                         if highlight { 15. } else { 10. },
-                        Color32::GOLD,
+                        gizmo_color,
                     )));
                     if let Some(text) = text {
                         let galley = {
                             let layout_job = LayoutJob::single_section(
                                 text.to_owned(),
                                 TextFormat {
-                                    color: Color32::BLACK,
+                                    color: text_color,
                                     background: Color32::TRANSPARENT,
                                     ..Default::default()
                                 },

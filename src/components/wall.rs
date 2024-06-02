@@ -11,6 +11,7 @@ use super::gizmo::GizmoComponent;
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::rect::WRect;
 use crate::math::transformations::grid_to_image;
+use crate::render::gradient::Gradient;
 use crate::ui::state::{PlaceType, ToolType};
 
 #[derive(Debug, Default, Clone)]
@@ -316,14 +317,20 @@ impl GizmoComponent for RectWall {
         image_rect: &Rect,
         _text: Option<&str>,
         delta_l: f32,
+        current_gradient: Gradient,
     ) {
+        let gizmo_color = match current_gradient {
+            Gradient::Turbo => Color32::from_rgb(1, 89, 88),
+            _ => Color32::from_rgb(15, 194, 192),
+        };
+
         match tool_type {
             ToolType::ResizeWall => {
                 for pos in self.get_gizmo_positions(tool_type) {
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         grid_to_image(pos, image_rect),
                         if highlight { 10. } else { 5. },
-                        Color32::LIGHT_RED,
+                        gizmo_color,
                     )));
                 }
 
@@ -334,7 +341,7 @@ impl GizmoComponent for RectWall {
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         grid_to_image(pos, image_rect),
                         if highlight { 10. } else { 5. },
-                        Color32::LIGHT_RED,
+                        gizmo_color,
                     )));
                 }
             }
@@ -631,14 +638,20 @@ impl GizmoComponent for CircWall {
         image_rect: &Rect,
         _text: Option<&str>,
         delta_l: f32,
+        current_gradient: Gradient,
     ) {
+        let gizmo_color = match current_gradient {
+            Gradient::Turbo => Color32::from_rgb(1, 89, 88),
+            _ => Color32::from_rgb(15, 194, 192),
+        };
+
         match tool_type {
             ToolType::ResizeWall => {
                 for pos in self.get_gizmo_positions(tool_type) {
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         grid_to_image(pos, image_rect),
                         if highlight { 10. } else { 5. },
-                        Color32::LIGHT_RED,
+                        gizmo_color,
                     )));
                 }
                 self.draw_scale_text(painter, image_rect, delta_l, Color32::WHITE);
@@ -648,7 +661,7 @@ impl GizmoComponent for CircWall {
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         grid_to_image(pos, image_rect),
                         if highlight { 10. } else { 5. },
-                        Color32::LIGHT_RED,
+                        gizmo_color,
                     )));
                 }
             }

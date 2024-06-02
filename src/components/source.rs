@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use super::gizmo::GizmoComponent;
 use crate::math::constants::*;
 use crate::math::transformations::grid_to_image;
+use crate::render::gradient::Gradient;
 use crate::simulation::plugin::ComponentIDs;
 use crate::ui::state::ToolType;
 
@@ -186,21 +187,27 @@ impl GizmoComponent for Source {
         image_rect: &Rect,
         text: Option<&str>,
         _delta_l: f32,
+        current_gradient: Gradient,
     ) {
+        let (gizmo_color, text_color) = match current_gradient {
+            Gradient::Turbo => (Color32::from_rgb(1, 89, 88), Color32::WHITE),
+            _ => (Color32::from_rgb(15, 194, 192), Color32::BLACK),
+        };
+
         match tool_type {
             ToolType::Place(..) | ToolType::Move | ToolType::Select => {
                 for pos in self.get_gizmo_positions(tool_type) {
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         grid_to_image(pos, image_rect),
                         if highlight { 15. } else { 10. },
-                        Color32::RED,
+                        gizmo_color,
                     )));
                     if let Some(text) = text {
                         let galley = {
                             let layout_job = LayoutJob::single_section(
                                 text.to_owned(),
                                 TextFormat {
-                                    color: Color32::WHITE,
+                                    color: text_color,
                                     background: Color32::TRANSPARENT,
                                     ..Default::default()
                                 },
