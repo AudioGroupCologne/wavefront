@@ -6,6 +6,7 @@ use crate::components::source::Source;
 use crate::components::wall::{CircWall, RectWall};
 use crate::render::gradient::Gradient;
 use crate::simulation::grid::Grid;
+use crate::simulation::plugin::ComponentIDs;
 use crate::ui::loading::SaveFileContents;
 use crate::ui::state::{SimTime, UiState};
 
@@ -83,6 +84,8 @@ pub fn new_event(
     mut grid: ResMut<Grid>,
     mut wall_update_ev: EventWriter<UpdateWalls>,
     mut fixed_timestep: ResMut<Time<Fixed>>,
+    mut ids: ResMut<ComponentIDs>,
+    mut gradient: ResMut<Gradient>,
 ) {
     for _ in new_ev.read() {
         for (e, _) in sources.iter() {
@@ -102,6 +105,8 @@ pub fn new_event(
         wall_update_ev.send(UpdateWalls);
         *ui_state = UiState::default();
         fixed_timestep.set_timestep_hz(ui_state.framerate);
+        ids.reset();
+        *gradient = Gradient::default();
 
         // TODO: clear undoer
     }
