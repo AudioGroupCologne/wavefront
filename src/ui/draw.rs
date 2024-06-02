@@ -149,6 +149,8 @@ pub fn draw_egui(
 
     let ctx = egui_context.ctx_mut();
     egui_extras::install_image_loaders(ctx);
+    // disable window shadows
+    ctx.style_mut(|style| style.visuals.window_shadow = egui::epaint::Shadow::NONE);
 
     if ui_state.show_help {
         draw_help(&mut ui_state, ctx);
