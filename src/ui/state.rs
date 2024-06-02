@@ -101,6 +101,7 @@ pub struct UiState {
     pub max_gradient: f32,
     pub min_gradient: f32,
     pub hide_gizmos: bool,
+    pub show_new_warning: bool,
 }
 
 impl Default for UiState {
@@ -135,6 +136,7 @@ impl Default for UiState {
             max_gradient: 2.,
             min_gradient: -2.,
             hide_gizmos: false,
+            show_new_warning: false,
         }
     }
 }

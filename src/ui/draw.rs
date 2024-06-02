@@ -221,6 +221,32 @@ pub fn draw_egui(
         ui_state.read_epilepsy_warning = read_epilepsy_warning;
     }
 
+    if ui_state.show_new_warning {
+        let mut show_new_warning = true;
+        egui::Window::new("Save changes")
+            .default_size(Vec2::new(400., 400.))
+            .resizable(false)
+            .collapsible(false)
+            .constrain(true)
+            .show(ctx, |ui| {
+                ui.label("Save changes before closing?");
+                ui.horizontal(|ui| {
+                    if ui.button("Save").clicked() {
+                        show_new_warning = false;
+                        events.save_ev.send(Save { new_file: true });
+                    }
+                    if ui.button("Don't save").clicked() {
+                        show_new_warning = false;
+                        events.new_ev.send(New);
+                    }
+                    if ui.button("Cancel").clicked() {
+                        show_new_warning = false;
+                    }
+                });
+            });
+        ui_state.show_new_warning = show_new_warning;
+    }
+
     egui::TopBottomPanel::top("top_menu")
         .frame(
             Frame::default()
@@ -242,7 +268,7 @@ pub fn draw_egui(
                         .clicked()
                     {
                         ui.close_menu();
-                        events.new_ev.send(New);
+                        ui_state.show_new_warning = true;
                     }
 
                     if ui
@@ -251,7 +277,7 @@ pub fn draw_egui(
                         .clicked()
                     {
                         ui.close_menu();
-                        events.save_ev.send(Save);
+                        events.save_ev.send(Save { new_file: false });
                     }
 
                     if ui
