@@ -108,7 +108,8 @@ impl Default for UiState {
     fn default() -> Self {
         Self {
             is_running: cfg!(debug_assertions),
-            delta_l: 0.001,
+            // set to result in a sample rate of 4800kHz
+            delta_l: 0.00715,
             boundary_width: 50,
             render_abc_area: false,
             image_rect: egui::Rect::NOTHING,
