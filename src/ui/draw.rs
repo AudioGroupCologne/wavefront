@@ -197,7 +197,8 @@ pub fn draw_egui(
                 ui.add_space(5.);
                 ui.heading("Source");
                 //TODO: maybe add links to papers?
-                ui.hyperlink("https://github.com/nichilum/wavefront");
+                ui.hyperlink("https://github.com/AudioGroupCologne/wavefront");
+                ui.hyperlink("https://github.com/AudioGroupCologne/wavefront-manual");
             });
     }
 
