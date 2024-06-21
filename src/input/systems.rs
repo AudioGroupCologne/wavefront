@@ -263,7 +263,7 @@ pub fn button_input(
                     if let Some((x, y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                     {
-                        for (entity, wall) in rect_wall_set.p0().iter() {
+                        'outer: for (entity, wall) in rect_wall_set.p0().iter() {
                             for resize_type in [
                                 WResize::TopLeft,
                                 WResize::TopRight,
@@ -275,7 +275,7 @@ pub fn button_input(
                                     && (resize_point.y).abs_diff(y) <= 10
                                 {
                                     commands.entity(entity).insert(resize_type);
-                                    break;
+                                    break 'outer;
                                 }
                             }
                         }
