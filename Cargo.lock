@@ -3788,7 +3788,7 @@ checksum = "af190c94f2773fdb3729c55b007a722abb5384da03bc0986df4c289bf5567e96"
 
 [[package]]
 name = "wavefront"
-version = "1.0.0-alpha.5"
+version = "1.0.0-alpha.7"
 dependencies = [
  "bevy",
  "bevy_file_dialog",
