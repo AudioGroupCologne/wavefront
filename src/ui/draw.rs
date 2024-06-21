@@ -442,7 +442,8 @@ pub fn draw_egui(
                                     } => {
                                         if ui
                                             .add(
-                                                egui::Slider::new(frequency, 0.0..=20000.0)
+                                                egui::Slider::new(frequency, 20.0..=20000.0)
+                                                    .logarithmic(true)
                                                     .text("Frequency (Hz)"),
                                             )
                                             .changed()
@@ -476,7 +477,8 @@ pub fn draw_egui(
                                     } => {
                                         if ui
                                             .add(
-                                                egui::Slider::new(frequency, 0.0..=20000.0)
+                                                egui::Slider::new(frequency, 20.0..=20000.0)
+                                                    .logarithmic(true)
                                                     .text("Frequency (Hz)"),
                                             )
                                             .changed()
@@ -831,7 +833,7 @@ pub fn draw_egui(
                                             .add(
                                                 egui::Slider::new(
                                                     &mut wall.open_circ_segment,
-                                                    0f32..=180f32,
+                                                    0f32..=360f32,
                                                 )
                                                 .text("Open Circle Arc"),
                                             )
