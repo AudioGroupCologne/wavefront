@@ -63,7 +63,7 @@ impl Default for Grid {
                     * (SIMULATION_HEIGHT + 2 * INIT_BOUNDARY_WIDTH))
                     as usize
             ],
-            // set to result in a sample rate of 4800kHz
+            // set to result in a sample rate of 48kHz
             delta_t: 0.00715 / PROPAGATION_SPEED,
         }
     }
