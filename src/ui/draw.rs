@@ -590,6 +590,13 @@ pub fn draw_egui(
                                     {
                                         commands.entity(*entity).despawn();
                                     }
+                                    if ui
+                                        .add(egui::Button::new("Write"))
+                                        .clicked()
+                                    {
+                                        let id = mic.id;
+                                        mic.write_to_file(&format!("mic_{}.csv", id));
+                                    }
                                 });
                         if collapse.header_response.contains_pointer()
                             || collapse.body_response.is_some()

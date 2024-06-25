@@ -44,6 +44,15 @@ impl Microphone {
     pub fn clear(&mut self) {
         self.record = vec![];
     }
+
+    pub fn write_to_file(&mut self, path: &str) {
+        let mut wtr = csv::Writer::from_path(path).unwrap();
+        for record in &self.record {
+            wtr.write_record(&[record[0].to_string(), record[1].to_string()])
+                .unwrap();
+        }
+        wtr.flush().unwrap();
+    }
 }
 
 impl GizmoComponent for Microphone {
