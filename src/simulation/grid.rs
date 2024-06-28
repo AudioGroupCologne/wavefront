@@ -230,6 +230,7 @@ impl Grid {
         }
     }
 
+    /// Update all cells in the grid by calculating cell reflection pulses
     pub fn calc_cells(&mut self, boundary_width: u32) {
         self.next_cells
             .par_iter_mut()
@@ -302,13 +303,13 @@ impl Grid {
             });
     }
 
+    /// Write source outputs into cell reflection pulses
     pub fn apply_sources(
         &mut self,
         time_since_start: f32,
         sources: &Query<&Source>,
         boundary_width: u32,
     ) {
-        //the cast feels wrong, but it works for now
         for source in sources.iter() {
             let calc = source.calc(time_since_start);
             let source_pos = coords_to_index(
@@ -323,6 +324,7 @@ impl Grid {
         }
     }
 
+    /// If plots are enabled, write cell pressure values into microphones
     pub fn apply_microphones(
         &self,
         mut microphones: Query<&mut Microphone>,
@@ -399,6 +401,7 @@ impl Grid {
         }
     }
 
+    /// Get boundary attenuation factor based on distance
     fn attenuation_factor(boundary_width: u32, power_order: u32, distance: u32) -> f32 {
         1.0 - (distance as f32 / boundary_width as f32).powi(power_order as i32)
     }

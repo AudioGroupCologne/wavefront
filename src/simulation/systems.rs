@@ -5,12 +5,16 @@ use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::ui::state::{SimTime, UiState};
 
+/// A system used to calculate reflection pulses per cell
 pub fn calc_system(mut grid: ResMut<Grid>, ui_state: Res<UiState>) {
     if ui_state.is_running {
         grid.calc_cells(ui_state.boundary_width);
     }
 }
 
+/// A system used to insert source reflection pulses into cells
+///
+/// and write pressure values into microphones
 pub fn apply_system(
     mut grid: ResMut<Grid>,
     sources: Query<&Source>,
@@ -24,6 +28,11 @@ pub fn apply_system(
     }
 }
 
+/// A system used to write reflection pulses into the incident pulses,
+///
+/// update delta t
+///
+/// and update the simulation time
 pub fn update_system(
     mut grid: ResMut<Grid>,
     mut sim_time: ResMut<SimTime>,
