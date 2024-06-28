@@ -55,7 +55,7 @@ impl Default for SourceType {
         SourceType::Sin {
             amplitude: 10.,
             phase: 0.0,
-            frequency: 10000.0,
+            frequency: 1000.0,
         }
     }
 }
@@ -65,14 +65,14 @@ impl SourceType {
         SourceType::Sin {
             amplitude: 10.,
             phase: 0.0,
-            frequency: 10000.0,
+            frequency: 1000.0,
         }
     }
     pub fn default_gauss() -> SourceType {
         SourceType::Gauss {
             amplitude: 10.,
             phase: 0.0,
-            frequency: 10000.0,
+            frequency: 1000.0,
             std_dev: 0.45,
         }
     }
@@ -112,7 +112,7 @@ impl Source {
                 phase,
                 amplitude,
                 frequency,
-                std_dev
+                std_dev,
             } => self.periodic_gaussian(time, frequency, amplitude, phase, 4., 0., std_dev),
             SourceType::WhiteNoise { amplitude } => {
                 thread_rng().sample::<f32, _>(rand_distr::StandardNormal) * amplitude
@@ -148,11 +148,7 @@ impl Source {
         commands.spawn(Source::new(
             (SIMULATION_WIDTH + 2 * INIT_BOUNDARY_WIDTH) / 2,
             (SIMULATION_HEIGHT + 2 * INIT_BOUNDARY_WIDTH) / 2,
-            SourceType::Sin {
-                amplitude: 10.,
-                phase: 0.0,
-                frequency: 10000.0,
-            },
+            SourceType::default_sin(),
             component_ids.get_new_source_id(),
         ));
         commands.spawn(Source::new(

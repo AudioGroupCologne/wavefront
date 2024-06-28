@@ -197,7 +197,8 @@ pub fn draw_egui(
                 ui.add_space(5.);
                 ui.heading("Source");
                 //TODO: maybe add links to papers?
-                ui.hyperlink("https://github.com/nichilum/wavefront");
+                ui.hyperlink("https://github.com/AudioGroupCologne/wavefront");
+                ui.hyperlink("https://github.com/AudioGroupCologne/wavefront-manual");
             });
     }
 
@@ -441,7 +442,8 @@ pub fn draw_egui(
                                     } => {
                                         if ui
                                             .add(
-                                                egui::Slider::new(frequency, 0.0..=20000.0)
+                                                egui::Slider::new(frequency, 20.0..=20000.0)
+                                                    .logarithmic(true)
                                                     .text("Frequency (Hz)"),
                                             )
                                             .changed()
@@ -475,7 +477,8 @@ pub fn draw_egui(
                                     } => {
                                         if ui
                                             .add(
-                                                egui::Slider::new(frequency, 0.0..=20000.0)
+                                                egui::Slider::new(frequency, 20.0..=20000.0)
+                                                    .logarithmic(true)
                                                     .text("Frequency (Hz)"),
                                             )
                                             .changed()
@@ -586,6 +589,13 @@ pub fn draw_egui(
                                         .clicked()
                                     {
                                         commands.entity(*entity).despawn();
+                                    }
+                                    if ui
+                                        .add(egui::Button::new("Write"))
+                                        .clicked()
+                                    {
+                                        let id = mic.id;
+                                        mic.write_to_file(&format!("mic_{}.csv", id));
                                     }
                                 });
                         if collapse.header_response.contains_pointer()
@@ -830,7 +840,7 @@ pub fn draw_egui(
                                             .add(
                                                 egui::Slider::new(
                                                     &mut wall.open_circ_segment,
-                                                    0f32..=180f32,
+                                                    0f32..=360f32,
                                                 )
                                                 .text("Open Circle Arc"),
                                             )

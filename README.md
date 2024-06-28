@@ -9,7 +9,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/nichilum/wavefront">
+  <a href="https://github.com/AudioGroupCologne/wavefront">
     <img src="assets/icon.png" alt="Logo" width="80" height="80">
   </a>
 
@@ -18,12 +18,12 @@
   <p align="center">
     a TLM wave simulation engine.
     <br />
-    <a href="https://nichilum.github.io/wavefront-manual/" target="_blank"><strong>Explore the docs »</strong></a>
+    <a href="https://audiogroupcologne.github.io/wavefront-manual/" target="_blank"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/nichilum/wavefront/issues">Report Bug</a>
+    <a href="https://github.com/AudioGroupCologne/wavefront/issues">Report Bug</a>
     ·
-    <a href="https://github.com/nichilum/wavefront/issues">Request Feature</a>
+    <a href="https://github.com/AudioGroupCologne/wavefront/issues">Request Feature</a>
   </p>
 </div>
 
@@ -70,7 +70,7 @@ _For more examples, please refer to the [Documentation]()_
 - [ ] Feature 3
     - [ ] Nested Feature
 
-See the [open issues](https://github.com/nichilum/wavefront/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/AudioGroupCologne/wavefront/issues) for a full list of proposed features (and known issues).
 
 -->
 
@@ -106,14 +106,14 @@ Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_
 
 <!-- MARKDOWN LINKS & IMAGES -->
 
-[contributors-shield]: https://img.shields.io/github/contributors/nichilum/wavefront.svg?style=for-the-badge
+[contributors-shield]: https://img.shields.io/github/contributors/AudioGroupCologne/wavefront.svg?style=for-the-badge
 [contributors-url]: https://github.com/github_username/repo_name/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/nichilum/wavefront.svg?style=for-the-badge
+[forks-shield]: https://img.shields.io/github/forks/AudioGroupCologne/wavefront.svg?style=for-the-badge
 [forks-url]: https://github.com/github_username/repo_name/network/members
-[stars-shield]: https://img.shields.io/github/stars/nichilum/wavefront.svg?style=for-the-badge
+[stars-shield]: https://img.shields.io/github/stars/AudioGroupCologne/wavefront.svg?style=for-the-badge
 [stars-url]: https://github.com/github_username/repo_name/stargazers
-[issues-shield]: https://img.shields.io/github/issues/nichilum/wavefront.svg?style=for-the-badge
+[issues-shield]: https://img.shields.io/github/issues/AudioGroupCologne/wavefront.svg?style=for-the-badge
 [issues-url]: https://github.com/github_username/repo_name/issues
-[license-shield]: https://img.shields.io/github/license/nichilum/wavefront.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/github/license/AudioGroupCologne/wavefront.svg?style=for-the-badge
 [license-url]: https://github.com/github_username/repo_name/blob/master/LICENSE.txt
 [product-screenshot]: images/screenshot.png

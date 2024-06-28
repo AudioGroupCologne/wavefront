@@ -63,7 +63,8 @@ impl Default for Grid {
                     * (SIMULATION_HEIGHT + 2 * INIT_BOUNDARY_WIDTH))
                     as usize
             ],
-            delta_t: 0.001 / PROPAGATION_SPEED,
+            // set to result in a sample rate of 48kHz
+            delta_t: 0.00715 / PROPAGATION_SPEED,
         }
     }
 }
@@ -205,8 +206,8 @@ impl Grid {
 
                         angle = (angle + wall.rotation_angle.to_radians()) % TAU;
 
-                        if (angle >= wall.open_circ_segment.to_radians()
-                            && angle <= TAU - wall.open_circ_segment.to_radians())
+                        if angle >= wall.open_circ_segment.to_radians() / 2.
+                            && angle <= TAU - wall.open_circ_segment.to_radians() / 2.
                             || !wall.is_hollow
                         {
                             let index = coords_to_index(x, y, boundary_width);
