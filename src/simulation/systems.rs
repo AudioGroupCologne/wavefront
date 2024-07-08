@@ -40,7 +40,6 @@ pub fn update_system(
 ) {
     if ui_state.is_running {
         grid.update_cells();
-        grid.update_delta_t(ui_state.delta_l);
         sim_time.time_since_start += grid.delta_t;
     }
 }

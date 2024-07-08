@@ -9,3 +9,6 @@ pub const PROPAGATION_SPEED: f32 = 343.2;
 
 /// Width of the boundary in pixels
 pub const INIT_BOUNDARY_WIDTH: u32 = 50;
+
+/// Butterworth filter order
+pub const BUTTERWORTH_N: u32 = 10;

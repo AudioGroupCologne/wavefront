@@ -8,6 +8,7 @@ use super::draw::EventSystemParams;
 use super::state::UiState;
 use crate::events::Reset;
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
+use crate::math::filter::ButterFilter;
 use crate::render::gradient::Gradient;
 use crate::simulation::grid::Grid;
 
@@ -19,6 +20,7 @@ pub fn draw_preferences(
     grid: &mut Grid,
     pixel_buffers: &mut QueryPixelBuffer,
     gradient: &mut Gradient,
+    butterfilter: &mut ButterFilter,
 ) {
     egui::Window::new("Preferences")
             .open(show_preferences)
@@ -50,6 +52,10 @@ pub fn draw_preferences(
                                                 .on_hover_text("Change the size of one cell in the simulation in meters.")
                                                 .changed()
                                             {
+                                                // delta l is never changed except here
+                                                // so we will update everything that delta l influences here
+                                                grid.update_delta_t(ui_state_tmp.delta_l);
+                                                butterfilter.calc(ui_state_tmp.delta_l);
                                                 events.reset_ev.send(Reset::default());
                                             }
                                         });

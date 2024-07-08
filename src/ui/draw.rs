@@ -16,6 +16,7 @@ use crate::components::states::{MenuSelected, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize};
 use crate::events::{Load, New, Reset, Save, UpdateWalls};
 use crate::math::constants::*;
+use crate::math::filter::ButterFilter;
 use crate::render::gradient::Gradient;
 use crate::render::screenshot::screenshot_grid;
 use crate::simulation::grid::Grid;
@@ -127,6 +128,7 @@ pub fn draw_egui(
     mut egui_context: EguiContexts,
     mut ui_state: ResMut<UiState>,
     mut grid: ResMut<Grid>,
+    mut butterfilter: ResMut<ButterFilter>,
     mut gradient: ResMut<Gradient>,
     mut events: EventSystemParams,
     sets: QuerySystemParams,
@@ -138,7 +140,7 @@ pub fn draw_egui(
     diagnostics: Res<DiagnosticsStore>,
     // TODO: these values could (at least quick settings because tool settings change in height) be baked once the panels are finalized
     mut quick_settings_height: Local<f32>,
-    mut tool_settings_height: Local<f32>,
+    // mut tool_settings_height: Local<f32>,
 ) {
     let QuerySystemParams {
         mut rect_wall_set,
@@ -167,6 +169,7 @@ pub fn draw_egui(
             &mut grid,
             &mut pixel_buffers,
             &mut gradient,
+            &mut butterfilter,
         );
 
         ui_state.show_preferences = show_preferences;
@@ -362,7 +365,8 @@ pub fn draw_egui(
             egui::ScrollArea::vertical()
                 .id_source("side_scroll_area")
                 .max_height(
-                    ui.available_height() - *tool_settings_height - *quick_settings_height - 25.,
+                    //              tool setting height                 some padding
+                    ui.available_height() - 250. - *quick_settings_height - 25.,
                 )
                 .show(ui, |ui| {
                     ui.set_min_width(ui.available_width());
@@ -590,10 +594,7 @@ pub fn draw_egui(
                                     {
                                         commands.entity(*entity).despawn();
                                     }
-                                    if ui
-                                        .add(egui::Button::new("Write"))
-                                        .clicked()
-                                    {
+                                    if ui.add(egui::Button::new("Write")).clicked() {
                                         let id = mic.id;
                                         mic.write_to_file(&format!("mic_{}.csv", id));
                                     }
@@ -1006,8 +1007,6 @@ pub fn draw_egui(
 
             // Tool Options
             egui::TopBottomPanel::bottom("tool_options_panel").show_inside(ui, |ui| {
-                *tool_settings_height = ui.available_height();
-
                 ui.add_space(3.);
                 ui.heading("Tool Options");
                 ui.separator();
