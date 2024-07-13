@@ -2,27 +2,40 @@
 // https://github.com/scipy/scipy/blob/main/scipy/signal/_filter_design.py
 
 use bevy::prelude::*;
+use butterworth::{Cutoff, Filter};
 
-use super::constants::{BUTTERWORTH_N, PROPAGATION_SPEED};
+use super::constants::{BUTTERWORTH_N, DEFAULT_DELTA_L, PROPAGATION_SPEED};
 
 #[derive(Debug, Resource)]
 pub struct ButterFilter {
-    sos: Vec<[f32; 5]>,
+    pub filter: Filter,
+}
+
+impl Default for ButterFilter {
+    fn default() -> Self {
+        let sample_frequency = 1. / (DEFAULT_DELTA_L / PROPAGATION_SPEED);
+        let crit_freq = 20000f32.min(sample_frequency / 2.);
+
+        let filter = Filter::new(
+            BUTTERWORTH_N,
+            sample_frequency as f64,
+            Cutoff::LowPass(crit_freq as f64),
+        )
+        .unwrap();
+        Self { filter }
+    }
 }
 
 impl ButterFilter {
     pub fn calc(&mut self, delta_l: f32) {
         let sample_frequency = 1. / (delta_l / PROPAGATION_SPEED);
         let crit_freq = 20000f32.min(sample_frequency / 2.);
-        let norm_crit_freq = crit_freq / (sample_frequency / 2.);
 
-        // get analog lowpass prototype
-        let (z, p, k) = buttap(BUTTERWORTH_N);
+        self.filter = Filter::new(
+            BUTTERWORTH_N,
+            sample_frequency as f64,
+            Cutoff::LowPass(crit_freq as f64),
+        )
+        .unwrap();
     }
-    pub fn sos_filter(&self, data: Vec<f32>) {}
-}
-
-/// return zero, pole, gain for analog prototype of an Nth order Butterworth filter
-fn buttap(n: u32) -> (f32, f32, f32) {
-    (0., 0., 0.)
 }

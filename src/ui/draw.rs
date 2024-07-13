@@ -1105,6 +1105,7 @@ pub fn draw_egui(
                             sim_time.time_since_start as f64,
                             time.delta_seconds_f64(),
                             &mut ui_state,
+                            &mut butterfilter,
                         ),
                     );
             });

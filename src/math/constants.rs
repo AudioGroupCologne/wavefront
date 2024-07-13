@@ -11,4 +11,6 @@ pub const PROPAGATION_SPEED: f32 = 343.2;
 pub const INIT_BOUNDARY_WIDTH: u32 = 50;
 
 /// Butterworth filter order
-pub const BUTTERWORTH_N: u32 = 10;
+pub const BUTTERWORTH_N: usize = 10;
+
+pub const DEFAULT_DELTA_L: f32 = 0.00715;

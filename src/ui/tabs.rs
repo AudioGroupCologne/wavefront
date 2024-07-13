@@ -10,6 +10,7 @@ use super::loading::SaveFileContents;
 use super::state::{FftScaling, UiState};
 use crate::components::microphone::Microphone;
 use crate::math::fft::calc_mic_spectrum;
+use crate::math::filter::ButterFilter;
 use crate::math::transformations::interpolate;
 
 #[derive(Resource)]
@@ -38,6 +39,7 @@ pub struct PlotTabs<'a> {
     sim_time: f64,
     delta_time: f64,
     ui_state: &'a mut UiState,
+    butterfilter: &'a mut ButterFilter,
 }
 
 impl<'a> PlotTabs<'a> {
@@ -49,6 +51,7 @@ impl<'a> PlotTabs<'a> {
         sim_time: f64,
         delta_time: f64,
         ui_state: &'a mut UiState,
+        butterfilter: &'a mut ButterFilter,
     ) -> Self {
         Self {
             mics,
@@ -58,6 +61,7 @@ impl<'a> PlotTabs<'a> {
             sim_time,
             ui_state,
             delta_time,
+            butterfilter,
         }
     }
 }
@@ -347,6 +351,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                 self.ui_state.fft_scaling,
                                 self.delta_t,
                                 self.ui_state.fft_window_size,
+                                self.butterfilter,
                             );
 
                             // remove the first element, because of log it is at x=-inf
@@ -371,8 +376,9 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
 
                                     let window = &mapped_spectrum[lower..upper];
 
-                                    let m =
-                                        window.iter().map(|x| x[1]).sum::<f64>() / (2 * n) as f64;
+                                    // TODO: is this better?
+                                    let m = window.iter().map(|x| x[1]).sum::<f64>()
+                                        / (upper - lower) as f64;
                                     result.push(m);
                                 }
 

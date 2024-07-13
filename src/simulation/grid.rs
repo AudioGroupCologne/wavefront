@@ -64,7 +64,7 @@ impl Default for Grid {
                     as usize
             ],
             // set to result in a sample rate of 48kHz
-            delta_t: 0.00715 / PROPAGATION_SPEED,
+            delta_t: DEFAULT_DELTA_L / PROPAGATION_SPEED,
         }
     }
 }

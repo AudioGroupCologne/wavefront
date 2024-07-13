@@ -2,6 +2,7 @@ use spectrum_analyzer::scaling::{scale_20_times_log10, scale_to_zero_to_one};
 use spectrum_analyzer::windows::hann_window;
 use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
 
+use super::filter::ButterFilter;
 use crate::components::microphone::Microphone;
 use crate::ui::state::FftScaling;
 
@@ -17,6 +18,7 @@ pub fn calc_mic_spectrum(
     scaling: FftScaling,
     delta_t: f32,
     fft_size: usize,
+    butterfilter: &mut ButterFilter,
 ) -> Vec<[f64; 2]> {
     let samples = if microphone.record.len() < fft_size {
         let mut s = microphone.record.clone();
@@ -26,7 +28,18 @@ pub fn calc_mic_spectrum(
         microphone.record[microphone.record.len() - fft_size..].to_vec()
     };
 
-    let hann_window = hann_window(&samples.iter().map(|x| x[1] as f32).collect::<Vec<_>>());
+    // filter with butterworth
+    let samples = samples.iter().map(|x| x[1] as f64).collect::<Vec<_>>();
+    let filtered_samples = butterfilter
+        .filter
+        .bidirectional(&samples)
+        .expect("Butterfilter error");
+    let samples = filtered_samples
+        .iter()
+        .map(|x| *x as f32)
+        .collect::<Vec<_>>();
+
+    let hann_window = hann_window(&samples);
     // always returns frequencies up to sampling_rate/2
     let spectrum_hann_window = samples_fft_to_spectrum(
         &hann_window,

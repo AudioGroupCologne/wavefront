@@ -68,57 +68,57 @@ pub fn draw_pixels(
 
     // draw spectrum
     // TODO: fft_mic is deprecated, move to mic.show_fft
-    if ui_state.show_plots && fft_microphone.mic_id.is_some() {
-        let mut frame = images.frame(items.next().expect("two pixel buffers"));
+    // if ui_state.show_plots && fft_microphone.mic_id.is_some() {
+    //     let mut frame = images.frame(items.next().expect("two pixel buffers"));
 
-        // the mic that is selected might have been deleted, so we need to check if it still exists
-        if let Some(mic) = microphones
-            .iter()
-            .find(|m| m.id == fft_microphone.mic_id.expect("no mic selected"))
-        {
-            // do the fft each frame (like in the freq plot)
-            // and then write the result to the pixel buffer (and shift the previous values to the left)
-            // this way we do not have to save all the values in a vec.
+    //     // the mic that is selected might have been deleted, so we need to check if it still exists
+    //     if let Some(mic) = microphones
+    //         .iter()
+    //         .find(|m| m.id == fft_microphone.mic_id.expect("no mic selected"))
+    //     {
+    //         // do the fft each frame (like in the freq plot)
+    //         // and then write the result to the pixel buffer (and shift the previous values to the left)
+    //         // this way we do not have to save all the values in a vec.
 
-            // TODO: maybe reset the frame each time the mic changes
-            let new_spectrum = crate::math::fft::calc_mic_spectrum(
-                mic,
-                FftScaling::Normalized,
-                grid.delta_t,
-                ui_state.fft_window_size,
-            );
+    //         // TODO: maybe reset the frame each time the mic changes
+    //         let new_spectrum = crate::math::fft::calc_mic_spectrum(
+    //             mic,
+    //             FftScaling::Normalized,
+    //             grid.delta_t,
+    //             ui_state.fft_window_size,
+    //         );
 
-            let frame_size = frame.size();
+    //         let frame_size = frame.size();
 
-            // shift the old values to the left
-            for y in 0..frame_size.y {
-                for x in 0..frame_size.x - 1 {
-                    let index = x + y * frame_size.x;
-                    frame.raw_mut()[index as usize] = frame.raw()[(index + 1) as usize];
-                }
-            }
+    //         // shift the old values to the left
+    //         for y in 0..frame_size.y {
+    //             for x in 0..frame_size.x - 1 {
+    //                 let index = x + y * frame_size.x;
+    //                 frame.raw_mut()[index as usize] = frame.raw()[(index + 1) as usize];
+    //             }
+    //         }
 
-            // write the new values to the right
-            let spectrum_len = new_spectrum.len();
-            for y in 0..frame_size.y as usize {
-                // TODO: log scale the y values
-                let mapped_y = map_range(0, frame_size.y as usize, 0, spectrum_len, y);
-                let gray = if spectrum_len > 1 && y < spectrum_len {
-                    new_spectrum[mapped_y as usize][1] * 255.
-                } else {
-                    0.
-                } as u8;
+    //         // write the new values to the right
+    //         let spectrum_len = new_spectrum.len();
+    //         for y in 0..frame_size.y as usize {
+    //             // TODO: log scale the y values
+    //             let mapped_y = map_range(0, frame_size.y as usize, 0, spectrum_len, y);
+    //             let gray = if spectrum_len > 1 && y < spectrum_len {
+    //                 new_spectrum[mapped_y as usize][1] * 255.
+    //             } else {
+    //                 0.
+    //             } as u8;
 
-                let index = frame_size.x - 1 + y as u32 * frame_size.x;
-                frame.raw_mut()[index as usize] = Pixel {
-                    r: gray,
-                    g: gray,
-                    b: gray,
-                    a: 255,
-                };
-            }
-        }
-    }
+    //             let index = frame_size.x - 1 + y as u32 * frame_size.x;
+    //             frame.raw_mut()[index as usize] = Pixel {
+    //                 r: gray,
+    //                 g: gray,
+    //                 b: gray,
+    //                 a: 255,
+    //             };
+    //         }
+    //     }
+    // }
 }
 
 type RectWallsResizeOrMove<'w, 's> =
