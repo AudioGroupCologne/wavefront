@@ -5,6 +5,7 @@ use egui::{Align2, Color32, Pos2, Rect, TextFormat};
 use serde::{Deserialize, Serialize};
 
 use super::gizmo::GizmoComponent;
+use crate::math::filter::ButterFilter;
 use crate::math::transformations::grid_to_image;
 use crate::render::gradient::Gradient;
 use crate::simulation::plugin::ComponentIDs;
@@ -45,11 +46,29 @@ impl Microphone {
         self.record = vec![];
     }
 
-    pub fn write_to_file(&mut self, path: &str) {
+    pub fn write_to_file(&mut self, path: &str, butterfilter: &mut ButterFilter) {
         let mut wtr = csv::Writer::from_path(path).unwrap();
-        for record in &self.record {
-            wtr.write_record(&[record[0].to_string(), record[1].to_string()])
-                .unwrap();
+
+        let samples = self.record.to_vec();
+
+        // filter with butterworth
+        let samples = samples.iter().map(|x| x[1] as f64).collect::<Vec<_>>();
+        let filtered_samples = butterfilter
+            .filter
+            .bidirectional(&samples)
+            .expect("Butterfilter error");
+        let samples = filtered_samples
+            .iter()
+            .map(|x| *x as f32)
+            .collect::<Vec<_>>();
+
+        for (index, record) in self.record.iter().enumerate() {
+            wtr.write_record(&[
+                record[0].to_string(),
+                record[1].to_string(),
+                samples[index].to_string(),
+            ])
+            .unwrap();
         }
         wtr.flush().unwrap();
     }

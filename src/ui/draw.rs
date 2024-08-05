@@ -596,7 +596,10 @@ pub fn draw_egui(
                                     }
                                     if ui.add(egui::Button::new("Write")).clicked() {
                                         let id = mic.id;
-                                        mic.write_to_file(&format!("mic_{}.csv", id));
+                                        mic.write_to_file(
+                                            &format!("mic_{}.csv", id),
+                                            &mut butterfilter,
+                                        );
                                     }
                                 });
                         if collapse.header_response.contains_pointer()

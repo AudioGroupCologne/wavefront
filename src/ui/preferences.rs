@@ -55,7 +55,7 @@ pub fn draw_preferences(
                                                 // delta l is never changed except here
                                                 // so we will update everything that delta l influences here
                                                 grid.update_delta_t(ui_state_tmp.delta_l);
-                                                butterfilter.calc(ui_state_tmp.delta_l);
+                                                butterfilter.re_calc(ui_state_tmp.delta_l);
                                                 events.reset_ev.send(Reset::default());
                                             }
                                         });
