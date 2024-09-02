@@ -28,6 +28,7 @@ pub struct Grid {
     boundary_cache: Vec<[f32; 4]>,
     /// Delta t in seconds
     pub delta_t: f32,
+    rotator: usize,
 }
 
 impl Default for Grid {
@@ -65,6 +66,7 @@ impl Default for Grid {
             ],
             // set to result in a sample rate of 48kHz
             delta_t: DEFAULT_DELTA_L / PROPAGATION_SPEED,
+            rotator: 0,
         }
     }
 }
@@ -312,7 +314,8 @@ impl Grid {
         boundary_width: u32,
     ) {
         for source in sources.iter() {
-            let calc = source.calc(time_since_start);
+            let calc = source.calc(time_since_start, self.rotator);
+            self.rotator = (self.rotator + 1) % 1000;
             let source_pos = coords_to_index(
                 source.x + boundary_width,
                 source.y + boundary_width,

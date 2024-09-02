@@ -3,6 +3,7 @@
 
 use bevy::prelude::*;
 use butterworth::{Cutoff, Filter};
+use rand::{thread_rng, Rng};
 
 use super::constants::{BUTTERWORTH_N, DEFAULT_DELTA_L, PROPAGATION_SPEED};
 
@@ -15,6 +16,7 @@ impl Default for ButterFilter {
     fn default() -> Self {
         let sample_frequency = 1. / (DEFAULT_DELTA_L / PROPAGATION_SPEED);
         let crit_freq = 20000f32.min(sample_frequency / 2.);
+        let crit_freq = 15000f32;
 
         let filter = Filter::new(
             BUTTERWORTH_N,
@@ -22,6 +24,14 @@ impl Default for ButterFilter {
             Cutoff::LowPass(crit_freq as f64),
         )
         .unwrap();
+
+        let mut wn_vec: Vec<f64> = vec![];
+        for _ in 0..1000 {
+            wn_vec.push(thread_rng().sample::<f64, _>(rand_distr::StandardNormal));
+        }
+
+        let res = filter.bidirectional(&wn_vec).unwrap();
+        println!("{:?}", res);
 
         Self { filter }
     }

@@ -29,17 +29,18 @@ pub fn calc_mic_spectrum(
     };
 
     // filter with butterworth
-    let samples = samples.iter().map(|x| x[1] as f64).collect::<Vec<_>>();
-    let filtered_samples = butterfilter
-        .filter
-        .bidirectional(&samples)
-        .expect("Butterfilter error");
-    let samples = filtered_samples
-        .iter()
-        .map(|x| *x as f32)
-        .collect::<Vec<_>>();
+    // let samples = samples.iter().map(|x| x[1] as f64).collect::<Vec<_>>();
+    // let filtered_samples = butterfilter
+    //     .filter
+    //     .bidirectional(&samples)
+    //     .expect("Butterfilter error");
+    // let samples = filtered_samples
+    //     .iter()
+    //     .map(|x| *x as f32)
+    //     .collect::<Vec<_>>();
 
-    let hann_window = hann_window(&samples);
+    // let hann_window = hann_window(&samples);
+    let hann_window = hann_window(&samples.iter().map(|x| x[1] as f32).collect::<Vec<_>>());
     // always returns frequencies up to sampling_rate/2
     let spectrum_hann_window = samples_fft_to_spectrum(
         &hann_window,
