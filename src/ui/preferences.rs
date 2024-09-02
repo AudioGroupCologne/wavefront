@@ -46,7 +46,7 @@ pub fn draw_preferences(
                                     row.col(|ui| {
                                         ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
                                             if ui
-                                                .add(egui::Slider::new(&mut ui_state_tmp.delta_l, 0.0..=10.0).logarithmic(true))
+                                                .add(egui::Slider::new(&mut ui_state_tmp.delta_l, 0.0001..=10.0).logarithmic(true))
                                                 .on_hover_text("Change the size of one cell in the simulation in meters.")
                                                 .changed()
                                             {
