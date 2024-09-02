@@ -1,5 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::env;
+
 use bevy::prelude::*;
 use bevy::window::PresentMode;
 use bevy::winit::WinitWindows;
@@ -14,6 +16,8 @@ use wavefront::undo::UndoPlugin;
 use winit::window::Icon;
 
 fn main() {
+    env::set_var("RUST_BACKTRACE", "1");
+
     App::new()
         .add_plugins((
             DefaultPlugins.set(WindowPlugin {

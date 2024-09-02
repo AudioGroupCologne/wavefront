@@ -24,6 +24,7 @@ struct SaveData {
     gradient: Gradient,
     max_gradient: f32,
     min_gradient: f32,
+    reset_on_change: bool,
 }
 
 /// Loads a file when receiving a [`DialogFileLoaded`] event from the file dialog.
@@ -84,5 +85,6 @@ pub fn file_loaded(
         *gradient = save_data.gradient;
         ui_state.max_gradient = save_data.max_gradient;
         ui_state.min_gradient = save_data.min_gradient;
+        ui_state.reset_on_change = save_data.reset_on_change;
     }
 }

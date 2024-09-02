@@ -15,7 +15,6 @@ impl Default for ButterFilter {
     fn default() -> Self {
         let sample_frequency = 1. / (DEFAULT_DELTA_L / PROPAGATION_SPEED);
         let crit_freq = 20000f32.min(sample_frequency / 2.);
-        let crit_freq = 20000f32;
 
         let filter = Filter::new(
             BUTTERWORTH_N,
@@ -23,26 +22,17 @@ impl Default for ButterFilter {
             Cutoff::LowPass(crit_freq as f64),
         )
         .unwrap();
-        let filter = Filter::new(
-            BUTTERWORTH_N,
-            sample_frequency as f64,
-            Cutoff::BandPass(1000f64, crit_freq as f64),
-        )
-        .unwrap();
+
         Self { filter }
     }
 }
 
 impl ButterFilter {
     pub fn re_calc(&mut self, delta_l: f32) {
-        let sample_frequency = 1. / (delta_l / PROPAGATION_SPEED);
-        let crit_freq = 20000f32.min(sample_frequency / 2.);
+        let sample_frequency = 1. / (delta_l / PROPAGATION_SPEED) as f64;
+        let crit_freq = 20000f64.min(sample_frequency / 2.000000001);
 
-        self.filter = Filter::new(
-            BUTTERWORTH_N,
-            sample_frequency as f64,
-            Cutoff::LowPass(crit_freq as f64),
-        )
-        .unwrap();
+        self.filter =
+            Filter::new(BUTTERWORTH_N, sample_frequency, Cutoff::LowPass(crit_freq)).unwrap();
     }
 }
