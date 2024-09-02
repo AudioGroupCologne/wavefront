@@ -15,6 +15,7 @@ struct SaveData<'a> {
     gradient: &'a Gradient,
     max_gradient: f32,
     min_gradient: f32,
+    reset_on_change: bool,
 }
 
 /// Serializes the given data to a byte vector of JSON.
@@ -26,6 +27,7 @@ pub fn serialize(
     gradient: &Gradient,
     max_gradient: f32,
     min_gradient: f32,
+    reset_on_change: bool,
 ) -> Result<Vec<u8>, serde_json::Error> {
     let save_data = SaveData {
         sources,
@@ -35,6 +37,7 @@ pub fn serialize(
         gradient,
         max_gradient,
         min_gradient,
+        reset_on_change,
     };
 
     serde_json::to_vec(&save_data)

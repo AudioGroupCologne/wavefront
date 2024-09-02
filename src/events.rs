@@ -143,6 +143,7 @@ pub fn save_event(
             &gradient,
             ui_state.max_gradient,
             ui_state.min_gradient,
+            ui_state.reset_on_change,
         )
         .unwrap();
 
