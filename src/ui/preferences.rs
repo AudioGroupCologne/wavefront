@@ -17,7 +17,7 @@ pub fn draw_preferences(
     ui_state_tmp: &mut UiState,
     events: &mut EventSystemParams,
     grid: &mut Grid,
-    pixel_buffers: &mut QueryPixelBuffer,
+    pixel_buffer: &mut QueryPixelBuffer,
     gradient: &mut Gradient,
 ) {
     egui::Window::new("Preferences")
@@ -133,8 +133,8 @@ pub fn draw_preferences(
                                                 .clicked()
                                             {
                                                 ui_state_tmp.tools_enabled = !ui_state_tmp.render_abc_area;
-                                                let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
-
+                                                let mut pb = pixel_buffer.iter_mut().next().expect("one pixel buffer");
+                                                
                                                 pb.pixel_buffer.size = PixelBufferSize {
                                                     size: if ui_state_tmp.render_abc_area {
                                                         UVec2::new(
@@ -168,7 +168,7 @@ pub fn draw_preferences(
                                                 grid.reset_cells(ui_state_tmp.boundary_width);
                                                 grid.reset_walls(ui_state_tmp.boundary_width);
                                                 grid.cache_boundaries(ui_state_tmp.boundary_width);
-                                                let mut pb = pixel_buffers.iter_mut().next().expect("one pixel buffer");
+                                                let mut pb = pixel_buffer.iter_mut().next().expect("one pixel buffer");
                                                 pb.pixel_buffer.size = PixelBufferSize {
                                                     size: if ui_state_tmp.render_abc_area {
                                                         UVec2::new(
@@ -208,12 +208,12 @@ pub fn draw_preferences(
                                     body.row(row_height, |mut row| {
                                         row.col(|ui| {
                                             ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                                ui.checkbox(&mut ui_state_tmp.enable_spectrogram, "");
+                                                ui.checkbox(&mut ui_state_tmp.show_frequencies, "");
                                             });
                                         });
                                         row.col(|ui| {
                                             ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
-                                                ui.label("Spectrogram enabled");
+                                                ui.label("Frequency analyzer enabled");
                                             });
                                         });
                                     });

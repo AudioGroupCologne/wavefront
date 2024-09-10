@@ -1,8 +1,5 @@
 use bevy::ecs::system::{Commands, Resource};
-use bevy::math::UVec2;
 use bevy_file_dialog::FileDialogExt;
-use bevy_pixel_buffer::pixel_buffer::PixelBufferSize;
-use bevy_pixel_buffer::query::PixelBuffersItem;
 use egui_plot::{GridMark, Line, Plot, PlotBounds, PlotPoints};
 use plotters::prelude::*;
 
@@ -27,12 +24,10 @@ impl Default for DockState {
 pub enum Tab {
     Volume,
     Frequency,
-    Spectrogram,
 }
 
 pub struct PlotTabs<'a> {
     mics: &'a mut Vec<&'a mut Microphone>,
-    pixel_buffer: &'a mut PixelBuffersItem<'a>,
     commands: &'a mut Commands<'a, 'a>,
     delta_t: f32,
     sim_time: f64,
@@ -43,7 +38,6 @@ pub struct PlotTabs<'a> {
 impl<'a> PlotTabs<'a> {
     pub fn new(
         mics: &'a mut Vec<&'a mut Microphone>,
-        pixel_buffer: &'a mut PixelBuffersItem<'a>,
         commands: &'a mut Commands<'a, 'a>,
         delta_t: f32,
         sim_time: f64,
@@ -52,7 +46,6 @@ impl<'a> PlotTabs<'a> {
     ) -> Self {
         Self {
             mics,
-            pixel_buffer,
             commands,
             delta_t,
             sim_time,
@@ -68,7 +61,6 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
         match tab {
             Tab::Volume => "Volume".into(),
             Tab::Frequency => "Frequency".into(),
-            Tab::Spectrogram => "Spectrogram".into(),
         }
     }
 
@@ -252,6 +244,12 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                     });
             }
             Tab::Frequency => {
+                if !self.ui_state.show_frequencies {
+                    ui.add_space(20.);
+                    ui.vertical_centered(|ui| ui.label("Frequency analyzer is currently experimental. You can enable it in the settings."));
+                    return;
+                }
+
                 ui.horizontal(|ui| {
                     ui.menu_button("FFT Microhones", |ui| {
                         for mic in &mut *self.mics {
@@ -462,32 +460,10 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                         ));
                     });
             }
-            Tab::Spectrogram => {
-                if !self.ui_state.enable_spectrogram {
-                    ui.add_space(20.);
-                    ui.vertical_centered(|ui| ui.label("Spectrogram is currently experimental. You can enable it in the settings."));
-                    return;
-                }
-
-                // TODO: fix spectrogram for multiple microphones
-                ui.separator();
-
-                let spectrum_size = ui.available_size();
-                let texture = self.pixel_buffer.egui_texture();
-                ui.add(
-                    egui::Image::new(egui::load::SizedTexture::new(texture.id, texture.size))
-                        .shrink_to_fit(),
-                );
-
-                self.pixel_buffer.pixel_buffer.size = PixelBufferSize {
-                    size: UVec2::new(spectrum_size.x as u32, spectrum_size.y as u32),
-                    pixel_size: UVec2::new(1, 1),
-                };
-            }
         };
     }
 }
 
 pub fn create_tree() -> egui_dock::DockState<Tab> {
-    egui_dock::DockState::new(vec![Tab::Volume, Tab::Frequency, Tab::Spectrogram])
+    egui_dock::DockState::new(vec![Tab::Volume, Tab::Frequency])
 }

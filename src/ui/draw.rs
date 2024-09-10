@@ -123,7 +123,7 @@ pub const IMAGES: [ImageSource; 4] = [
 
 pub fn draw_egui(
     mut commands: Commands,
-    mut pixel_buffers: QueryPixelBuffer,
+    mut pixel_buffer: QueryPixelBuffer,
     mut egui_context: EguiContexts,
     mut ui_state: ResMut<UiState>,
     mut grid: ResMut<Grid>,
@@ -165,7 +165,7 @@ pub fn draw_egui(
             &mut ui_state,
             &mut events,
             &mut grid,
-            &mut pixel_buffers,
+            &mut pixel_buffer,
             &mut gradient,
         );
 
@@ -590,10 +590,7 @@ pub fn draw_egui(
                                     {
                                         commands.entity(*entity).despawn();
                                     }
-                                    if ui
-                                        .add(egui::Button::new("Write"))
-                                        .clicked()
-                                    {
+                                    if ui.add(egui::Button::new("Write")).clicked() {
                                         let id = mic.id;
                                         mic.write_to_file(&format!("mic_{}.csv", id));
                                     }
@@ -1087,8 +1084,6 @@ pub fn draw_egui(
                     .collect::<Vec<_>>();
                 mics.sort_by_cached_key(|mic| mic.id);
 
-                let mut pb = pixel_buffers.iter_mut().nth(1).expect("two pixel buffers");
-
                 let mut style = egui_dock::Style::from_egui(ui.style());
                 style.tab_bar.bg_fill = Color32::from_rgb(27, 27, 27);
 
@@ -1100,7 +1095,6 @@ pub fn draw_egui(
                         ui,
                         &mut PlotTabs::new(
                             &mut mics,
-                            &mut pb,
                             &mut commands.reborrow(),
                             grid.delta_t,
                             sim_time.time_since_start as f64,
@@ -1229,8 +1223,7 @@ pub fn draw_egui(
             ui.set_min_width(100.);
             // Main Simulation Area
 
-            let pb = pixel_buffers.iter().next().expect("first pixel buffer");
-            let texture = pb.egui_texture();
+            let texture = pixel_buffer.egui_texture();
             // let image = ui.image(egui::load::SizedTexture::new(texture.id, texture.size));
 
             let image = ui.add(

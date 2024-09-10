@@ -88,7 +88,6 @@ pub struct UiState {
     pub show_preferences: bool,
     pub show_about: bool,
     pub show_help: bool,
-    pub enable_spectrogram: bool,
     pub fft_scaling: FftScaling,
     pub framerate: f64,
     pub scroll_volume_plot: bool,
@@ -102,6 +101,7 @@ pub struct UiState {
     pub min_gradient: f32,
     pub hide_gizmos: bool,
     pub show_new_warning: bool,
+    pub show_frequencies: bool,
 }
 
 impl Default for UiState {
@@ -124,7 +124,6 @@ impl Default for UiState {
             show_preferences: false,
             show_about: false,
             show_help: false,
-            enable_spectrogram: false,
             fft_scaling: FftScaling::Normalized,
             framerate: 60.,
             scroll_volume_plot: true,
@@ -138,6 +137,7 @@ impl Default for UiState {
             min_gradient: -2.,
             hide_gizmos: false,
             show_new_warning: false,
+            show_frequencies: false,
         }
     }
 }

@@ -1,30 +1,24 @@
 use std::f32::consts::TAU;
 
 use bevy::prelude::*;
-use bevy_pixel_buffer::frame::GetFrameFromImages;
+use bevy_pixel_buffer::frame::GetFrame;
 use bevy_pixel_buffer::pixel::Pixel;
 use bevy_pixel_buffer::query::QueryPixelBuffer;
 
 use super::gradient::Gradient;
-use crate::components::microphone::Microphone;
 use crate::components::states::Move;
 use crate::components::wall::{CircWall, RectWall, WResize, Wall};
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::transformations::{coords_to_index, map_range};
 use crate::simulation::grid::Grid;
-use crate::ui::state::{FftMicrophone, FftScaling, UiState};
+use crate::ui::state::UiState;
 
 pub fn draw_pixels(
-    pixel_buffers: QueryPixelBuffer,
+    mut pixel_buffer: QueryPixelBuffer,
     grid: Res<Grid>,
     gradient: Res<Gradient>,
     ui_state: Res<UiState>,
-    fft_microphone: Res<FftMicrophone>,
-    microphones: Query<&Microphone>,
 ) {
-    let (query, mut images) = pixel_buffers.split();
-    let mut items = query.iter();
-
     let abc_boundary_width = if ui_state.render_abc_area {
         0
     } else {
@@ -32,8 +26,7 @@ pub fn draw_pixels(
     };
 
     // draw TLM and walls
-    let mut frame = images.frame(items.next().expect("one pixel buffer"));
-    frame.per_pixel_par(|coords, _| {
+    pixel_buffer.frame().per_pixel_par(|coords, _| {
         let current_index = coords_to_index(
             coords.x + abc_boundary_width,
             coords.y + abc_boundary_width,
@@ -65,60 +58,6 @@ pub fn draw_pixels(
 
         Pixel { r, g, b, a: 255 }
     });
-
-    // draw spectrum
-    // TODO: fft_mic is deprecated, move to mic.show_fft
-    if ui_state.show_plots && fft_microphone.mic_id.is_some() {
-        let mut frame = images.frame(items.next().expect("two pixel buffers"));
-
-        // the mic that is selected might have been deleted, so we need to check if it still exists
-        if let Some(mic) = microphones
-            .iter()
-            .find(|m| m.id == fft_microphone.mic_id.expect("no mic selected"))
-        {
-            // do the fft each frame (like in the freq plot)
-            // and then write the result to the pixel buffer (and shift the previous values to the left)
-            // this way we do not have to save all the values in a vec.
-
-            // TODO: maybe reset the frame each time the mic changes
-            let new_spectrum = crate::math::fft::calc_mic_spectrum(
-                mic,
-                FftScaling::Normalized,
-                grid.delta_t,
-                ui_state.fft_window_size,
-            );
-
-            let frame_size = frame.size();
-
-            // shift the old values to the left
-            for y in 0..frame_size.y {
-                for x in 0..frame_size.x - 1 {
-                    let index = x + y * frame_size.x;
-                    frame.raw_mut()[index as usize] = frame.raw()[(index + 1) as usize];
-                }
-            }
-
-            // write the new values to the right
-            let spectrum_len = new_spectrum.len();
-            for y in 0..frame_size.y as usize {
-                // TODO: log scale the y values
-                let mapped_y = map_range(0, frame_size.y as usize, 0, spectrum_len, y);
-                let gray = if spectrum_len > 1 && y < spectrum_len {
-                    new_spectrum[mapped_y as usize][1] * 255.
-                } else {
-                    0.
-                } as u8;
-
-                let index = frame_size.x - 1 + y as u32 * frame_size.x;
-                frame.raw_mut()[index as usize] = Pixel {
-                    r: gray,
-                    g: gray,
-                    b: gray,
-                    a: 255,
-                };
-            }
-        }
-    }
 }
 
 type RectWallsResizeOrMove<'w, 's> =
@@ -127,12 +66,11 @@ type CircWallsResizeOrMove<'w, 's> =
     Query<'w, 's, &'static CircWall, Or<(With<WResize>, With<Move>)>>;
 
 pub fn draw_overlays(
-    pixel_buffers: QueryPixelBuffer,
+    mut pixel_buffer: QueryPixelBuffer,
     rect_walls_overlay: RectWallsResizeOrMove,
     circ_walls_overlay: CircWallsResizeOrMove,
 ) {
-    let (query, mut images) = pixel_buffers.split();
-    let mut frame = images.frame(query.iter().next().expect("one pixel buffer"));
+    let mut frame = pixel_buffer.frame();
 
     let raw_pixles = frame.raw_mut();
 
