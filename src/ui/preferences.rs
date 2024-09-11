@@ -213,7 +213,7 @@ pub fn draw_preferences(
                                         });
                                         row.col(|ui| {
                                             ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
-                                                ui.label("Frequency analyzer enabled");
+                                                ui.label("Frequency analyzer");
                                             });
                                         });
                                     });
