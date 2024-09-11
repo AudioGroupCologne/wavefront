@@ -45,6 +45,13 @@ pub fn draw_preferences(
                                 body.row(row_height, |mut row| {
                                     row.col(|ui| {
                                         ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                            ui.strong("Simulation");
+                                        });
+                                    });
+                                });
+                                body.row(row_height, |mut row| {
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
                                             if ui
                                                 .add(egui::Slider::new(&mut ui_state_tmp.delta_l, 0.0001..=10.0).logarithmic(true))
                                                 .on_hover_text("Change the size of one cell in the simulation in meters.")
@@ -57,71 +64,6 @@ pub fn draw_preferences(
                                     row.col(|ui| {
                                         ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
                                             ui.label("Delta L (m)");
-                                        });
-                                    });
-                                });
-                                body.row(row_height, |mut row| {
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                            ui.strong("Gradient");
-                                        });
-                                    });
-                                });
-                                body.row(row_height, |mut row| {
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                            egui::ComboBox::from_id_source("gradient_select")
-                                                .selected_text(format!("{:?}", gradient))
-                                                .show_ui(ui, |ui| {
-                                                    let mut g = *gradient;
-                                                    ui.selectable_value(&mut g, Gradient::Turbo, "Turbo");
-                                                    ui.selectable_value(&mut g, Gradient::Viridis, "Viridis");
-                                                    ui.selectable_value(&mut g, Gradient::Magma, "Magma");
-                                                    ui.selectable_value(&mut g, Gradient::Inferno, "Inferno");
-                                                    ui.selectable_value(&mut g, Gradient::Plasma, "Plasma");
-                                                    ui.selectable_value(&mut g, Gradient::Bw, "Bw");
-                                                    *gradient = g;
-                                                });
-                                        });
-                                    });
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
-                                            ui.label("Colormap");
-                                        });
-                                    });
-                                });
-                                body.row(row_height, |mut row| {
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                            ui.add(
-                                                egui::DragValue::new(&mut ui_state_tmp.min_gradient).speed(0.01)
-                                            );
-                                        });
-                                    });
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui| {
-                                            ui.label("Min Gradient");
-                                        });
-                                    });
-                                });
-                                body.row(row_height, |mut row| {
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                            ui.add(
-                                                egui::DragValue::new(&mut ui_state_tmp.max_gradient).speed(0.01)
-                                            );
-                                        });
-                                    });
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui| {
-                                            ui.label("Max Gradient");
-                                        });
-                                    });
-                                });
-                                body.row(row_height, |mut row| {
-                                    row.col(|ui| {
-                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                            ui.strong("Boundary");
                                         });
                                     });
                                 });
@@ -186,6 +128,64 @@ pub fn draw_preferences(
                                     row.col(|ui| {
                                         ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
                                             ui.label("Boundary width (px)");
+                                        });
+                                    });
+                                });
+                                body.row(row_height, |mut row| {
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                            ui.strong("Rendering");
+                                        });
+                                    });
+                                });
+                                body.row(row_height, |mut row| {
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                            egui::ComboBox::from_id_source("gradient_select")
+                                                .selected_text(format!("{:?}", gradient))
+                                                .show_ui(ui, |ui| {
+                                                    let mut g = *gradient;
+                                                    ui.selectable_value(&mut g, Gradient::Turbo, "Turbo");
+                                                    ui.selectable_value(&mut g, Gradient::Viridis, "Viridis");
+                                                    ui.selectable_value(&mut g, Gradient::Magma, "Magma");
+                                                    ui.selectable_value(&mut g, Gradient::Inferno, "Inferno");
+                                                    ui.selectable_value(&mut g, Gradient::Plasma, "Plasma");
+                                                    ui.selectable_value(&mut g, Gradient::Bw, "Bw");
+                                                    *gradient = g;
+                                                });
+                                        });
+                                    });
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
+                                            ui.label("Colormap");
+                                        });
+                                    });
+                                });
+                                body.row(row_height, |mut row| {
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                            ui.add(
+                                                egui::DragValue::new(&mut ui_state_tmp.min_gradient).speed(0.01)
+                                            );
+                                        });
+                                    });
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui| {
+                                            ui.label("Min Gradient");
+                                        });
+                                    });
+                                });
+                                body.row(row_height, |mut row| {
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                            ui.add(
+                                                egui::DragValue::new(&mut ui_state_tmp.max_gradient).speed(0.01)
+                                            );
+                                        });
+                                    });
+                                    row.col(|ui| {
+                                        ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui| {
+                                            ui.label("Max Gradient");
                                         });
                                     });
                                 });
