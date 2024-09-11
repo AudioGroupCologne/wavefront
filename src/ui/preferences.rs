@@ -53,7 +53,7 @@ pub fn draw_preferences(
                                     row.col(|ui| {
                                         ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
                                             if ui
-                                                .add(egui::Slider::new(&mut ui_state_tmp.delta_l, 0.0001..=10.0).logarithmic(true))
+                                                .add(egui::Slider::new(&mut ui_state_tmp.delta_l, 0.0001..=10.0).logarithmic(true).suffix("m"))
                                                 .on_hover_text("Change the size of one cell in the simulation in meters.")
                                                 .changed()
                                             {
@@ -63,7 +63,7 @@ pub fn draw_preferences(
                                     });
                                     row.col(|ui| {
                                         ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
-                                            ui.label("Delta L (m)");
+                                            ui.label("Delta L");
                                         });
                                     });
                                 });
@@ -102,7 +102,7 @@ pub fn draw_preferences(
                                         ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
                                             if ui
                                                 .add(
-                                                    egui::Slider::new(&mut ui_state_tmp.boundary_width, 2..=200),
+                                                    egui::Slider::new(&mut ui_state_tmp.boundary_width, 2..=200).suffix("px"),
                                                 )
                                                 .on_hover_text("Change the width of the boundary. (higher values lead to slower simulation)")
                                                 .changed()
@@ -127,7 +127,7 @@ pub fn draw_preferences(
                                     });
                                     row.col(|ui| {
                                         ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
-                                            ui.label("Boundary width (px)");
+                                            ui.label("Boundary width");
                                         });
                                     });
                                 });
