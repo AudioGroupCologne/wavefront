@@ -171,7 +171,7 @@ pub fn draw_preferences(
                                     });
                                     row.col(|ui| {
                                         ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui| {
-                                            ui.label("Min Gradient");
+                                            ui.label("Min gradient");
                                         });
                                     });
                                 });
@@ -185,7 +185,7 @@ pub fn draw_preferences(
                                     });
                                     row.col(|ui| {
                                         ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui| {
-                                            ui.label("Max Gradient");
+                                            ui.label("Max gradient");
                                         });
                                     });
                                 });

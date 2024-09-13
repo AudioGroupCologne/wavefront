@@ -204,7 +204,7 @@ pub fn draw_egui(
 
     if ui_state.show_epilepsy_warning {
         let mut read_epilepsy_warning = ui_state.read_epilepsy_warning;
-        egui::Window::new("Epilepsy Warning")
+        egui::Window::new("Epilepsy warning")
             .default_size(Vec2::new(400., 400.))
             .resizable(false)
             .collapsible(false)
@@ -430,7 +430,7 @@ pub fn draw_egui(
                                         ui.selectable_value(
                                             &mut source.source_type,
                                             SourceType::default_noise(),
-                                            "White Noise",
+                                            "White noise",
                                         );
                                     });
 
@@ -506,7 +506,7 @@ pub fn draw_egui(
                                         if ui
                                             .add(
                                                 egui::Slider::new(std_dev, 0.0..=1.0)
-                                                    .text("Standard Deviation"),
+                                                    .text("Standard deviation"),
                                             )
                                             .changed()
                                         {
@@ -622,7 +622,7 @@ pub fn draw_egui(
 
                     wall_vec.iter_mut().for_each(|(entity, ref mut wall)| {
                         let collapse =
-                            egui::CollapsingHeader::new(format!("Rectangular Wall {}", wall.id))
+                            egui::CollapsingHeader::new(format!("Rectangular wall {}", wall.id))
                                 .open(if selected_rect_wall == wall.id as i32 {
                                     Some(true)
                                 } else if ui_state.collapse_header {
@@ -664,7 +664,7 @@ pub fn draw_egui(
                                             events.reset_ev.send(Reset::default());
                                         }
                                         ui.add_space(10.);
-                                        ui.label("Top Left Corner");
+                                        ui.label("Top left corner");
                                     });
 
                                     ui.horizontal(|ui| {
@@ -700,7 +700,7 @@ pub fn draw_egui(
                                             events.reset_ev.send(Reset::default());
                                         }
                                         ui.add_space(10.);
-                                        ui.label("Bottom Right Corner");
+                                        ui.label("Bottom right corner");
                                     });
 
                                     ui.horizontal(|ui| {
@@ -724,7 +724,7 @@ pub fn draw_egui(
                                                 &mut wall.reflection_factor,
                                                 0.01..=1.0,
                                             )
-                                            .text("Wall Reflection Factor"),
+                                            .text("Wall reflection factor"),
                                         )
                                         .changed()
                                     {
@@ -769,7 +769,7 @@ pub fn draw_egui(
 
                     wall_vec.iter_mut().for_each(|(entity, ref mut wall)| {
                         let collapse =
-                            egui::CollapsingHeader::new(format!("Circular Wall {}", wall.id))
+                            egui::CollapsingHeader::new(format!("Circular wall {}", wall.id))
                                 .open(if selected_circ_wall == wall.id as i32 {
                                     Some(true)
                                 } else if ui_state.collapse_header {
@@ -839,7 +839,7 @@ pub fn draw_egui(
                                                     &mut wall.open_circ_segment,
                                                     0f32..=360f32,
                                                 )
-                                                .text("Open Circle Arc"),
+                                                .text("Open circle arc"),
                                             )
                                             .changed()
                                         {
@@ -853,7 +853,7 @@ pub fn draw_egui(
                                                     &mut wall.rotation_angle,
                                                     0f32..=360f32,
                                                 )
-                                                .text("Rotation Angle"),
+                                                .text("Rotation angle"),
                                             )
                                             .changed()
                                         {
@@ -868,14 +868,14 @@ pub fn draw_egui(
                                                 &mut wall.reflection_factor,
                                                 0.01..=1.0,
                                             )
-                                            .text("Wall Reflection Factor"),
+                                            .text("Wall reflection factor"),
                                         )
                                         .changed()
                                     {
                                         events.reset_ev.send(Reset::default());
                                     }
 
-                                    if ui.checkbox(&mut wall.is_hollow, "Hollow Wall").changed() {
+                                    if ui.checkbox(&mut wall.is_hollow, "Hollow wall").changed() {
                                         events.wall_update_ev.send(UpdateWalls);
                                         events.reset_ev.send(Reset::default());
                                     };
@@ -944,7 +944,7 @@ pub fn draw_egui(
                     ui.checkbox(&mut ui_state.reset_on_change, "Reset on change");
 
                     if ui
-                        .checkbox(&mut ui_state.show_plots, "Show Plots")
+                        .checkbox(&mut ui_state.show_plots, "Show plots")
                         .clicked()
                     {
                         for (_, mut mic) in mic_set.p0().iter_mut() {
@@ -971,7 +971,7 @@ pub fn draw_egui(
                         }
                     }
                     ui.add_space(5.);
-                    ui.label("Simulation Frame Rate");
+                    ui.label("Simulation frame rate");
                 });
 
                 ui.add_space(5.);
@@ -984,7 +984,7 @@ pub fn draw_egui(
 
                 ui.horizontal(|ui| {
                     ui.label(format!(
-                        "Simulation Time: {:.5} ms",
+                        "Simulation time: {:.5} ms",
                         sim_time.time_since_start * 1000.
                     ));
 
@@ -1013,7 +1013,7 @@ pub fn draw_egui(
 
                 match ui_state.current_tool {
                     ToolType::Place(_) => {
-                        egui::ComboBox::from_label("Select Object to Place")
+                        egui::ComboBox::from_label("Select object to place")
                             .selected_text(format!("{}", ui_state.cur_place_type))
                             .show_ui(ui, |ui| {
                                 ui.style_mut().wrap = Some(false);
@@ -1030,7 +1030,7 @@ pub fn draw_egui(
                                 ui.selectable_value(
                                     &mut ui_state.cur_place_type,
                                     PlaceType::RectWall,
-                                    "Rectangle Wall",
+                                    "Rectangular Wall",
                                 );
                                 ui.selectable_value(
                                     &mut ui_state.cur_place_type,
@@ -1045,7 +1045,7 @@ pub fn draw_egui(
                         ) {
                             ui.add(
                                 egui::Slider::new(&mut ui_state.wall_reflection_factor, 0.0..=1.0)
-                                    .text("Wall Reflection Factor"),
+                                    .text("Wall reflection factor"),
                             );
                             ui.checkbox(&mut ui_state.wall_is_hollow, "Hollow");
                         }

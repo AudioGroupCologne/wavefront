@@ -76,7 +76,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
         match tab {
             Tab::Volume => {
                 ui.horizontal(|ui| {
-                    ui.checkbox(&mut self.ui_state.scroll_volume_plot, "Scroll Volume Plot");
+                    ui.checkbox(&mut self.ui_state.scroll_volume_plot, "Scroll volume plot");
 
                     ui.with_layout(egui::Layout::top_down(egui::Align::RIGHT), |ui| {
                         if ui
@@ -145,7 +145,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                     .y_labels(5)
                                     .y_label_formatter(&|x| format!("{:.2}", x))
                                     .y_desc("Amplitude")
-                                    .x_desc("Simulation Time (s)")
+                                    .x_desc("Simulation time (s)")
                                     .draw()
                                     .unwrap();
 
@@ -202,7 +202,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                     .allow_zoom([!scroll_volume_plot, !scroll_volume_plot])
                     .allow_drag(!scroll_volume_plot)
                     .allow_scroll(!scroll_volume_plot)
-                    .x_axis_label("Simulation Time (ms)")
+                    .x_axis_label("Simulation time (ms)")
                     .y_axis_label("Amplitude")
                     .label_formatter(|_, value| {
                         format!("Amplitude: {:.2}\nTime: {:.4} ms", value.y, value.x)
@@ -251,7 +251,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                 }
 
                 ui.horizontal(|ui| {
-                    ui.menu_button("FFT Microhones", |ui| {
+                    ui.menu_button("FFT microhones", |ui| {
                         for mic in &mut *self.mics {
                             ui.checkbox(&mut mic.show_fft, format!("Microphone {}", mic.id));
                         }
@@ -276,11 +276,11 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
 
                     ui.add(egui::Separator::default().vertical());
 
-                    ui.checkbox(&mut self.ui_state.show_fft_approx, "Show Approximation");
+                    ui.checkbox(&mut self.ui_state.show_fft_approx, "Show approximation");
 
                     ui.add(egui::Separator::default().vertical());
 
-                    egui::ComboBox::from_label("FFT Window Size")
+                    egui::ComboBox::from_label("FFT window size")
                         .selected_text(self.ui_state.fft_window_size.to_string())
                         .show_ui(ui, |ui| {
                             for window_size in [256, 512, 1024, 2048, 4096, 8192] {
