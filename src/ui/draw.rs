@@ -147,7 +147,7 @@ pub fn draw_egui(
         mut mic_set,
     } = sets;
 
-    let ctx = egui_context.ctx_mut();
+    let ctx = egui_context.try_ctx_mut().unwrap();
     egui_extras::install_image_loaders(ctx);
     // disable window shadows
     ctx.style_mut(|style| style.visuals.window_shadow = egui::epaint::Shadow::NONE);
