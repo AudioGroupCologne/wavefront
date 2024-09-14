@@ -584,16 +584,25 @@ pub fn draw_egui(
                                                 .range(0.0..=SIMULATION_HEIGHT as f32 - 1.),
                                         );
                                     });
-                                    if ui
-                                        .add(egui::Button::new("Delete").fill(Color32::DARK_RED))
-                                        .clicked()
-                                    {
-                                        commands.entity(*entity).despawn();
-                                    }
-                                    if ui.add(egui::Button::new("Write")).clicked() {
-                                        let id = mic.id;
-                                        mic.write_to_file(&format!("mic_{}.csv", id));
-                                    }
+
+                                    ui.horizontal(|ui| {
+                                        if ui
+                                            .add(
+                                                egui::Button::new("Delete").fill(Color32::DARK_RED),
+                                            )
+                                            .clicked()
+                                        {
+                                            commands.entity(*entity).despawn();
+                                        }
+                                        if ui_state.show_mic_export && ui
+                                            .add(egui::Button::new("Export CSV"))
+                                            .on_hover_text("Export all past time/value pairs as CSV in the current directory. (Values are only recorded if the plot is opened)")
+                                            .clicked()
+                                        {
+                                            let id = mic.id;
+                                            mic.write_to_file(&format!("mic_{}.csv", id));
+                                        }
+                                    });
                                 });
                         if collapse.header_response.contains_pointer()
                             || collapse.body_response.is_some()
@@ -1125,7 +1134,7 @@ pub fn draw_egui(
             if !ui_state.tools_enabled {
                 ui.disable();
             }
-            
+
             let select_icon = &IMAGES[0];
             let place_icon = &IMAGES[1];
             let move_icon = &IMAGES[2];

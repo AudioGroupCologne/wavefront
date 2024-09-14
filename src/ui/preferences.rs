@@ -76,7 +76,7 @@ pub fn draw_preferences(
                                             {
                                                 ui_state_tmp.tools_enabled = !ui_state_tmp.render_abc_area;
                                                 let mut pb = pixel_buffer.iter_mut().next().expect("one pixel buffer");
-                                                
+
                                                 pb.pixel_buffer.size = PixelBufferSize {
                                                     size: if ui_state_tmp.render_abc_area {
                                                         UVec2::new(
@@ -214,6 +214,18 @@ pub fn draw_preferences(
                                         row.col(|ui| {
                                             ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
                                                 ui.label("Frequency analyzer");
+                                            });
+                                        });
+                                    });
+                                    body.row(row_height, |mut row| {
+                                        row.col(|ui| {
+                                            ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                                ui.checkbox(&mut ui_state_tmp.show_mic_export, "");
+                                            });
+                                        });
+                                        row.col(|ui| {
+                                            ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
+                                                ui.label("Mic values export");
                                             });
                                         });
                                     });

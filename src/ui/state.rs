@@ -102,6 +102,7 @@ pub struct UiState {
     pub hide_gizmos: bool,
     pub show_new_warning: bool,
     pub show_frequencies: bool,
+    pub show_mic_export: bool,
 }
 
 impl Default for UiState {
@@ -138,6 +139,7 @@ impl Default for UiState {
             hide_gizmos: false,
             show_new_warning: false,
             show_frequencies: false,
+            show_mic_export: false,
         }
     }
 }

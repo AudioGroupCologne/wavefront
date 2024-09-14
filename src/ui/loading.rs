@@ -79,7 +79,7 @@ pub fn file_loaded(
             commands.spawn(circ_wall);
             ids.get_new_wall_id();
         }
-        
+
         *gradient = save_data.gradient;
         ui_state.max_gradient = save_data.max_gradient;
         ui_state.min_gradient = save_data.min_gradient;

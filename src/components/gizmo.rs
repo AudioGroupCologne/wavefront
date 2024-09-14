@@ -1,6 +1,7 @@
 use egui::{Painter, Pos2, Rect};
 
-use crate::{render::gradient::Gradient, ui::state::ToolType};
+use crate::render::gradient::Gradient;
+use crate::ui::state::ToolType;
 
 pub trait GizmoComponent {
     fn get_gizmo_positions(&self, tool_type: &ToolType) -> Vec<Pos2>;
