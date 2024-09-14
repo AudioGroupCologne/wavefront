@@ -504,6 +504,6 @@ pub fn event_input(
     }
     // quit program
     if ctrl && keys.just_pressed(KeyCode::KeyQ) {
-        exit_ev.send(AppExit);
+        exit_ev.send(AppExit::Success);
     }
 }

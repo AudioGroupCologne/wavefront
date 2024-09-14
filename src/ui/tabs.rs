@@ -320,7 +320,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                         }
                         marks
                     })
-                    .x_axis_formatter(|mark, _, _| format!("{:.0}", 10_f64.powf(mark.value)))
+                    .x_axis_formatter(|mark, _| format!("{:.0}", 10_f64.powf(mark.value)))
                     .label_formatter(move |_, value| {
                         format!(
                             "Intensity: {:.2} {}\nFrequency: {:.2} (Hz)",

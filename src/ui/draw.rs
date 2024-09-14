@@ -305,7 +305,7 @@ pub fn draw_egui(
                         .on_hover_text("Quit the application")
                         .clicked()
                     {
-                        app_exit_events.send(bevy::app::AppExit);
+                        app_exit_events.send(bevy::app::AppExit::Success);
                     }
                 });
 
@@ -394,7 +394,7 @@ pub fn draw_egui(
                                         .add(
                                             egui::DragValue::new(&mut source.x)
                                                 .speed(1)
-                                                .clamp_range(0.0..=SIMULATION_WIDTH as f32 - 1.),
+                                                .range(0.0..=SIMULATION_WIDTH as f32 - 1.),
                                         )
                                         .changed()
                                     {
@@ -406,7 +406,7 @@ pub fn draw_egui(
                                         .add(
                                             egui::DragValue::new(&mut source.y)
                                                 .speed(1)
-                                                .clamp_range(0.0..=SIMULATION_HEIGHT as f32 - 1.),
+                                                .range(0.0..=SIMULATION_HEIGHT as f32 - 1.),
                                         )
                                         .changed()
                                     {
@@ -574,14 +574,14 @@ pub fn draw_egui(
                                         ui.add(
                                             egui::DragValue::new(&mut mic.x)
                                                 .speed(1)
-                                                .clamp_range(0.0..=SIMULATION_WIDTH as f32 - 1.),
+                                                .range(0.0..=SIMULATION_WIDTH as f32 - 1.),
                                         );
                                         ui.add_space(10.);
                                         ui.label("y:");
                                         ui.add(
                                             egui::DragValue::new(&mut mic.y)
                                                 .speed(1)
-                                                .clamp_range(0.0..=SIMULATION_HEIGHT as f32 - 1.),
+                                                .range(0.0..=SIMULATION_HEIGHT as f32 - 1.),
                                         );
                                     });
                                     if ui
@@ -637,7 +637,7 @@ pub fn draw_egui(
                                             .add(
                                                 egui::DragValue::new(&mut wall.rect.min.x)
                                                     .speed(1)
-                                                    .clamp_range(0..=SIMULATION_WIDTH - 1),
+                                                    .range(0..=SIMULATION_WIDTH - 1),
                                             )
                                             .changed()
                                         {
@@ -653,7 +653,7 @@ pub fn draw_egui(
                                             .add(
                                                 egui::DragValue::new(&mut wall.rect.min.y)
                                                     .speed(1)
-                                                    .clamp_range(0..=SIMULATION_HEIGHT - 1),
+                                                    .range(0..=SIMULATION_HEIGHT - 1),
                                             )
                                             .changed()
                                         {
@@ -673,7 +673,7 @@ pub fn draw_egui(
                                             .add(
                                                 egui::DragValue::new(&mut wall.rect.max.x)
                                                     .speed(1)
-                                                    .clamp_range(0..=SIMULATION_WIDTH - 1),
+                                                    .range(0..=SIMULATION_WIDTH - 1),
                                             )
                                             .changed()
                                         {
@@ -689,7 +689,7 @@ pub fn draw_egui(
                                             .add(
                                                 egui::DragValue::new(&mut wall.rect.max.y)
                                                     .speed(1)
-                                                    .clamp_range(0..=SIMULATION_HEIGHT - 1),
+                                                    .range(0..=SIMULATION_HEIGHT - 1),
                                             )
                                             .changed()
                                         {
@@ -784,7 +784,7 @@ pub fn draw_egui(
                                             .add(
                                                 egui::DragValue::new(&mut wall.center.x)
                                                     .speed(1)
-                                                    .clamp_range(0..=SIMULATION_WIDTH - 1),
+                                                    .range(0..=SIMULATION_WIDTH - 1),
                                             )
                                             .changed()
                                         {
@@ -797,7 +797,7 @@ pub fn draw_egui(
                                             .add(
                                                 egui::DragValue::new(&mut wall.center.y)
                                                     .speed(1)
-                                                    .clamp_range(0..=SIMULATION_HEIGHT - 1),
+                                                    .range(0..=SIMULATION_HEIGHT - 1),
                                             )
                                             .changed()
                                         {
@@ -816,7 +816,7 @@ pub fn draw_egui(
                                             .add(
                                                 egui::DragValue::new(&mut wall.radius)
                                                     .speed(1)
-                                                    .clamp_range(1..=1000),
+                                                    .range(1..=1000),
                                             )
                                             .changed()
                                         {
@@ -1009,14 +1009,16 @@ pub fn draw_egui(
                 ui.heading("Tool Options");
                 ui.separator();
 
-                ui.set_enabled(!ui_state.render_abc_area);
+                if ui_state.render_abc_area {
+                    ui.disable();
+                }
 
                 match ui_state.current_tool {
                     ToolType::Place(_) => {
                         egui::ComboBox::from_label("Select object to place")
                             .selected_text(format!("{}", ui_state.cur_place_type))
                             .show_ui(ui, |ui| {
-                                ui.style_mut().wrap = Some(false);
+                                ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Wrap);
                                 ui.selectable_value(
                                     &mut ui_state.cur_place_type,
                                     PlaceType::Source,
@@ -1120,7 +1122,10 @@ pub fn draw_egui(
         .default_width(35.)
         .resizable(false)
         .show(ctx, |ui| {
-            ui.set_enabled(ui_state.tools_enabled);
+            if !ui_state.tools_enabled {
+                ui.disable();
+            }
+            
             let select_icon = &IMAGES[0];
             let place_icon = &IMAGES[1];
             let move_icon = &IMAGES[2];
