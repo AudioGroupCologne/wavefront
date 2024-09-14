@@ -25,6 +25,7 @@ struct SaveData {
     max_gradient: f32,
     min_gradient: f32,
     reset_on_change: bool,
+    delta_l: f32,
 }
 
 /// Loads a file when receiving a [`DialogFileLoaded`] event from the file dialog.
@@ -78,13 +79,14 @@ pub fn file_loaded(
             commands.spawn(circ_wall);
             ids.get_new_wall_id();
         }
-
-        grid.reset_cells(ui_state.boundary_width);
-        wall_update_ev.send(UpdateWalls);
-
+        
         *gradient = save_data.gradient;
         ui_state.max_gradient = save_data.max_gradient;
         ui_state.min_gradient = save_data.min_gradient;
         ui_state.reset_on_change = save_data.reset_on_change;
+        ui_state.delta_l = save_data.delta_l;
+
+        grid.reset_cells(ui_state.boundary_width);
+        wall_update_ev.send(UpdateWalls);
     }
 }

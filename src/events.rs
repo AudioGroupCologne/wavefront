@@ -144,6 +144,7 @@ pub fn save_event(
             ui_state.max_gradient,
             ui_state.min_gradient,
             ui_state.reset_on_change,
+            ui_state.delta_l,
         )
         .unwrap();
 
