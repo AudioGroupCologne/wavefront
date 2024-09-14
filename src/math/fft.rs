@@ -6,6 +6,7 @@ use crate::components::microphone::Microphone;
 use crate::ui::state::FftScaling;
 
 /// Calculate the spectrum of a [`Microphone`] based on the record field.
+/// 
 /// The spectrum is calculated using the FFT algorithm and a Hann window. The corresponding window size is specified in [`FFT_WINDOW_SIZE`].
 /// The spectrum is then mapped to a logarithmic scale on the frequency axis and returned.
 /// * `microphone` - The microphone to calculate the spectrum for.
