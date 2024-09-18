@@ -6,7 +6,7 @@ use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::prelude::*;
 use egui::ImageSource;
 
-use super::help::draw_help;
+use super::keybinds::draw_keybinds;
 use super::preferences::draw_preferences;
 use super::tabs::{DockState, PlotTabs};
 use crate::components::gizmo::GizmoComponent;
@@ -152,8 +152,8 @@ pub fn draw_egui(
     // disable window shadows
     ctx.style_mut(|style| style.visuals.window_shadow = egui::epaint::Shadow::NONE);
 
-    if ui_state.show_help {
-        draw_help(&mut ui_state, ctx);
+    if ui_state.show_keybinds {
+        draw_keybinds(&mut ui_state, ctx);
     }
 
     if ui_state.show_preferences {
@@ -335,7 +335,7 @@ pub fn draw_egui(
 
                 ui.menu_button("Help", |ui| {
                     if ui.button("Keybinds").clicked() {
-                        ui_state.show_help = true;
+                        ui_state.show_keybinds = true;
                         ui.close_menu();
                     }
                     if ui.button("About").clicked() {

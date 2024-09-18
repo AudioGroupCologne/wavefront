@@ -1,21 +1,17 @@
-use egui::Vec2;
+use egui::{Layout, Vec2};
 use egui_extras::{Column, TableBuilder};
 
 use super::draw::CTRL_KEY_TEXT;
 use super::state::UiState;
 
-pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
+pub fn draw_keybinds(ui_state: &mut UiState, ctx: &egui::Context) {
     egui::Window::new("Keybinds")
-        .open(&mut ui_state.show_help)
+        .open(&mut ui_state.show_keybinds)
         .default_size(Vec2::new(400., 400.))
         .resizable(false)
         .collapsible(false)
         .constrain(true)
         .show(ctx, |ui| {
-            // TODO: add links to documentation/user manual
-
-            ui.heading("Keybinds");
-
             TableBuilder::new(ui)
                 .resizable(false)
                 .striped(true)
@@ -32,42 +28,9 @@ pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
                 .body(|mut body| {
                     body.row(15.0, |mut row| {
                         row.col(|ui| {
-                            ui.label("Delete selected");
-                        });
-                        row.col(|ui| {
-                            ui.label("Backspace or delete");
-                        });
-                    });
-                    body.row(15.0, |mut row| {
-                        row.col(|ui| {
-                            ui.label("Undo");
-                        });
-                        row.col(|ui| {
-                            ui.label(format!("{CTRL_KEY_TEXT}+Z"));
-                        });
-                    });
-                    body.row(15.0, |mut row| {
-                        row.col(|ui| {
-                            ui.label("Redo");
-                        });
-                        row.col(|ui| {
-                            ui.label(format!("{CTRL_KEY_TEXT}+Shift+Z"));
-                        });
-                    });
-                    body.row(15.0, |mut row| {
-                        row.col(|ui| {
-                            ui.label("Copy selected");
-                        });
-                        row.col(|ui| {
-                            ui.label(format!("{CTRL_KEY_TEXT}+C"));
-                        });
-                    });
-                    body.row(15.0, |mut row| {
-                        row.col(|ui| {
-                            ui.label("Paste clipboard");
-                        });
-                        row.col(|ui| {
-                            ui.label(format!("{CTRL_KEY_TEXT}+V"));
+                            ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                ui.strong("File Actions"); //Title case??
+                            });
                         });
                     });
                     body.row(15.0, |mut row| {
@@ -104,10 +67,48 @@ pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
                     });
                     body.row(15.0, |mut row| {
                         row.col(|ui| {
-                            ui.label("Snap to grid");
+                            ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                ui.strong("General");
+                            });
+                        });
+                    });
+                    body.row(15.0, |mut row| {
+                        row.col(|ui| {
+                            ui.label("Undo");
                         });
                         row.col(|ui| {
-                            ui.label(format!("{CTRL_KEY_TEXT} + Move or resize wall"));
+                            ui.label(format!("{CTRL_KEY_TEXT}+Z"));
+                        });
+                    });
+                    body.row(15.0, |mut row| {
+                        row.col(|ui| {
+                            ui.label("Redo");
+                        });
+                        row.col(|ui| {
+                            ui.label(format!("{CTRL_KEY_TEXT}+Shift+Z"));
+                        });
+                    });
+                    body.row(15.0, |mut row| {
+                        row.col(|ui| {
+                            ui.label("Copy selected");
+                        });
+                        row.col(|ui| {
+                            ui.label(format!("{CTRL_KEY_TEXT}+C"));
+                        });
+                    });
+                    body.row(15.0, |mut row| {
+                        row.col(|ui| {
+                            ui.label("Paste clipboard");
+                        });
+                        row.col(|ui| {
+                            ui.label(format!("{CTRL_KEY_TEXT}+V"));
+                        });
+                    });
+                    body.row(15.0, |mut row| {
+                        row.col(|ui| {
+                            ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                ui.strong("Simulation");
+                            });
                         });
                     });
                     body.row(15.0, |mut row| {
@@ -116,6 +117,29 @@ pub fn draw_help(ui_state: &mut UiState, ctx: &egui::Context) {
                         });
                         row.col(|ui| {
                             ui.label("Space");
+                        });
+                    });
+                    body.row(15.0, |mut row| {
+                        row.col(|ui| {
+                            ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                ui.strong("Tools");
+                            });
+                        });
+                    });
+                    body.row(15.0, |mut row| {
+                        row.col(|ui| {
+                            ui.label("Delete selected");
+                        });
+                        row.col(|ui| {
+                            ui.label("Backspace or delete");
+                        });
+                    });
+                    body.row(15.0, |mut row| {
+                        row.col(|ui| {
+                            ui.label("Snap to grid");
+                        });
+                        row.col(|ui| {
+                            ui.label(format!("{CTRL_KEY_TEXT} + Move or resize wall"));
                         });
                     });
                     body.row(15.0, |mut row| {

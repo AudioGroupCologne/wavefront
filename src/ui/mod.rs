@@ -1,5 +1,5 @@
 pub mod draw;
-pub mod help;
+pub mod keybinds;
 pub mod loading;
 pub mod plugin;
 pub mod preferences;
