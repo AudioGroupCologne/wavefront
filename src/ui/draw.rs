@@ -19,6 +19,7 @@ use crate::math::constants::*;
 use crate::render::gradient::Gradient;
 use crate::render::screenshot::screenshot_grid;
 use crate::simulation::grid::Grid;
+use crate::simulation::plugin::WaveSamples;
 use crate::ui::state::*;
 use crate::undo::{UndoEvent, UndoRedo};
 
@@ -136,10 +137,12 @@ pub fn draw_egui(
     time: Res<Time>,
     mut fixed_timestep: ResMut<Time<Fixed>>,
     diagnostics: Res<DiagnosticsStore>,
-    // TODO: these values could (at least quick settings because tool settings change in height) be baked once the panels are finalized
-    mut quick_settings_height: Local<f32>,
     mut tool_settings_height: Local<f32>,
+    mut wave_samples: ResMut<WaveSamples>,
 ) {
+    // TODO: maybe hardcode ?
+    let quick_settings_height = 140.;
+
     let QuerySystemParams {
         mut rect_wall_set,
         mut circ_wall_set,
@@ -167,6 +170,7 @@ pub fn draw_egui(
             &mut grid,
             &mut pixel_buffer,
             &mut gradient,
+            &mut wave_samples,
         );
 
         ui_state.show_preferences = show_preferences;
@@ -362,7 +366,7 @@ pub fn draw_egui(
             egui::ScrollArea::vertical()
                 .id_source("side_scroll_area")
                 .max_height(
-                    ui.available_height() - *tool_settings_height - *quick_settings_height - 25.,
+                    ui.available_height() - *tool_settings_height - quick_settings_height - 25.,
                 )
                 .show(ui, |ui| {
                     ui.set_min_width(ui.available_width());
@@ -432,6 +436,13 @@ pub fn draw_egui(
                                             SourceType::default_noise(),
                                             "White noise",
                                         );
+                                        if ui_state.wave_files {
+                                            ui.selectable_value(
+                                                &mut source.source_type,
+                                                SourceType::default_wave(),
+                                                "Wave file",
+                                            );
+                                        }
                                     });
 
                                 match &mut source.source_type {
@@ -524,6 +535,17 @@ pub fn draw_egui(
                                             events.reset_ev.send(Reset::default());
                                         }
                                     }
+                                    SourceType::WaveFile { amplitude } => {
+                                        if ui
+                                            .add(
+                                                egui::Slider::new(amplitude, 0.0..=1000.0)
+                                                    .text("Amplitude"),
+                                            )
+                                            .changed()
+                                        {
+                                            events.reset_ev.send(Reset::default());
+                                        }
+                                    },
                                 }
 
                                 if ui
@@ -599,8 +621,26 @@ pub fn draw_egui(
                                             .on_hover_text("Export all past time/value pairs as CSV in the current directory. (Values are only recorded if the plot is opened)")
                                             .clicked()
                                         {
+                                            // TODO: file picker?
                                             let id = mic.id;
                                             mic.write_to_file(&format!("mic_{}.csv", id));
+                                        }
+                                        if ui_state.wave_files && ui
+                                            .add(egui::Button::new("Export wav"))
+                                            .clicked()
+                                        {
+                                            //TODO: write wav file
+                                            let spec = hound::WavSpec {
+                                                channels: 1,
+                                                sample_rate: (1. / grid.delta_t) as u32,
+                                                bits_per_sample: 16,
+                                                sample_format: hound::SampleFormat::Int,
+                                            };
+                                            let mut writer = hound::WavWriter::create("testout.wav", spec).unwrap();
+                                            for sample in mic.record.iter().map(|s| s[1]) {
+                                                let amplitude = i16::MAX as f64;
+                                                writer.write_sample((sample * amplitude) as i16).unwrap();
+                                            }
                                         }
                                     });
                                 });
@@ -911,7 +951,6 @@ pub fn draw_egui(
 
             // Quick Settings
             egui::TopBottomPanel::bottom("quick_settings_bottom_panel").show_inside(ui, |ui| {
-                *quick_settings_height = ui.available_height();
 
                 ui.add_space(3.);
                 ui.heading("Quick Settings");

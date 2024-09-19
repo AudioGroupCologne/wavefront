@@ -63,6 +63,7 @@ pub fn reset_event(
     for r in reset_ev.read() {
         if ui_state.reset_on_change || r.force {
             sim_time.time_since_start = 0f32;
+            sim_time.samples_since_start = 0;
             grid.reset_cells(ui_state.boundary_width);
             mics.iter_mut().for_each(|mut mic| mic.clear());
             ui_state.highest_y_volume_plot = 0f64;
@@ -109,6 +110,7 @@ pub fn new_event(
         ids.reset();
         *gradient = Gradient::default();
         sim_time.time_since_start = 0f32;
+        sim_time.samples_since_start = 0;
         // TODO: clear undoer
     }
 }

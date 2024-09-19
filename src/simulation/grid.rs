@@ -3,6 +3,7 @@ use std::f32::consts::TAU;
 use bevy::prelude::*;
 use rayon::iter::{IndexedParallelIterator, IntoParallelRefMutIterator, ParallelIterator};
 
+use super::plugin::WaveSamples;
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::components::wall::{CircWall, RectWall, Wall, WallCell};
@@ -308,11 +309,13 @@ impl Grid {
     pub fn apply_sources(
         &mut self,
         time_since_start: f32,
+        samples_since_start: usize,
         sources: &Query<&Source>,
         boundary_width: u32,
+        wave_samples: &WaveSamples,
     ) {
         for source in sources.iter() {
-            let calc = source.calc(time_since_start);
+            let calc = source.calc(time_since_start, samples_since_start, wave_samples);
             let source_pos = coords_to_index(
                 source.x + boundary_width,
                 source.y + boundary_width,

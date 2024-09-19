@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use super::grid::Grid;
+use super::plugin::WaveSamples;
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::ui::state::{SimTime, UiState};
@@ -21,9 +22,16 @@ pub fn apply_system(
     microphones: Query<&mut Microphone>,
     sim_time: Res<SimTime>,
     ui_state: Res<UiState>,
+    wave_samples: Res<WaveSamples>,
 ) {
     if ui_state.is_running {
-        grid.apply_sources(sim_time.time_since_start, &sources, ui_state.boundary_width);
+        grid.apply_sources(
+            sim_time.time_since_start,
+            sim_time.samples_since_start,
+            &sources,
+            ui_state.boundary_width,
+            &wave_samples,
+        );
         grid.apply_microphones(microphones, &ui_state, sim_time.time_since_start as f64);
     }
 }
@@ -42,5 +50,6 @@ pub fn update_system(
         grid.update_cells();
         grid.update_delta_t(ui_state.delta_l);
         sim_time.time_since_start += grid.delta_t;
+        sim_time.samples_since_start += 1;
     }
 }

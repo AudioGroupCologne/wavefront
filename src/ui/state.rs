@@ -7,6 +7,8 @@ use bevy::prelude::*;
 pub struct SimTime {
     /// Time since simulation start in seconds
     pub time_since_start: f32,
+    /// Samples since simulation start
+    pub samples_since_start: usize,
 }
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -103,6 +105,7 @@ pub struct UiState {
     pub show_new_warning: bool,
     pub show_frequencies: bool,
     pub show_mic_export: bool,
+    pub wave_files: bool,
 }
 
 impl Default for UiState {
@@ -140,6 +143,7 @@ impl Default for UiState {
             show_new_warning: false,
             show_frequencies: false,
             show_mic_export: false,
+            wave_files: false,
         }
     }
 }

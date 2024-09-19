@@ -251,7 +251,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                 }
 
                 ui.horizontal(|ui| {
-                    ui.menu_button("FFT microhones", |ui| {
+                    ui.menu_button("FFT microphones", |ui| {
                         for mic in &mut *self.mics {
                             ui.checkbox(&mut mic.show_fft, format!("Microphone {}", mic.id));
                         }

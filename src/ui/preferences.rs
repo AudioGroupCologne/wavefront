@@ -10,6 +10,7 @@ use crate::events::Reset;
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::render::gradient::Gradient;
 use crate::simulation::grid::Grid;
+use crate::simulation::plugin::WaveSamples;
 
 pub fn draw_preferences(
     show_preferences: &mut bool,
@@ -19,6 +20,7 @@ pub fn draw_preferences(
     grid: &mut Grid,
     pixel_buffer: &mut QueryPixelBuffer,
     gradient: &mut Gradient,
+    wave_samples: &mut WaveSamples,
 ) {
     egui::Window::new("Preferences")
             .open(show_preferences)
@@ -226,6 +228,40 @@ pub fn draw_preferences(
                                         row.col(|ui| {
                                             ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
                                                 ui.label("Mic values export");
+                                            });
+                                        });
+                                    });
+                                    body.row(row_height, |mut row| {
+                                        row.col(|ui| {
+                                            ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                                                ui.checkbox(&mut ui_state_tmp.wave_files, "");
+                                            });
+                                        });
+                                        row.col(|ui| {
+                                            ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
+                                                ui.label("Wave files");
+                                                if ui_state_tmp.wave_files && ui
+                                                    .add(egui::Button::new("Load wave file"))
+                                                    .clicked()
+                                                {
+                                                    //TODO: load wav file
+                                                    let mut reader = hound::WavReader::open("assets/misc/test.wav").unwrap();
+                                                    println!("{:?}", reader.spec().bits_per_sample);
+                                                    let samples = match reader.spec().sample_format {
+                                                        hound::SampleFormat::Int => {
+                                                            match reader.spec().bits_per_sample {
+                                                                16 => reader.samples::<i16>().map(|s| s.unwrap() as f32 / i16::MAX as f32).collect::<Vec<f32>>(),
+                                                                32 => reader.samples::<i32>().map(|s| s.unwrap() as f32/ i32::MAX as f32).collect::<Vec<f32>>(), //normalisation isn't correct i think
+                                                                _ => todo!()
+                                                            }
+                                                        },
+                                                        hound::SampleFormat::Float => match reader.spec().bits_per_sample {
+                                                            32 => reader.samples::<f32>().collect::<Result<Vec<f32>, _>>().unwrap(),
+                                                            _ => todo!()
+                                                        },
+                                                    };
+                                                    wave_samples.0 = samples;
+                                                }
                                             });
                                         });
                                     });

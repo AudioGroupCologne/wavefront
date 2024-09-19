@@ -15,6 +15,7 @@ impl Plugin for GridPlugin {
 
         app.insert_resource(grid)
             .init_resource::<ComponentIDs>()
+            .init_resource::<WaveSamples>()
             .add_systems(
                 FixedUpdate,
                 (calc_system, apply_system, update_system).chain(),
@@ -77,5 +78,14 @@ impl ComponentIDs {
         self.current_mic_id = 0;
         self.current_source_id = 0;
         self.current_wall_id = 0;
+    }
+}
+
+#[derive(Resource)]
+pub struct WaveSamples(pub Vec<f32>);
+
+impl Default for WaveSamples {
+    fn default() -> Self {
+        Self(vec![0.])
     }
 }

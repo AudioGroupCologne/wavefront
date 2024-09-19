@@ -12,7 +12,7 @@ use super::gizmo::GizmoComponent;
 use crate::math::constants::*;
 use crate::math::transformations::grid_to_image;
 use crate::render::gradient::Gradient;
-use crate::simulation::plugin::ComponentIDs;
+use crate::simulation::plugin::{ComponentIDs, WaveSamples};
 use crate::ui::state::ToolType;
 
 /// A sound source on the grid
@@ -48,6 +48,9 @@ pub enum SourceType {
         /// amplitude of the noise (currently unitless)
         amplitude: f32,
     },
+    WaveFile {
+        amplitude: f32,
+    },
 }
 
 impl Default for SourceType {
@@ -79,6 +82,9 @@ impl SourceType {
     pub fn default_noise() -> SourceType {
         SourceType::WhiteNoise { amplitude: 10. }
     }
+    pub fn default_wave() -> SourceType {
+        SourceType::WaveFile { amplitude: 100. } // bro wtf why 100
+    }
 }
 
 impl fmt::Display for SourceType {
@@ -86,7 +92,8 @@ impl fmt::Display for SourceType {
         match self {
             SourceType::Sin { .. } => write!(f, "Sinusoidal"),
             SourceType::Gauss { .. } => write!(f, "Gaussian"),
-            SourceType::WhiteNoise { .. } => write!(f, "White Noise"),
+            SourceType::WhiteNoise { .. } => write!(f, "White noise"),
+            SourceType::WaveFile { .. } => write!(f, "Wave file"),
         }
     }
 }
@@ -101,7 +108,7 @@ impl Source {
         }
     }
 
-    pub fn calc(&self, time: f32) -> f32 {
+    pub fn calc(&self, time: f32, cur_sample: usize, wave_samples: &WaveSamples) -> f32 {
         match self.source_type {
             SourceType::Sin {
                 phase,
@@ -116,6 +123,9 @@ impl Source {
             } => self.periodic_gaussian(time, frequency, amplitude, phase, 4., 0., std_dev),
             SourceType::WhiteNoise { amplitude } => {
                 thread_rng().sample::<f32, _>(rand_distr::StandardNormal) * amplitude
+            }
+            SourceType::WaveFile { amplitude } => {
+                wave_samples.0[cur_sample % wave_samples.0.len()] * amplitude
             }
         }
     }
