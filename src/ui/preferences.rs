@@ -7,7 +7,7 @@ use egui_extras::{Column, TableBuilder};
 use super::draw::EventSystemParams;
 use super::state::UiState;
 use crate::events::Reset;
-use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
+use crate::math::constants::{PROPAGATION_SPEED, SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::render::gradient::Gradient;
 use crate::simulation::grid::Grid;
 use crate::simulation::plugin::WaveSamples;
@@ -261,6 +261,11 @@ pub fn draw_preferences(
                                                         },
                                                     };
                                                     wave_samples.0 = samples;
+
+                                                    // set delta l to correct sample rate
+                                                    ui_state_tmp.delta_l = PROPAGATION_SPEED / reader.spec().sample_rate as f32;
+
+                                                    events.reset_ev.send(Reset::default());
                                                 }
                                             });
                                         });
