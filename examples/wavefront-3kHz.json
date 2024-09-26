@@ -1,0 +1,840 @@
+{
+    "sources": [
+        {
+            "x": 45,
+            "y": 10,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 0
+        },
+        {
+            "x": 45,
+            "y": 20,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 1
+        },
+        {
+            "x": 45,
+            "y": 30,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 2
+        },
+        {
+            "x": 45,
+            "y": 40,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 3
+        },
+        {
+            "x": 45,
+            "y": 50,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 4
+        },
+        {
+            "x": 45,
+            "y": 60,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 5
+        },
+        {
+            "x": 45,
+            "y": 70,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 6
+        },
+        {
+            "x": 45,
+            "y": 80,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 7
+        },
+        {
+            "x": 45,
+            "y": 90,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 8
+        },
+        {
+            "x": 45,
+            "y": 100,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 9
+        },
+        {
+            "x": 45,
+            "y": 110,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 10
+        },
+        {
+            "x": 45,
+            "y": 120,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 11
+        },
+        {
+            "x": 45,
+            "y": 130,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 12
+        },
+        {
+            "x": 45,
+            "y": 140,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 13
+        },
+        {
+            "x": 45,
+            "y": 150,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 14
+        },
+        {
+            "x": 45,
+            "y": 160,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 15
+        },
+        {
+            "x": 45,
+            "y": 170,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 16
+        },
+        {
+            "x": 45,
+            "y": 180,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 17
+        },
+        {
+            "x": 45,
+            "y": 190,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 18
+        },
+        {
+            "x": 45,
+            "y": 200,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 19
+        },
+        {
+            "x": 45,
+            "y": 210,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 20
+        },
+        {
+            "x": 45,
+            "y": 220,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 21
+        },
+        {
+            "x": 45,
+            "y": 230,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 22
+        },
+        {
+            "x": 45,
+            "y": 240,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 23
+        },
+        {
+            "x": 45,
+            "y": 250,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 24
+        },
+        {
+            "x": 45,
+            "y": 260,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 25
+        },
+        {
+            "x": 45,
+            "y": 270,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 26
+        },
+        {
+            "x": 45,
+            "y": 280,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 27
+        },
+        {
+            "x": 45,
+            "y": 290,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 28
+        },
+        {
+            "x": 45,
+            "y": 300,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 29
+        },
+        {
+            "x": 45,
+            "y": 310,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 30
+        },
+        {
+            "x": 45,
+            "y": 320,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 31
+        },
+        {
+            "x": 45,
+            "y": 330,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 32
+        },
+        {
+            "x": 45,
+            "y": 340,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 33
+        },
+        {
+            "x": 45,
+            "y": 350,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 34
+        },
+        {
+            "x": 45,
+            "y": 360,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 35
+        },
+        {
+            "x": 45,
+            "y": 370,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 36
+        },
+        {
+            "x": 45,
+            "y": 380,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 37
+        },
+        {
+            "x": 45,
+            "y": 390,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 38
+        },
+        {
+            "x": 45,
+            "y": 400,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 39
+        },
+        {
+            "x": 45,
+            "y": 410,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 40
+        },
+        {
+            "x": 45,
+            "y": 420,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 41
+        },
+        {
+            "x": 45,
+            "y": 430,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 42
+        },
+        {
+            "x": 45,
+            "y": 440,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 43
+        },
+        {
+            "x": 45,
+            "y": 450,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 44
+        },
+        {
+            "x": 45,
+            "y": 460,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 45
+        },
+        {
+            "x": 45,
+            "y": 470,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 46
+        },
+        {
+            "x": 45,
+            "y": 480,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 47
+        },
+        {
+            "x": 45,
+            "y": 490,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 48
+        },
+        {
+            "x": 45,
+            "y": 500,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 49
+        },
+        {
+            "x": 45,
+            "y": 510,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 50
+        },
+        {
+            "x": 45,
+            "y": 520,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 51
+        },
+        {
+            "x": 45,
+            "y": 530,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 52
+        },
+        {
+            "x": 45,
+            "y": 540,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 53
+        },
+        {
+            "x": 45,
+            "y": 550,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 54
+        },
+        {
+            "x": 45,
+            "y": 560,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 55
+        },
+        {
+            "x": 45,
+            "y": 570,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 56
+        },
+        {
+            "x": 45,
+            "y": 580,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 57
+        },
+        {
+            "x": 45,
+            "y": 590,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 58
+        },
+        {
+            "x": 45,
+            "y": 600,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 59
+        },
+        {
+            "x": 45,
+            "y": 610,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 60
+        },
+        {
+            "x": 45,
+            "y": 620,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 61
+        },
+        {
+            "x": 45,
+            "y": 630,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 62
+        },
+        {
+            "x": 45,
+            "y": 640,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 63
+        },
+        {
+            "x": 45,
+            "y": 650,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 64
+        },
+        {
+            "x": 45,
+            "y": 660,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 65
+        },
+        {
+            "x": 45,
+            "y": 670,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 66
+        },
+        {
+            "x": 45,
+            "y": 680,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 67
+        },
+        {
+            "x": 45,
+            "y": 690,
+            "source_type": {
+                "Sin": {
+                    "phase": 0.0,
+                    "frequency": 3000.0,
+                    "amplitude": 10.0
+                }
+            },
+            "id": 68
+        }
+    ],
+    "mics": [],
+    "rect_walls": [],
+    "circ_walls": [],
+    "gradient": "Turbo",
+    "max_gradient": 2.0,
+    "min_gradient": -2.0,
+    "reset_on_change": true,
+    "delta_l": 0.00715
+}

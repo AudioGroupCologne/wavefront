@@ -6,7 +6,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -18,7 +18,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -30,7 +30,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -42,7 +42,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -54,7 +54,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -66,7 +66,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -78,7 +78,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -90,7 +90,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -102,7 +102,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -114,7 +114,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -126,7 +126,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -138,7 +138,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -150,7 +150,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -162,7 +162,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -174,7 +174,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -186,7 +186,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -198,7 +198,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -210,7 +210,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -222,7 +222,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -234,7 +234,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -246,7 +246,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -258,7 +258,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -270,7 +270,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -282,7 +282,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -294,7 +294,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -306,7 +306,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -318,7 +318,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -330,7 +330,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -342,7 +342,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -354,7 +354,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -366,7 +366,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -378,7 +378,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -390,7 +390,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -402,7 +402,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -414,7 +414,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -426,7 +426,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -438,7 +438,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -450,7 +450,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -462,7 +462,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -474,7 +474,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -486,7 +486,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -498,7 +498,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -510,7 +510,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -522,7 +522,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -534,7 +534,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -546,7 +546,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -558,7 +558,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -570,7 +570,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -582,7 +582,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -594,7 +594,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -606,7 +606,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -618,7 +618,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -630,7 +630,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -642,7 +642,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -654,7 +654,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -666,7 +666,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -678,7 +678,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -690,7 +690,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -702,7 +702,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -714,7 +714,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -726,7 +726,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -738,7 +738,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -750,7 +750,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -762,7 +762,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -774,7 +774,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -786,7 +786,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -798,7 +798,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -810,7 +810,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -822,7 +822,7 @@
             "source_type": {
                 "Sin": {
                     "phase": 0.0,
-                    "frequency": 1000.0,
+                    "frequency": 300.0,
                     "amplitude": 10.0
                 }
             },
@@ -830,46 +830,7 @@
         }
     ],
     "mics": [],
-    "rect_walls": [
-        {
-            "rect": {
-                "min": [
-                    300,
-                    0
-                ],
-                "max": [
-                    300,
-                    275
-                ]
-            },
-            "is_hollow": false,
-            "reflection_factor": 1.0,
-            "id": 0,
-            "draw_pin": [
-                240,
-                4
-            ]
-        },
-        {
-            "rect": {
-                "min": [
-                    300,
-                    312
-                ],
-                "max": [
-                    300,
-                    699
-                ]
-            },
-            "is_hollow": false,
-            "reflection_factor": 1.0,
-            "id": 1,
-            "draw_pin": [
-                238,
-                312
-            ]
-        }
-    ],
+    "rect_walls": [],
     "circ_walls": [],
     "gradient": "Turbo",
     "max_gradient": 2.0,
