@@ -344,6 +344,8 @@ impl GizmoComponent for RectWall {
                         gizmo_color,
                     )));
                 }
+
+                self.draw_scale_text(painter, image_rect, delta_l, Color32::WHITE);
             }
             ToolType::Place(PlaceType::RectWall) => {
                 self.draw_scale_text(painter, image_rect, delta_l, Color32::WHITE);

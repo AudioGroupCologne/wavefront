@@ -1032,8 +1032,14 @@ pub fn draw_egui(
 
                 ui.horizontal(|ui| {
                     ui.label(format!(
-                        "Simulation time: {:.5} ms",
+                        "Time: {:.5} ms",
                         sim_time.time_since_start * 1000.
+                    ));
+                    
+                    ui.add(egui::Separator::default().vertical());
+                    ui.label(format!(
+                        "Size: {:.5} m",
+                        ui_state.delta_l * SIMULATION_WIDTH as f32
                     ));
 
                     ui.add(egui::Separator::default().vertical());
