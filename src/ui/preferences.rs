@@ -244,28 +244,31 @@ pub fn draw_preferences(
                                                     .add(egui::Button::new("Load wave file"))
                                                     .clicked()
                                                 {
-                                                    //TODO: load wav file
-                                                    let mut reader = hound::WavReader::open("assets/misc/test.wav").unwrap();
-                                                    println!("{:?}", reader.spec().bits_per_sample);
-                                                    let samples = match reader.spec().sample_format {
-                                                        hound::SampleFormat::Int => {
-                                                            match reader.spec().bits_per_sample {
+                                                    //TODO: load wav file with file dialog
+                                                    let reader = hound::WavReader::open("assets/misc/audio.wav");
+                                                    if reader.is_ok() {
+                                                        let mut reader = reader.unwrap();
+                                                        println!("{:?}", reader.spec().bits_per_sample);
+                                                        let samples = match reader.spec().sample_format {
+                                                            hound::SampleFormat::Int => {
+                                                                match reader.spec().bits_per_sample {
                                                                 16 => reader.samples::<i16>().map(|s| s.unwrap() as f32 / i16::MAX as f32).collect::<Vec<f32>>(),
                                                                 32 => reader.samples::<i32>().map(|s| s.unwrap() as f32/ i32::MAX as f32).collect::<Vec<f32>>(), //normalisation isn't correct i think
                                                                 _ => todo!()
-                                                            }
-                                                        },
-                                                        hound::SampleFormat::Float => match reader.spec().bits_per_sample {
-                                                            32 => reader.samples::<f32>().collect::<Result<Vec<f32>, _>>().unwrap(),
-                                                            _ => todo!()
-                                                        },
-                                                    };
-                                                    wave_samples.0 = samples;
-
-                                                    // set delta l to correct sample rate
-                                                    ui_state_tmp.delta_l = PROPAGATION_SPEED / reader.spec().sample_rate as f32;
-
-                                                    events.reset_ev.send(Reset::default());
+                                                                }
+                                                            },
+                                                            hound::SampleFormat::Float => match reader.spec().bits_per_sample {
+                                                                32 => reader.samples::<f32>().collect::<Result<Vec<f32>, _>>().unwrap(),
+                                                                _ => todo!()
+                                                            },
+                                                        };
+                                                        wave_samples.0 = samples;
+                                                        
+                                                        // set delta l to correct sample rate
+                                                        ui_state_tmp.delta_l = PROPAGATION_SPEED / reader.spec().sample_rate as f32;
+                                                        
+                                                        events.reset_ev.send(Reset::default());
+                                                    }
                                                 }
                                             });
                                         });
