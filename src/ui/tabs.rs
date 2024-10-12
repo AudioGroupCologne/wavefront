@@ -330,12 +330,12 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                         )
                     })
                     .show(ui, |plot_ui| {
-                        let mut current_highest_y = 0.;
-                        let mut current_lowest_y = f64::MAX;
-                        let mut current_lowest_x = f64::MAX;
-                        let mut current_highest_x = 0.;
+                        let mut current_lowest_x = -1f64;
+                        let mut current_lowest_y = -1f64;
+                        let mut current_highest_x = 1f64;
+                        let mut current_highest_y = 1f64;
 
-                        for mic in &mut *self.mics {
+                        for (index, mic) in self.mics.iter_mut().enumerate() {
                             if !mic.show_fft {
                                 continue;
                             }
@@ -410,19 +410,19 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                 .unwrap_or(0.)
                                 - y_padding;
 
-                            if highest_y > current_highest_y {
+                            if index == 0 || highest_y > current_highest_y {
                                 current_highest_y = highest_y;
                             }
 
-                            if lowest_y < current_lowest_y {
+                            if index == 0 || lowest_y < current_lowest_y {
                                 current_lowest_y = lowest_y;
                             }
 
-                            if lowest_x < current_lowest_x {
+                            if index == 0 || lowest_x < current_lowest_x {
                                 current_lowest_x = lowest_x;
                             }
 
-                            if highest_x > current_highest_x {
+                            if index == 0 || highest_x > current_highest_x {
                                 current_highest_x = highest_x;
                             }
                         }
