@@ -352,7 +352,7 @@ pub fn button_input(
                         });
 
                         if ctrl {
-                            // snap all four corners to grid
+                            // snap all four wall corners to grid
                             rect_wall_set.p2().iter_mut().for_each(|(_, mut wall)| {
                                 let min = UVec2 {
                                     x: (wall.rect.min.x as f32 / 10.).round() as u32 * 10,
@@ -367,6 +367,30 @@ pub fn button_input(
                                 wall.resize(&WResize::TopRight, max.x, min.y);
                                 wall.resize(&WResize::BottomLeft, min.x, max.y);
                                 wall.resize(&WResize::BottomRight, max.x, max.y);
+                            });
+
+                            // snap circ wall center
+                            circ_wall_set.p2().iter_mut().for_each(|(_, mut wall)| {
+                                let x = (wall.center.x as f32 / 10.).round() as u32 * 10;
+                                let y = (wall.center.y as f32 / 10.).round() as u32 * 10;
+
+                                wall.set_center(x, y);
+                            });
+
+                            // snap mic center
+                            mic_set.p2().iter_mut().for_each(|(_, mut mic)| {
+                                let x = (mic.x as f32 / 10.).round() as u32 * 10;
+                                let y = (mic.y as f32 / 10.).round() as u32 * 10;
+                                mic.x = x;
+                                mic.y = y;
+                            });
+
+                            // snap source center
+                            source_set.p2().iter_mut().for_each(|(_, mut source)| {
+                                let x = (source.x as f32 / 10.).round() as u32 * 10;
+                                let y = (source.y as f32 / 10.).round() as u32 * 10;
+                                source.x = x;
+                                source.y = y;
                             });
                         }
                     }
