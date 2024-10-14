@@ -66,9 +66,9 @@ jobs:
         run: |
           cd target/${{ matrix.platform.target }}/release
           if [[ "${{ matrix.platform.os }}" == "windows-latest" ]]; then
-            7z a ../../../${{ matrix.platform.name }} ${{ matrix.platform.bin }}
+            7z a ../../../${{ matrix.platform.name }} ${{ matrix.platform.bin }} ../../../examples
           else
-            tar czvf ../../../${{ matrix.platform.name }} ${{ matrix.platform.bin }}
+            tar czvf ../../../${{ matrix.platform.name }} ${{ matrix.platform.bin }} ../../../examples
           fi
           cd -
       - name: Publish release artifacts
