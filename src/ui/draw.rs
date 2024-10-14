@@ -773,7 +773,7 @@ pub fn draw_egui(
                                                 &mut wall.reflection_factor,
                                                 0.01..=1.0,
                                             )
-                                            .text("Wall reflection factor"),
+                                            .text("Reflection factor"),
                                         )
                                         .changed()
                                     {
@@ -917,14 +917,14 @@ pub fn draw_egui(
                                                 &mut wall.reflection_factor,
                                                 0.01..=1.0,
                                             )
-                                            .text("Wall reflection factor"),
+                                            .text("Reflection factor"),
                                         )
                                         .changed()
                                     {
                                         events.reset_ev.send(Reset::default());
                                     }
 
-                                    if ui.checkbox(&mut wall.is_hollow, "Hollow wall").changed() {
+                                    if ui.checkbox(&mut wall.is_hollow, "Hollow").changed() {
                                         events.wall_update_ev.send(UpdateWalls);
                                         events.reset_ev.send(Reset::default());
                                     };
@@ -1101,7 +1101,7 @@ pub fn draw_egui(
                         ) {
                             ui.add(
                                 egui::Slider::new(&mut ui_state.wall_reflection_factor, 0.0..=1.0)
-                                    .text("Wall reflection factor"),
+                                    .text("Reflection factor"),
                             );
                             ui.checkbox(&mut ui_state.wall_is_hollow, "Hollow");
                         }
