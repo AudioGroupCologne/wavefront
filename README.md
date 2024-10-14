@@ -35,7 +35,7 @@
 
 Wavefront is a two dimensional acoustic wave simulation application utilising the TLM (transmission-line matrix) method.
 
-It is designed to be a tool for educational purposes, allowing users to experiment with different acoustic scenarios and observe the effects of different parameters on the wave propagation.
+It is designed to be a tool for educational purposes developed by students of the [University of Applied Sciences Cologne](https://www.th-koeln.de/), allowing users to experiment with different acoustic scenarios and observe the effects of different parameters on the wave propagation.
 
 It can be used to simulate point sound sources in a free field. 
 
