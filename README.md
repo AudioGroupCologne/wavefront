@@ -33,7 +33,13 @@
 
 <!-- [![Product Name Screen Shot][product-screenshot]](https://example.com) -->
 
-### Built With
+Wavefront is a two dimensional acoustic wave simulation application utilising the TLM (transmission-line matrix) method.
+
+It is designed to be a tool for educational purposes, allowing users to experiment with different acoustic scenarios and observe the effects of different parameters on the wave propagation.
+
+It can be used to simulate point sound sources in a free field. 
+
+<!-- ### Built With -->
 
 <!--
 * [![Rust][Rust]][Rust-url]
@@ -43,16 +49,11 @@
 
 ## Getting Started
 
-<!--
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
--->
-
-### Installation
+For installation and usage instructions, please refer to the [documentation](https://audiogroupcologne.github.io/wavefront-manual/).
 
 <!-- USAGE EXAMPLES -->
 
-## Usage
+<!-- ## Usage -->
 
 <!--
 Use this space to show useful examples of how a project can be used. Additional screenshots, code examples, and demos work well in this space. You may also link to more resources.
@@ -62,7 +63,7 @@ _For more examples, please refer to the [Documentation]()_
 
 <!-- ROADMAP -->
 
-## Roadmap
+<!-- ## Roadmap -->
 
 <!--
 - [ ] Feature 1
@@ -78,24 +79,15 @@ See the [open issues](https://github.com/AudioGroupCologne/wavefront/issues) for
 
 ## Contributing
 
-Contributions are what makes the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+If you would like to contribute to the project, feel free to open a pull request. For major changes, please open an issue first to discuss what you would like to change.
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+As this project is primarly maintained by students, keep in mind that it might take some time to review your pull request.
 
 <!-- LICENSE -->
-<!--
+
 ## License
 
-Distributed under the ... License. See `LICENSE.txt` for more information.
-
--->
+Wavefront is licensed under the Apache License, Version 2.0. See [LICENSE](https://github.com/AudioGroupCologne/wavefront/tree/main?tab=Apache-2.0-1-ov-file#readme) for more information.
 
 <!-- CONTACT -->
 <!--
