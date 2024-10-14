@@ -6,7 +6,7 @@ use crate::components::microphone::Microphone;
 use crate::components::source::{Source, SourceType};
 use crate::components::states::{Move, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize, Wall};
-use crate::events::{Load, Reset, Save, UpdateWalls};
+use crate::events::{LoadScene, Reset, Save, UpdateWalls};
 use crate::math::transformations::{screen_to_grid, screen_to_nearest_grid};
 use crate::simulation::plugin::ComponentIDs;
 use crate::ui::state::{ClipboardBuffer, PlaceType, ToolType, UiState};
@@ -486,7 +486,7 @@ pub fn event_input(
     mut ui_state: ResMut<UiState>,
     mut reset_ev: EventWriter<Reset>,
     mut save_ev: EventWriter<Save>,
-    mut load_ev: EventWriter<Load>,
+    mut load_ev: EventWriter<LoadScene>,
     mut wall_update_ev: EventWriter<UpdateWalls>,
     mut exit_ev: EventWriter<AppExit>,
     mut selected: Query<Entity, With<Selected>>,
@@ -520,7 +520,7 @@ pub fn event_input(
     }
     // load file
     if ctrl && keys.just_pressed(KeyCode::KeyO) {
-        load_ev.send(Load);
+        load_ev.send(LoadScene);
     }
     // save file
     if ctrl && keys.just_pressed(KeyCode::KeyS) {

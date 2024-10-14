@@ -50,8 +50,8 @@ pub fn screen_to_nearest_grid(x: f32, y: f32, image_rect: Rect) -> Option<(u32, 
     let min_x = image_rect.min.x as u32;
     let min_y = image_rect.min.y as u32;
 
-    let mut x = if x < min_x { 0 } else { x - min_x };
-    let mut y = if y < min_y { 0 } else { y - min_y };
+    let mut x = x.saturating_sub(min_x);
+    let mut y = y.saturating_sub(min_y);
 
     x = if x > width { width } else { x };
     y = if y > height { height } else { y };

@@ -3,7 +3,7 @@ use bevy_file_dialog::FileDialogExt;
 use egui_plot::{GridMark, Line, Plot, PlotBounds, PlotPoints};
 use plotters::prelude::*;
 
-use super::loading::SaveFileContents;
+use super::loading::SceneSaveFileContents;
 use super::state::{FftScaling, UiState};
 use crate::components::microphone::Microphone;
 use crate::math::fft::calc_mic_spectrum;
@@ -55,7 +55,7 @@ impl<'a> PlotTabs<'a> {
     }
 }
 
-impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
+impl egui_dock::TabViewer for PlotTabs<'_> {
     type Tab = Tab;
     fn title(&mut self, tab: &mut Self::Tab) -> egui::WidgetText {
         match tab {
@@ -189,7 +189,7 @@ impl<'a> egui_dock::TabViewer for PlotTabs<'a> {
                                 .set_file_name("function.svg")
                                 .set_directory("./")
                                 .set_title("Select a file to save to")
-                                .save_file::<SaveFileContents>(string_buffer.into_bytes());
+                                .save_file::<SceneSaveFileContents>(string_buffer.into_bytes());
                         }
                     });
                 });

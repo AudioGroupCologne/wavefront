@@ -14,12 +14,11 @@ use crate::components::microphone::*;
 use crate::components::source::*;
 use crate::components::states::{MenuSelected, Selected};
 use crate::components::wall::{CircWall, RectWall, WResize};
-use crate::events::{Load, New, Reset, Save, UpdateWalls};
+use crate::events::{LoadScene, LoadWav, New, Reset, Save, UpdateWalls};
 use crate::math::constants::*;
 use crate::render::gradient::Gradient;
 use crate::render::screenshot::screenshot_grid;
 use crate::simulation::grid::Grid;
-use crate::simulation::plugin::WaveSamples;
 use crate::ui::state::*;
 use crate::undo::{UndoEvent, UndoRedo};
 
@@ -37,7 +36,8 @@ pub struct EventSystemParams<'w> {
     pub reset_ev: EventWriter<'w, Reset>,
     pub undo_ev: EventWriter<'w, UndoEvent>,
     pub save_ev: EventWriter<'w, Save>,
-    pub load_ev: EventWriter<'w, Load>,
+    pub load_scene_ev: EventWriter<'w, LoadScene>,
+    pub load_wav_ev: EventWriter<'w, LoadWav>,
     pub new_ev: EventWriter<'w, New>,
 }
 
@@ -138,7 +138,6 @@ pub fn draw_egui(
     mut fixed_timestep: ResMut<Time<Fixed>>,
     diagnostics: Res<DiagnosticsStore>,
     mut tool_settings_height: Local<f32>,
-    mut wave_samples: ResMut<WaveSamples>,
 ) {
     // TODO: maybe hardcode ?
     let quick_settings_height = 140.;
@@ -170,7 +169,6 @@ pub fn draw_egui(
             &mut grid,
             &mut pixel_buffer,
             &mut gradient,
-            &mut wave_samples,
         );
 
         ui_state.show_preferences = show_preferences;
@@ -291,7 +289,7 @@ pub fn draw_egui(
                         .clicked()
                     {
                         ui.close_menu();
-                        events.load_ev.send(Load);
+                        events.load_scene_ev.send(LoadScene);
                     }
 
                     if ui
@@ -1035,7 +1033,7 @@ pub fn draw_egui(
                         "Time: {:.5} ms",
                         sim_time.time_since_start * 1000.
                     ));
-                    
+
                     ui.add(egui::Separator::default().vertical());
                     ui.label(format!(
                         "Size: {:.5} m",

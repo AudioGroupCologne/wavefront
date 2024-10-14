@@ -7,7 +7,7 @@ use crate::components::wall::{CircWall, RectWall};
 use crate::render::gradient::Gradient;
 use crate::simulation::grid::Grid;
 use crate::simulation::plugin::ComponentIDs;
-use crate::ui::loading::SaveFileContents;
+use crate::ui::loading::{SceneSaveFileContents, WavFileContents};
 use crate::ui::state::{SimTime, UiState};
 
 pub struct EventPlugin;
@@ -20,13 +20,15 @@ impl Plugin for EventPlugin {
                 update_wall_event,
                 reset_event,
                 save_event,
-                load_event,
+                load_scene_event,
+                load_wav_event,
                 new_event,
             ),
         )
         .add_event::<UpdateWalls>()
         .add_event::<Reset>()
-        .add_event::<Load>()
+        .add_event::<LoadScene>()
+        .add_event::<LoadWav>()
         .add_event::<Save>()
         .add_event::<New>();
     }
@@ -156,7 +158,7 @@ pub fn save_event(
             .set_file_name("save.json")
             .set_directory("./")
             .set_title("Select a file to save to")
-            .save_file::<SaveFileContents>(data);
+            .save_file::<SceneSaveFileContents>(data);
 
         if event.new_file {
             new_ev.send(New);
@@ -165,15 +167,29 @@ pub fn save_event(
 }
 
 #[derive(Event)]
-pub struct Load;
+pub struct LoadScene;
 
-pub fn load_event(mut commands: Commands, mut load_ev: EventReader<Load>) {
+pub fn load_scene_event(mut commands: Commands, mut load_ev: EventReader<LoadScene>) {
     for _ in load_ev.read() {
         commands
             .dialog()
             .add_filter("JSON", &["json"])
             .set_directory("./")
             .set_title("Select a file to load")
-            .load_file::<SaveFileContents>();
+            .load_file::<SceneSaveFileContents>();
+    }
+}
+
+#[derive(Event)]
+pub struct LoadWav;
+
+pub fn load_wav_event(mut commands: Commands, mut load_ev: EventReader<LoadWav>) {
+    for _ in load_ev.read() {
+        commands
+            .dialog()
+            .add_filter("WAV", &["wav"])
+            .set_directory("./")
+            .set_title("Select a file to load")
+            .load_file::<WavFileContents>();
     }
 }

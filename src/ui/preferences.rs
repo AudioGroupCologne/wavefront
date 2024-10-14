@@ -6,11 +6,10 @@ use egui_extras::{Column, TableBuilder};
 
 use super::draw::EventSystemParams;
 use super::state::UiState;
-use crate::events::Reset;
-use crate::math::constants::{PROPAGATION_SPEED, SIMULATION_HEIGHT, SIMULATION_WIDTH};
+use crate::events::{LoadWav, Reset};
+use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::render::gradient::Gradient;
 use crate::simulation::grid::Grid;
-use crate::simulation::plugin::WaveSamples;
 
 pub fn draw_preferences(
     show_preferences: &mut bool,
@@ -20,7 +19,6 @@ pub fn draw_preferences(
     grid: &mut Grid,
     pixel_buffer: &mut QueryPixelBuffer,
     gradient: &mut Gradient,
-    wave_samples: &mut WaveSamples,
 ) {
     egui::Window::new("Preferences")
             .open(show_preferences)
@@ -239,36 +237,12 @@ pub fn draw_preferences(
                                         });
                                         row.col(|ui| {
                                             ui.with_layout(Layout::left_to_right(egui::Align::Center), |ui|{
-                                                ui.label("Wave files");
+                                                ui.label("Use .wav files as sound source");
                                                 if ui_state_tmp.wave_files && ui
                                                     .add(egui::Button::new("Load wave file"))
                                                     .clicked()
                                                 {
-                                                    //TODO: load wav file with file dialog
-                                                    let reader = hound::WavReader::open("assets/misc/audio.wav");
-                                                    if reader.is_ok() {
-                                                        let mut reader = reader.unwrap();
-                                                        println!("{:?}", reader.spec().bits_per_sample);
-                                                        let samples = match reader.spec().sample_format {
-                                                            hound::SampleFormat::Int => {
-                                                                match reader.spec().bits_per_sample {
-                                                                16 => reader.samples::<i16>().map(|s| s.unwrap() as f32 / i16::MAX as f32).collect::<Vec<f32>>(),
-                                                                32 => reader.samples::<i32>().map(|s| s.unwrap() as f32/ i32::MAX as f32).collect::<Vec<f32>>(), //normalisation isn't correct i think
-                                                                _ => todo!()
-                                                                }
-                                                            },
-                                                            hound::SampleFormat::Float => match reader.spec().bits_per_sample {
-                                                                32 => reader.samples::<f32>().collect::<Result<Vec<f32>, _>>().unwrap(),
-                                                                _ => todo!()
-                                                            },
-                                                        };
-                                                        wave_samples.0 = samples;
-                                                        
-                                                        // set delta l to correct sample rate
-                                                        ui_state_tmp.delta_l = PROPAGATION_SPEED / reader.spec().sample_rate as f32;
-                                                        
-                                                        events.reset_ev.send(Reset::default());
-                                                    }
+                                                    events.load_wav_ev.send(LoadWav);
                                                 }
                                             });
                                         });

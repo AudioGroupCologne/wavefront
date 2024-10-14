@@ -3,7 +3,9 @@ use bevy::prelude::*;
 use bevy_file_dialog::FileDialogPlugin;
 
 use super::draw::draw_egui;
-use super::loading::{file_loaded, SaveFileContents};
+use super::loading::{
+    scene_save_file_loaded, wav_file_loaded, SceneSaveFileContents, WavFileContents,
+};
 use super::state::{ClipboardBuffer, FftMicrophone, UiState};
 use super::tabs::DockState;
 
@@ -17,10 +19,11 @@ impl Plugin for UiPlugin {
             .init_resource::<FftMicrophone>()
             .add_plugins((
                 FileDialogPlugin::new()
-                    .with_save_file::<SaveFileContents>()
-                    .with_load_file::<SaveFileContents>(),
+                    .with_save_file::<SceneSaveFileContents>()
+                    .with_load_file::<SceneSaveFileContents>()
+                    .with_load_file::<WavFileContents>(),
                 FrameTimeDiagnosticsPlugin,
             ))
-            .add_systems(Update, (draw_egui, file_loaded));
+            .add_systems(Update, (draw_egui, scene_save_file_loaded, wav_file_loaded));
     }
 }

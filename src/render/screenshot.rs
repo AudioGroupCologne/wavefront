@@ -5,7 +5,7 @@ use super::gradient::Gradient;
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::transformations::coords_to_index;
 use crate::simulation::grid::Grid;
-use crate::ui::loading::SaveFileContents;
+use crate::ui::loading::SceneSaveFileContents;
 use crate::ui::state::UiState;
 
 pub fn screenshot_grid(
@@ -56,5 +56,5 @@ pub fn screenshot_grid(
         .set_file_name("screenshot.png")
         .set_directory("./")
         .set_title("Select a file to save to")
-        .save_file::<SaveFileContents>(data);
+        .save_file::<SceneSaveFileContents>(data);
 }

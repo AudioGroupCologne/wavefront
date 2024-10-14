@@ -6,17 +6,18 @@ use super::state::UiState;
 use crate::components::microphone::Microphone;
 use crate::components::source::Source;
 use crate::components::wall::{CircWall, RectWall};
-use crate::events::UpdateWalls;
+use crate::events::{Reset, UpdateWalls};
+use crate::math::constants::PROPAGATION_SPEED;
 use crate::render::gradient::Gradient;
 use crate::simulation::grid::Grid;
-use crate::simulation::plugin::ComponentIDs;
+use crate::simulation::plugin::{ComponentIDs, WaveSamples};
 
 /// Marker component for the file dialog and the corresponding event.
-pub struct SaveFileContents;
+pub struct SceneSaveFileContents;
 
-/// The data that is loaded from a file. Used for deserialization.
+/// The data that is loaded from a scene save file. Used for deserialization.
 #[derive(Deserialize)]
-struct SaveData {
+struct SceneSaveData {
     sources: Vec<Source>,
     mics: Vec<Microphone>,
     rect_walls: Vec<RectWall>,
@@ -30,8 +31,8 @@ struct SaveData {
 
 /// Loads a file when receiving a [`DialogFileLoaded`] event from the file dialog.
 /// All entities are despawned and the new entities are spawned.
-pub fn file_loaded(
-    mut ev_loaded: EventReader<DialogFileLoaded<SaveFileContents>>,
+pub fn scene_save_file_loaded(
+    mut ev_loaded: EventReader<DialogFileLoaded<SceneSaveFileContents>>,
     mut commands: Commands,
     mut wall_update_ev: EventWriter<UpdateWalls>,
     mut grid: ResMut<Grid>,
@@ -44,7 +45,7 @@ pub fn file_loaded(
     mut ui_state: ResMut<UiState>,
 ) {
     if let Some(data) = ev_loaded.read().next() {
-        let save_data = serde_json::from_slice::<SaveData>(&data.contents).unwrap();
+        let save_data = serde_json::from_slice::<SceneSaveData>(&data.contents).unwrap();
 
         // Clear all entities
         for (entity, _) in sources.iter() {
@@ -88,5 +89,52 @@ pub fn file_loaded(
 
         grid.reset_cells(ui_state.boundary_width);
         wall_update_ev.send(UpdateWalls);
+    }
+}
+
+/// Marker component for the file dialog and the corresponding event.
+pub struct WavFileContents;
+
+pub fn wav_file_loaded(
+    mut ev_loaded: EventReader<DialogFileLoaded<WavFileContents>>,
+    mut ui_state: ResMut<UiState>,
+    mut reset_ev: EventWriter<Reset>,
+    mut wave_samples: ResMut<WaveSamples>,
+) {
+    if let Some(data) = ev_loaded.read().next() {
+        // let reader = hound::WavReader::open("assets/misc/audio.wav");
+        let reader = hound::WavReader::new(data.contents.as_slice());
+        if reader.is_ok() {
+            let mut reader = reader.unwrap();
+            println!("{:?}", reader.spec().bits_per_sample);
+            let samples = match reader.spec().sample_format {
+                hound::SampleFormat::Int => {
+                    match reader.spec().bits_per_sample {
+                        16 => reader
+                            .samples::<i16>()
+                            .map(|s| s.unwrap() as f32 / i16::MAX as f32)
+                            .collect::<Vec<f32>>(),
+                        32 => reader
+                            .samples::<i32>()
+                            .map(|s| s.unwrap() as f32 / i32::MAX as f32)
+                            .collect::<Vec<f32>>(), //normalisation isn't correct i think
+                        _ => todo!(),
+                    }
+                }
+                hound::SampleFormat::Float => match reader.spec().bits_per_sample {
+                    32 => reader
+                        .samples::<f32>()
+                        .collect::<Result<Vec<f32>, _>>()
+                        .unwrap(),
+                    _ => todo!(),
+                },
+            };
+            wave_samples.0 = samples;
+
+            // set delta l to correct sample rate
+            ui_state.delta_l = PROPAGATION_SPEED / reader.spec().sample_rate as f32;
+
+            reset_ev.send(Reset::default());
+        }
     }
 }
