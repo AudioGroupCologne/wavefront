@@ -836,5 +836,5 @@
     "max_gradient": 2.0,
     "min_gradient": -2.0,
     "reset_on_change": true,
-    "delta_l": 0.00715
+    "delta_l": 0.050
 }
