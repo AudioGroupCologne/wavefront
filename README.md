@@ -33,11 +33,11 @@
 
 <!-- [![Product Name Screen Shot][product-screenshot]](https://example.com) -->
 
-Wavefront is a two dimensional acoustic wave simulation application utilising the TLM (transmission-line matrix) method.
+Wavefront is a two-dimensional acoustic wave simulation application utilizing the TLM (transmission-line matrix) method.
 
-It is designed to be a tool for educational purposes developed by students of the [University of Applied Sciences Cologne](https://www.th-koeln.de/), allowing users to experiment with different acoustic scenarios and observe the effects of different parameters on the wave propagation.
+It is designed to be a tool for educational purposes developed by students of the [University of Applied Sciences Cologne](https://www.th-koeln.de/), allowing users to experiment with different acoustic scenarios and observe the effects of different parameters on wave propagation.
 
-It can be used to simulate point sound sources in a free field. 
+It can be used to simulate point sound sources in a free field.
 
 <!-- ### Built With -->
 
@@ -49,7 +49,7 @@ It can be used to simulate point sound sources in a free field.
 
 ## Getting Started
 
-For installation and usage instructions, please refer to the [documentation](https://audiogroupcologne.github.io/wavefront-manual/).
+For installation and usage instructions, please refer to the [documentation](https://audiogroupcologne.github.io/wavefront-manual/installation.html).
 
 <!-- USAGE EXAMPLES -->
 
@@ -81,7 +81,7 @@ See the [open issues](https://github.com/AudioGroupCologne/wavefront/issues) for
 
 If you would like to contribute to the project, feel free to open a pull request. For major changes, please open an issue first to discuss what you would like to change.
 
-As this project is primarly maintained by students, keep in mind that it might take some time to review your pull request.
+As this project is primarily maintained by students, keep in mind that it might take some time to review your pull request.
 
 <!-- LICENSE -->
 
