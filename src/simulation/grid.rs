@@ -321,10 +321,10 @@ impl Grid {
                 source.y + boundary_width,
                 boundary_width,
             );
-            self.next_cells[source_pos].bottom = calc;
-            self.next_cells[source_pos].left = calc;
-            self.next_cells[source_pos].top = calc;
-            self.next_cells[source_pos].right = calc;
+            self.next_cells[source_pos].bottom += calc;
+            self.next_cells[source_pos].left += calc;
+            self.next_cells[source_pos].top += calc;
+            self.next_cells[source_pos].right += calc;
         }
     }
 
