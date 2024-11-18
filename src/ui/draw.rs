@@ -426,8 +426,13 @@ pub fn draw_egui(
                                         );
                                         ui.selectable_value(
                                             &mut source.source_type,
-                                            SourceType::default_gauss(),
-                                            "Gauss",
+                                            SourceType::default_periodic_gauss(),
+                                            "Periodic Gauss",
+                                        );
+                                        ui.selectable_value(
+                                            &mut source.source_type,
+                                            SourceType::default_gauss_impulse(),
+                                            "Gauss Impulse",
                                         );
                                         ui.selectable_value(
                                             &mut source.source_type,
@@ -478,7 +483,7 @@ pub fn draw_egui(
                                             events.reset_ev.send(Reset::default());
                                         }
                                     }
-                                    SourceType::Gauss {
+                                    SourceType::PeriodicGauss {
                                         phase,
                                         frequency,
                                         amplitude,
@@ -515,6 +520,30 @@ pub fn draw_egui(
                                         if ui
                                             .add(
                                                 egui::Slider::new(std_dev, 0.0..=1.0)
+                                                    .text("Standard deviation"),
+                                            )
+                                            .changed()
+                                        {
+                                            events.reset_ev.send(Reset::default());
+                                        }
+                                    }
+                                    SourceType::GaussImpulse {
+                                        amplitude,
+                                        std_dev,
+                                    } => {
+                                        if ui
+                                            .add(
+                                                egui::Slider::new(amplitude, 0.0..=25.0)
+                                                    .text("Amplitude"),
+                                            )
+                                            .changed()
+                                        {
+                                            events.reset_ev.send(Reset::default());
+                                        }
+                                        if ui
+                                            .add(
+                                                egui::Slider::new(std_dev, 0.0..=1.0)
+                                                    .logarithmic(true)
                                                     .text("Standard deviation"),
                                             )
                                             .changed()

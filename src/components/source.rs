@@ -35,11 +35,16 @@ pub enum SourceType {
         /// amplitude of the sin (currently unitless)
         amplitude: f32,
     },
-    Gauss {
+    PeriodicGauss {
         /// phase shift of the bell (in °)
         phase: f32,
         /// frequency of the bell (in Hz)
         frequency: f32,
+        /// amplitude of the bell (currently unitless)
+        amplitude: f32,
+        std_dev: f32,
+    },
+    GaussImpulse {
         /// amplitude of the bell (currently unitless)
         amplitude: f32,
         std_dev: f32,
@@ -71,12 +76,18 @@ impl SourceType {
             frequency: 1000.0,
         }
     }
-    pub fn default_gauss() -> SourceType {
-        SourceType::Gauss {
+    pub fn default_periodic_gauss() -> SourceType {
+        SourceType::PeriodicGauss {
             amplitude: 10.,
             phase: 0.0,
             frequency: 1000.0,
             std_dev: 0.45,
+        }
+    }
+    pub fn default_gauss_impulse() -> SourceType {
+        SourceType::GaussImpulse {
+            amplitude: 1.,
+            std_dev: 0.001,
         }
     }
     pub fn default_noise() -> SourceType {
@@ -91,7 +102,8 @@ impl fmt::Display for SourceType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             SourceType::Sin { .. } => write!(f, "Sinusoidal"),
-            SourceType::Gauss { .. } => write!(f, "Gaussian"),
+            SourceType::PeriodicGauss { .. } => write!(f, "Periodic Gaussian"),
+            SourceType::GaussImpulse { .. } => write!(f, "Gaussian Impulse"),
             SourceType::WhiteNoise { .. } => write!(f, "White noise"),
             SourceType::WaveFile { .. } => write!(f, "Wave file"),
         }
@@ -115,12 +127,15 @@ impl Source {
                 frequency,
                 amplitude,
             } => self.sin(time, phase, frequency, amplitude),
-            SourceType::Gauss {
+            SourceType::PeriodicGauss {
                 phase,
                 amplitude,
                 frequency,
                 std_dev,
             } => self.periodic_gaussian(time, frequency, amplitude, phase, 4., 0., std_dev),
+            SourceType::GaussImpulse { amplitude, std_dev } => {
+                self.gaussian_impulse(time, amplitude, 0.001, std_dev)
+            }
             SourceType::WhiteNoise { amplitude } => {
                 thread_rng().sample::<f32, _>(rand_distr::StandardNormal) * amplitude
             }
@@ -149,6 +164,19 @@ impl Source {
 
         // Calculate the Gaussian function value
         let exp_term = (-0.5 * ((x - mean) / standard_deviation).powi(2)).exp();
+        let scaling_factor = 1.0 / (standard_deviation * (2.0 * PI).sqrt());
+
+        amplitude * scaling_factor * exp_term
+    }
+
+    fn gaussian_impulse(
+        &self,
+        time: f32,
+        amplitude: f32,
+        mean: f32,
+        standard_deviation: f32,
+    ) -> f32 {
+        let exp_term = (-0.5 * ((2. * PI * time - mean) / standard_deviation).powi(2)).exp();
         let scaling_factor = 1.0 / (standard_deviation * (2.0 * PI).sqrt());
 
         amplitude * scaling_factor * exp_term
