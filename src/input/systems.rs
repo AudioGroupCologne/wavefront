@@ -229,6 +229,7 @@ pub fn button_input(
                                 }
                             }
                         }
+
                         if let Some((x, y)) =
                             screen_to_grid(position.x, position.y, ui_state.image_rect)
                         {
@@ -238,14 +239,15 @@ pub fn button_input(
                                 .iter()
                                 .map(|(e, w)| (e, w as &dyn Wall))
                                 .chain(circ_walls.iter().map(|(e, w)| (e, w as &dyn Wall)));
+
                             for (entity, wall) in walls {
-                                let center = wall.get_center();
-                                if (center.x).abs_diff(x) <= 10 && (center.y).abs_diff(y) <= 10 {
+                                if wall.contains_pointer(x, y) {
                                     commands.entity(entity).insert((Move, Selected));
                                     break 'outer; // only drag one at a time
                                 }
                             }
                         }
+
                         if let Some((x, y)) =
                             screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                         {
@@ -279,6 +281,7 @@ pub fn button_input(
                                 }
                             }
                         }
+
                         for (entity, wall) in circ_wall_set.p0().iter() {
                             let resize_point = wall.get_resize_point(&WResize::Radius);
                             if (resize_point.x).abs_diff(x) <= 10

@@ -55,6 +55,8 @@ pub trait Wall: Sync + Send {
     fn get_resize_point(&self, resize_type: &WResize) -> UVec2;
 
     fn resize(&mut self, resize_type: &WResize, x: u32, y: u32);
+
+    fn contains_pointer(&self, x: u32, y: u32) -> bool;
 }
 
 #[derive(Component, Serialize, Deserialize, Clone, PartialEq, Copy)]
@@ -270,6 +272,10 @@ impl Wall for RectWall {
             return true;
         }
         false
+    }
+
+    fn contains_pointer(&self, x: u32, y: u32) -> bool {
+        self.rect.min.x <= x && x <= self.rect.max.x && self.rect.min.y <= y && y <= self.rect.max.y
     }
 }
 
@@ -554,6 +560,16 @@ impl Wall for CircWall {
             return true;
         }
         false
+    }
+
+    fn contains_pointer(&self, x: u32, y: u32) -> bool {
+        let x = x as i32;
+        let y = y as i32;
+        let center = self.get_center();
+        let cx = center.x as i32;
+        let cy = center.y as i32;
+
+        (x - cx) * (x - cx) + (y - cy) * (y - cy) <= self.radius as i32 * self.radius as i32
     }
 }
 
