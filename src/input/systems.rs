@@ -130,28 +130,25 @@ pub fn button_input(
                         // This should only allow for one object to be selected
                         'outer: {
                             for (entity, source) in source_set.p1().iter() {
-                                if (source.x).abs_diff(x) <= 10 && (source.y).abs_diff(y) <= 10 {
+                                if source.x.abs_diff(x) <= 10 && source.y.abs_diff(y) <= 10 {
                                     commands.entity(entity).insert(Selected);
                                     break 'outer;
                                 }
                             }
                             for (entity, mic) in mic_set.p1().iter() {
-                                if (mic.x).abs_diff(x) <= 10 && (mic.y).abs_diff(y) <= 10 {
+                                if mic.x.abs_diff(x) <= 10 && mic.y.abs_diff(y) <= 10 {
                                     commands.entity(entity).insert(Selected);
                                     break 'outer;
                                 }
                             }
                             for (entity, rect_wall) in rect_wall_set.p1().iter() {
-                                let center = rect_wall.get_center();
-                                if (center.x).abs_diff(x) <= 10 && (center.y).abs_diff(y) <= 10 {
+                                if rect_wall.contains_pointer(x, y) {
                                     commands.entity(entity).insert(Selected);
                                     break 'outer;
                                 }
                             }
                             for (entity, circ_wall) in circ_wall_set.p1().iter() {
-                                if (circ_wall.center.x).abs_diff(x) <= 10
-                                    && (circ_wall.center.y).abs_diff(y) <= 10
-                                {
+                                if circ_wall.contains_pointer(x, y) {
                                     commands.entity(entity).insert(Selected);
                                     break 'outer;
                                 }
