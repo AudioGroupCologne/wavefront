@@ -131,6 +131,9 @@ impl Source {
     }
 
     fn sin(&self, time: f32, phase: f32, frequency: f32, amplitude: f32) -> f32 {
+        if time < phase / (frequency * 360.) {
+            return 0.;
+        }
         amplitude * (2. * PI * frequency * time - phase.to_radians()).sin()
     }
 
