@@ -112,7 +112,7 @@ impl Default for UiState {
     fn default() -> Self {
         Self {
             is_running: cfg!(debug_assertions),
-            // set to result in a sample rate of 4800kHz
+            // set to result in a sample rate of 48kHz
             delta_l: 0.00715,
             boundary_width: 50,
             render_abc_area: false,
@@ -137,8 +137,8 @@ impl Default for UiState {
             show_fft_approx: false,
             fft_window_size: 1024,
             collapse_header: false,
-            max_gradient: 2.,
-            min_gradient: -2.,
+            max_gradient: 1.25,
+            min_gradient: -1.25,
             hide_gizmos: false,
             show_new_warning: false,
             show_frequencies: false,

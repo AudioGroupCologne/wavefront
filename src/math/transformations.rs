@@ -5,11 +5,13 @@ use egui::{Pos2, Rect};
 use super::constants::*;
 
 /// Calculates 1D array index from x,y coordinates (and an offset `index`)
+#[inline(always)]
 pub fn coords_to_index(x: u32, y: u32, boundary_width: u32) -> usize {
     (y * (SIMULATION_WIDTH + 2 * boundary_width) + x) as usize
 }
 
 /// Calculates x, y coordinates from 1D array index
+#[inline(always)]
 pub fn index_to_coords(i: u32, boundary_width: u32) -> (u32, u32) {
     let x = i % (SIMULATION_WIDTH + 2 * boundary_width);
     let y = i / (SIMULATION_WIDTH + 2 * boundary_width);
