@@ -443,6 +443,16 @@ pub fn button_input(
                                 wall.resize(&WResize::BottomLeft, min.x, max.y);
                                 wall.resize(&WResize::BottomRight, max.x, max.y);
                             });
+
+                            // snap circ wall center and radius
+                            circ_wall_set.p3().iter_mut().for_each(|(_, _, mut wall)| {
+                                let x = (wall.center.x as f32 / 10.).round() as u32 * 10;
+                                let y = (wall.center.y as f32 / 10.).round() as u32 * 10;
+                                let radius = (wall.radius as f32 / 10.).round() as u32 * 10;
+
+                                wall.resize(&WResize::Radius, x, y);
+                                wall.radius = radius;
+                            });
                         }
                     }
                 }

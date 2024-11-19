@@ -1210,7 +1210,7 @@ pub fn draw_egui(
             let select_icon = &IMAGES[0];
             let place_icon = &IMAGES[1];
             let move_icon = &IMAGES[2];
-            let resize_wall_icon = &IMAGES[3];
+            //let resize_wall_icon = &IMAGES[3];
 
             if ui
                 .add(
