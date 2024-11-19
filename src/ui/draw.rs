@@ -362,7 +362,7 @@ pub fn draw_egui(
 
             // Outline
             egui::ScrollArea::vertical()
-                .id_source("side_scroll_area")
+                .id_salt("side_scroll_area")
                 .max_height(
                     ui.available_height() - *tool_settings_height - quick_settings_height - 25.,
                 )

@@ -141,7 +141,7 @@ pub fn draw_preferences(
                                 body.row(row_height, |mut row| {
                                     row.col(|ui| {
                                         ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                                            egui::ComboBox::from_id_source("gradient_select")
+                                            egui::ComboBox::from_id_salt("gradient_select")
                                                 .selected_text(format!("{:?}", gradient))
                                                 .show_ui(ui, |ui| {
                                                     let mut g = *gradient;
