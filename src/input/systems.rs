@@ -520,7 +520,7 @@ pub fn event_input(
     #[cfg(target_os = "macos")]
     let ctrl = keys.any_pressed([KeyCode::SuperLeft, KeyCode::SuperRight]);
 
-    if keys.just_pressed(KeyCode::Delete) || keys.just_pressed(KeyCode::Backspace) {
+    if keys.just_pressed(KeyCode::KeyX) {
         selected.iter_mut().for_each(|entity| {
             commands.entity(entity).despawn();
             wall_update_ev.send(UpdateWalls);

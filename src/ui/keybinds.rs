@@ -131,7 +131,7 @@ pub fn draw_keybinds(ui_state: &mut UiState, ctx: &egui::Context) {
                             ui.label("Delete selected");
                         });
                         row.col(|ui| {
-                            ui.label("Backspace or delete");
+                            ui.label("X");
                         });
                     });
                     body.row(15.0, |mut row| {
@@ -139,7 +139,7 @@ pub fn draw_keybinds(ui_state: &mut UiState, ctx: &egui::Context) {
                             ui.label("Snap to grid");
                         });
                         row.col(|ui| {
-                            ui.label(format!("{CTRL_KEY_TEXT} + Move or resize wall"));
+                            ui.label(format!("{CTRL_KEY_TEXT} + \"Edit\""));
                         });
                     });
                     body.row(15.0, |mut row| {
@@ -152,15 +152,7 @@ pub fn draw_keybinds(ui_state: &mut UiState, ctx: &egui::Context) {
                     });
                     body.row(15.0, |mut row| {
                         row.col(|ui| {
-                            ui.label("Move tool");
-                        });
-                        row.col(|ui| {
-                            ui.label("W");
-                        });
-                    });
-                    body.row(15.0, |mut row| {
-                        row.col(|ui| {
-                            ui.label("Resize tool");
+                            ui.label("Edit tool");
                         });
                         row.col(|ui| {
                             ui.label("E");
