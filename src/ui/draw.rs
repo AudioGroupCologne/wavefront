@@ -1257,37 +1257,17 @@ pub fn draw_egui(
                     egui::Button::image(
                         egui::Image::new(move_icon.clone()).fit_to_exact_size(Vec2::new(24., 24.)),
                     )
-                    .fill(if matches!(ui_state.current_tool, ToolType::Move) {
+                    .fill(if matches!(ui_state.current_tool, ToolType::Edit) {
                         Color32::DARK_GRAY
                     } else {
                         Color32::TRANSPARENT
                     })
                     .min_size(Vec2::new(0., 35.)),
                 )
-                .on_hover_text(format!("{}", ToolType::Move))
+                .on_hover_text(format!("{}", ToolType::Edit))
                 .clicked()
             {
-                ui_state.current_tool = ToolType::Move;
-            }
-            ui.add_space(4.);
-
-            if ui
-                .add(
-                    egui::Button::image(
-                        egui::Image::new(resize_wall_icon.clone())
-                            .fit_to_exact_size(Vec2::new(24., 24.)),
-                    )
-                    .fill(if matches!(ui_state.current_tool, ToolType::ResizeWall) {
-                        Color32::DARK_GRAY
-                    } else {
-                        Color32::TRANSPARENT
-                    })
-                    .min_size(Vec2::new(0., 35.)),
-                )
-                .on_hover_text(format!("{}", ToolType::ResizeWall))
-                .clicked()
-            {
-                ui_state.current_tool = ToolType::ResizeWall;
+                ui_state.current_tool = ToolType::Edit;
             }
         });
 
@@ -1328,7 +1308,7 @@ pub fn draw_egui(
                     for (_, wall) in rect_wall_set.p2().iter() {
                         wall.draw_gizmo(
                             painter,
-                            &ToolType::Move,
+                            &ToolType::Edit,
                             true,
                             &ui_state.image_rect,
                             None,
@@ -1339,7 +1319,7 @@ pub fn draw_egui(
                     for (_, wall) in circ_wall_set.p2().iter() {
                         wall.draw_gizmo(
                             painter,
-                            &ToolType::Move,
+                            &ToolType::Edit,
                             true,
                             &ui_state.image_rect,
                             None,
@@ -1351,7 +1331,7 @@ pub fn draw_egui(
                     for (_, mic) in mic_set.p2().iter() {
                         mic.draw_gizmo(
                             painter,
-                            &ToolType::Move,
+                            &ToolType::Edit,
                             true,
                             &ui_state.image_rect,
                             Some(&format!("{}", mic.id)),
@@ -1363,7 +1343,7 @@ pub fn draw_egui(
                     for (_, source) in source_set.p2().iter() {
                         source.draw_gizmo(
                             painter,
-                            &ToolType::Move,
+                            &ToolType::Edit,
                             true,
                             &ui_state.image_rect,
                             Some(&format!("{}", source.id)),

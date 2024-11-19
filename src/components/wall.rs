@@ -21,7 +21,7 @@ pub struct WallCell {
     pub draw_reflection_factor: f32,
 }
 
-#[derive(Component, PartialEq)]
+#[derive(Component, PartialEq, Debug)]
 pub enum WResize {
     Menu,
     Draw,
@@ -282,7 +282,7 @@ impl Wall for RectWall {
 impl GizmoComponent for RectWall {
     fn get_gizmo_positions(&self, tool_type: &ToolType) -> Vec<Pos2> {
         match tool_type {
-            ToolType::ResizeWall => {
+            ToolType::Edit => {
                 let top_left = Pos2 {
                     x: self.rect.min.x as f32,
                     y: self.rect.min.y as f32,
@@ -299,10 +299,20 @@ impl GizmoComponent for RectWall {
                     x: self.rect.max.x as f32,
                     y: self.rect.max.y as f32,
                 };
+                let center = self.get_center();
 
-                vec![top_left, top_right, bottom_left, bottom_right]
+                vec![
+                    top_left,
+                    top_right,
+                    bottom_left,
+                    bottom_right,
+                    Pos2 {
+                        x: center.x as f32,
+                        y: center.y as f32,
+                    },
+                ]
             }
-            ToolType::Move | ToolType::Select => {
+            ToolType::Select => {
                 let center = self.get_center();
                 vec![Pos2 {
                     x: center.x as f32,
@@ -331,18 +341,7 @@ impl GizmoComponent for RectWall {
         };
 
         match tool_type {
-            ToolType::ResizeWall => {
-                for pos in self.get_gizmo_positions(tool_type) {
-                    painter.add(egui::Shape::Circle(CircleShape::filled(
-                        grid_to_image(pos, image_rect),
-                        if highlight { 10. } else { 5. },
-                        gizmo_color,
-                    )));
-                }
-
-                self.draw_scale_text(painter, image_rect, delta_l, Color32::WHITE);
-            }
-            ToolType::Move | ToolType::Select => {
+            ToolType::Edit | ToolType::Select => {
                 for pos in self.get_gizmo_positions(tool_type) {
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         grid_to_image(pos, image_rect),
@@ -629,14 +628,20 @@ impl CircWall {
 impl GizmoComponent for CircWall {
     fn get_gizmo_positions(&self, tool_type: &ToolType) -> Vec<Pos2> {
         match tool_type {
-            ToolType::ResizeWall => {
+            ToolType::Edit => {
                 let resize_point = self.get_resize_point(&WResize::Radius);
-                vec![Pos2 {
-                    x: resize_point.x as f32,
-                    y: resize_point.y as f32,
-                }]
+                vec![
+                    Pos2 {
+                        x: resize_point.x as f32,
+                        y: resize_point.y as f32,
+                    },
+                    Pos2 {
+                        x: self.center.x as f32,
+                        y: self.center.y as f32,
+                    },
+                ]
             }
-            ToolType::Move | ToolType::Select => {
+            ToolType::Select => {
                 vec![Pos2 {
                     x: self.center.x as f32,
                     y: self.center.y as f32,
@@ -664,7 +669,7 @@ impl GizmoComponent for CircWall {
         };
 
         match tool_type {
-            ToolType::ResizeWall => {
+            ToolType::Edit => {
                 for pos in self.get_gizmo_positions(tool_type) {
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         grid_to_image(pos, image_rect),
@@ -674,7 +679,7 @@ impl GizmoComponent for CircWall {
                 }
                 self.draw_scale_text(painter, image_rect, delta_l, Color32::WHITE);
             }
-            ToolType::Move | ToolType::Select => {
+            ToolType::Select => {
                 for pos in self.get_gizmo_positions(tool_type) {
                     painter.add(egui::Shape::Circle(CircleShape::filled(
                         grid_to_image(pos, image_rect),

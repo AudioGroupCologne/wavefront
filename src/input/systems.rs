@@ -212,7 +212,7 @@ pub fn button_input(
                         }
                     }
                 },
-                ToolType::Move => {
+                ToolType::Edit => {
                     // This should only allow for one object to be selected
                     'outer: {
                         if let Some((x, y)) =
@@ -223,6 +223,41 @@ pub fn button_input(
                                 if s_x.abs_diff(x) <= 10 && s_y.abs_diff(y) <= 10 {
                                     commands.entity(entity).insert((Move, Selected));
                                     break 'outer; // only drag one at a time
+                                }
+                            }
+
+                            for (entity, mic) in mic_set.p0().iter() {
+                                let (m_x, m_y) = (mic.x, mic.y);
+                                if m_x.abs_diff(x) <= 10 && m_y.abs_diff(y) <= 10 {
+                                    commands.entity(entity).insert((Move, Selected));
+                                    break 'outer; // only drag one at a time
+                                }
+                            }
+
+                            for (entity, wall) in rect_wall_set.p0().iter() {
+                                for resize_type in [
+                                    WResize::TopLeft,
+                                    WResize::TopRight,
+                                    WResize::BottomLeft,
+                                    WResize::BottomRight,
+                                ] {
+                                    let resize_point = wall.get_resize_point(&resize_type);
+                                    if (resize_point.x).abs_diff(x) <= 10
+                                        && (resize_point.y).abs_diff(y) <= 10
+                                    {
+                                        commands.entity(entity).insert(resize_type);
+                                        break 'outer;
+                                    }
+                                }
+                            }
+
+                            for (entity, wall) in circ_wall_set.p0().iter() {
+                                let resize_point = wall.get_resize_point(&WResize::Radius);
+                                if (resize_point.x).abs_diff(x) <= 10
+                                    && (resize_point.y).abs_diff(y) <= 10
+                                {
+                                    commands.entity(entity).insert(WResize::Radius);
+                                    break 'outer;
                                 }
                             }
                         }
@@ -242,50 +277,6 @@ pub fn button_input(
                                     commands.entity(entity).insert((Move, Selected));
                                     break 'outer; // only drag one at a time
                                 }
-                            }
-                        }
-
-                        if let Some((x, y)) =
-                            screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
-                        {
-                            for (entity, mic) in mic_set.p0().iter() {
-                                let (m_x, m_y) = (mic.x, mic.y);
-                                if m_x.abs_diff(x) <= 10 && m_y.abs_diff(y) <= 10 {
-                                    commands.entity(entity).insert((Move, Selected));
-                                    break 'outer; // only drag one at a time
-                                }
-                            }
-                        }
-                    }
-                }
-                ToolType::ResizeWall => {
-                    if let Some((x, y)) =
-                        screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
-                    {
-                        'outer: for (entity, wall) in rect_wall_set.p0().iter() {
-                            for resize_type in [
-                                WResize::TopLeft,
-                                WResize::TopRight,
-                                WResize::BottomLeft,
-                                WResize::BottomRight,
-                            ] {
-                                let resize_point = wall.get_resize_point(&resize_type);
-                                if (resize_point.x).abs_diff(x) <= 10
-                                    && (resize_point.y).abs_diff(y) <= 10
-                                {
-                                    commands.entity(entity).insert(resize_type);
-                                    break 'outer;
-                                }
-                            }
-                        }
-
-                        for (entity, wall) in circ_wall_set.p0().iter() {
-                            let resize_point = wall.get_resize_point(&WResize::Radius);
-                            if (resize_point.x).abs_diff(x) <= 10
-                                && (resize_point.y).abs_diff(y) <= 10
-                            {
-                                commands.entity(entity).insert(WResize::Radius);
-                                break;
                             }
                         }
                     }
@@ -332,7 +323,7 @@ pub fn button_input(
 
         if let Some(position) = window.cursor_position() {
             match ui_state.current_tool {
-                ToolType::Move => {
+                ToolType::Edit => {
                     if let Some((x, y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                     {
@@ -350,6 +341,16 @@ pub fn button_input(
                             mic.x = x;
                             mic.y = y;
                         });
+
+                        // resize walls
+                        rect_wall_set
+                            .p3()
+                            .iter_mut()
+                            .for_each(|(_, wall_resize, mut wall)| wall.resize(wall_resize, x, y));
+                        circ_wall_set
+                            .p3()
+                            .iter_mut()
+                            .for_each(|(_, wall_resize, mut wall)| wall.resize(wall_resize, x, y));
 
                         if ctrl {
                             // snap all four wall corners to grid
@@ -392,12 +393,27 @@ pub fn button_input(
                                 source.x = x;
                                 source.y = y;
                             });
+
+                            // snap all four corners to grid (during resize)
+                            rect_wall_set.p3().iter_mut().for_each(|(_, _, mut wall)| {
+                                let min = UVec2 {
+                                    x: (wall.rect.min.x as f32 / 10.).round() as u32 * 10,
+                                    y: (wall.rect.min.y as f32 / 10.).round() as u32 * 10,
+                                };
+                                let max = UVec2 {
+                                    // - 1 because wall bounds are inclusive
+                                    x: (wall.rect.max.x as f32 / 10.).round() as u32 * 10 - 1,
+                                    y: (wall.rect.max.y as f32 / 10.).round() as u32 * 10 - 1,
+                                };
+                                wall.resize(&WResize::TopLeft, min.x, min.y);
+                                wall.resize(&WResize::TopRight, max.x, min.y);
+                                wall.resize(&WResize::BottomLeft, min.x, max.y);
+                                wall.resize(&WResize::BottomRight, max.x, max.y);
+                            });
                         }
                     }
                 }
-                ToolType::Place(PlaceType::RectWall)
-                | ToolType::Place(PlaceType::CircWall)
-                | ToolType::ResizeWall => {
+                ToolType::Place(PlaceType::RectWall) | ToolType::Place(PlaceType::CircWall) => {
                     if let Some((x, y)) =
                         screen_to_nearest_grid(position.x, position.y, ui_state.image_rect)
                     {
@@ -448,12 +464,8 @@ pub fn button_input(
         ui_state.current_tool = ToolType::Select;
     }
 
-    if keys.just_pressed(KeyCode::KeyW) {
-        ui_state.current_tool = ToolType::Move;
-    }
-
     if keys.just_pressed(KeyCode::KeyE) {
-        ui_state.current_tool = ToolType::ResizeWall;
+        ui_state.current_tool = ToolType::Edit;
     }
 
     if keys.just_pressed(KeyCode::KeyR) {

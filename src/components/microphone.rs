@@ -56,18 +56,11 @@ impl Microphone {
 }
 
 impl GizmoComponent for Microphone {
-    fn get_gizmo_positions(&self, tool_type: &ToolType) -> Vec<Pos2> {
-        match tool_type {
-            ToolType::Move | ToolType::Place(..) | ToolType::Select => {
-                vec![Pos2 {
-                    x: self.x as f32,
-                    y: self.y as f32,
-                }]
-            }
-            _ => {
-                unreachable!()
-            }
-        }
+    fn get_gizmo_positions(&self, _tool_type: &ToolType) -> Vec<Pos2> {
+        vec![Pos2 {
+            x: self.x as f32,
+            y: self.y as f32,
+        }]
     }
 
     fn draw_gizmo(
@@ -82,41 +75,36 @@ impl GizmoComponent for Microphone {
     ) {
         let (gizmo_color, text_color) = (Color32::LIGHT_BLUE, Color32::BLACK);
 
-        match tool_type {
-            ToolType::Place(..) | ToolType::Move | ToolType::Select => {
-                for pos in self.get_gizmo_positions(tool_type) {
-                    painter.add(egui::Shape::Circle(CircleShape::filled(
-                        grid_to_image(pos, image_rect),
-                        if highlight { 15. } else { 10. },
-                        gizmo_color,
-                    )));
-                    if let Some(text) = text {
-                        let galley = {
-                            let layout_job = LayoutJob::single_section(
-                                text.to_owned(),
-                                TextFormat {
-                                    color: text_color,
-                                    background: Color32::TRANSPARENT,
-                                    ..Default::default()
-                                },
-                            );
-                            painter.layout_job(layout_job)
-                        };
-                        let rect = Align2::CENTER_CENTER.anchor_size(
-                            grid_to_image(
-                                Pos2 {
-                                    x: self.x as f32,
-                                    y: self.y as f32,
-                                },
-                                image_rect,
-                            ),
-                            galley.size(),
-                        );
-                        painter.add(TextShape::new(rect.min, galley, Color32::BLACK));
-                    }
-                }
+        for pos in self.get_gizmo_positions(tool_type) {
+            painter.add(egui::Shape::Circle(CircleShape::filled(
+                grid_to_image(pos, image_rect),
+                if highlight { 15. } else { 10. },
+                gizmo_color,
+            )));
+            if let Some(text) = text {
+                let galley = {
+                    let layout_job = LayoutJob::single_section(
+                        text.to_owned(),
+                        TextFormat {
+                            color: text_color,
+                            background: Color32::TRANSPARENT,
+                            ..Default::default()
+                        },
+                    );
+                    painter.layout_job(layout_job)
+                };
+                let rect = Align2::CENTER_CENTER.anchor_size(
+                    grid_to_image(
+                        Pos2 {
+                            x: self.x as f32,
+                            y: self.y as f32,
+                        },
+                        image_rect,
+                    ),
+                    galley.size(),
+                );
+                painter.add(TextShape::new(rect.min, galley, Color32::BLACK));
             }
-            _ => {}
         }
     }
 }

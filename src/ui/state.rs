@@ -15,8 +15,7 @@ pub struct SimTime {
 pub enum ToolType {
     Select,
     Place(PlaceType),
-    Move,
-    ResizeWall,
+    Edit,
 }
 
 impl fmt::Display for ToolType {
@@ -24,8 +23,7 @@ impl fmt::Display for ToolType {
         match self {
             ToolType::Select => write!(f, "Select Object"),
             ToolType::Place(_) => write!(f, "Place Object"),
-            ToolType::Move => write!(f, "Move Object"),
-            ToolType::ResizeWall => write!(f, "Resize Wall"),
+            ToolType::Edit => write!(f, "Edit Object"),
         }
     }
 }
