@@ -903,7 +903,8 @@ dependencies = [
 [[package]]
 name = "bevy_pixel_buffer"
 version = "0.8.2"
-source = "git+https://github.com/ecrax/bevy_pixel_buffer.git?branch=bevy_egui_0.30#5657dcc3dad602bab57f44e94b40f1496457d022"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "340da435f67462931d2855afec75759ee13f462b52000d02e1a6c325bfc82870"
 dependencies = [
  "bevy",
  "bevy_egui",
