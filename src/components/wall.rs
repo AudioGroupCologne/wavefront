@@ -498,8 +498,32 @@ impl Wall for CircWall {
     }
 
     fn set_center(&mut self, x: u32, y: u32) {
+        let x_offset = x as i32 - self.center.x as i32;
+        let y_offset = y as i32 - self.center.y as i32;
+        let mut new_resize_point_x = self.resize_point.x as i32 + x_offset;
+        let mut new_resize_point_y = self.resize_point.y as i32 + y_offset;
+
         self.center.x = x;
         self.center.y = y;
+
+        if new_resize_point_x < 0 {
+            new_resize_point_x = (self.radius + self.center.x) as i32;
+            new_resize_point_y = self.center.y as i32;
+        } else if new_resize_point_x > 699 {
+            new_resize_point_x = (self.center.x - self.radius) as i32;
+            new_resize_point_y = self.center.y as i32;
+        }
+
+        if new_resize_point_y < 0 {
+            new_resize_point_x = self.center.x as i32;
+            new_resize_point_y = (self.radius + self.center.y) as i32;
+        } else if new_resize_point_y > 699 {
+            new_resize_point_x = self.center.x as i32;
+            new_resize_point_y = (self.center.y - self.radius) as i32;
+        }
+
+        self.resize_point.x = new_resize_point_x as u32;
+        self.resize_point.y = new_resize_point_y as u32;
     }
 
     fn get_reflection_factor(&self) -> f32 {
