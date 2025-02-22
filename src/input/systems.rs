@@ -505,7 +505,7 @@ pub fn button_input(
 pub fn event_input(
     mouse_buttons: Res<ButtonInput<MouseButton>>,
     keys: Res<ButtonInput<KeyCode>>,
-    mut ui_state: ResMut<UiState>,
+    ui_state: ResMut<UiState>,
     mut reset_ev: EventWriter<Reset>,
     mut save_ev: EventWriter<Save>,
     mut load_ev: EventWriter<LoadScene>,
@@ -536,10 +536,6 @@ pub fn event_input(
         reset_ev.send(Reset::default());
     }
 
-    // new file
-    if ctrl && keys.just_pressed(KeyCode::KeyN) {
-        ui_state.show_new_warning = true;
-    }
     // load file
     if ctrl && keys.just_pressed(KeyCode::KeyO) {
         load_ev.send(LoadScene);

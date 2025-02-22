@@ -6,14 +6,12 @@ use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::prelude::*;
 use egui::ImageSource;
 
-use super::keybinds::draw_keybinds;
-use super::preferences::draw_preferences;
 use super::tabs::{DockState, PlotTabs};
 use crate::components::gizmo::GizmoComponent;
 use crate::components::microphone::*;
 use crate::components::source::*;
 use crate::components::states::{MenuSelected, Selected};
-use crate::components::wall::{CircWall, RectWall, WResize};
+use crate::components::wall::{CircWall, RectWall};
 use crate::events::{LoadScene, LoadWav, New, Reset, Save, UpdateWalls};
 use crate::math::constants::*;
 use crate::render::gradient::Gradient;
@@ -123,22 +121,19 @@ pub const IMAGES: [ImageSource; 4] = [
 
 pub fn draw_egui(
     mut commands: Commands,
-    mut pixel_buffer: QueryPixelBuffer,
+    pixel_buffer: QueryPixelBuffer,
     mut egui_context: EguiContexts,
     mut ui_state: ResMut<UiState>,
     mut grid: ResMut<Grid>,
-    mut gradient: ResMut<Gradient>,
+    gradient: ResMut<Gradient>,
     mut events: EventSystemParams,
     sets: QuerySystemParams,
     mut dock_state: ResMut<DockState>,
     sim_time: Res<SimTime>,
     time: Res<Time>,
-    mut fixed_timestep: ResMut<Time<Fixed>>,
     diagnostics: Res<DiagnosticsStore>,
     mut tool_settings_height: Local<f32>,
 ) {
-    // TODO: maybe hardcode ?
-    let quick_settings_height = 140.;
 
     let QuerySystemParams {
         mut rect_wall_set,
