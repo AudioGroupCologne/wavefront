@@ -24,7 +24,7 @@ jobs:
       - name: Build
         run: |
           export RUSTFLAGS="--cfg=web_sys_unstable_apis"
-          trunk build
+          trunk build --public-url /wavefront/
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
