@@ -1,6 +1,5 @@
 use bevy::app::AppExit;
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
 
 use crate::components::microphone::Microphone;
 use crate::components::source::{Source, SourceType};
@@ -84,7 +83,6 @@ pub fn button_input(
     mouse_buttons: Res<ButtonInput<MouseButton>>,
     keys: Res<ButtonInput<KeyCode>>,
     mut commands: Commands,
-    q_windows: Query<&Window, With<PrimaryWindow>>,
     mut wall_update_ev: EventWriter<UpdateWalls>,
     mut component_ids: ResMut<ComponentIDs>,
     mut ui_state: ResMut<UiState>,
@@ -104,6 +102,7 @@ pub fn button_input(
         MoveCircWalls,
         ResizeCircWalls,
     )>,
+    touches: Res<Touches>,
 ) {
     #[cfg(not(target_os = "macos"))]
     let ctrl = keys.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
@@ -113,15 +112,14 @@ pub fn button_input(
 
     // depending on the tool, a click could relate to different actions
     // add `Move`, `WResize` or `Selected` tags to the entities as needed
-    if mouse_buttons.just_pressed(MouseButton::Left)
+    if touches.any_just_pressed()
         && ui_state.tools_enabled
         && ui_state.tool_use_enabled
     {
-        let window = q_windows.single();
         selected.iter_mut().for_each(|entity| {
             commands.entity(entity).remove::<Selected>();
         });
-        if let Some(position) = window.cursor_position() {
+        if let Some(position) = touches.first_pressed_position() {
             match ui_state.current_tool {
                 ToolType::Select => {
                     if let Some((x, y)) =
@@ -318,10 +316,8 @@ pub fn button_input(
     }
 
     // while the mouse is held down, move the selected object(s)
-    if mouse_buttons.pressed(MouseButton::Left) && ui_state.tools_enabled {
-        let window = q_windows.single();
-
-        if let Some(position) = window.cursor_position() {
+    if touches.any_just_pressed() && ui_state.tools_enabled {
+        if let Some(position) = touches.first_pressed_position() {
             match ui_state.current_tool {
                 ToolType::Edit => {
                     if let Some((x, y)) =
@@ -459,10 +455,6 @@ pub fn button_input(
                 _ => {}
             }
         }
-    }
-
-    if mouse_buttons.just_released(MouseButton::Left) && ui_state.tool_use_enabled {
-        ui_state.collapse_header = true;
     }
 
     // handle all other keyboard shortcuts

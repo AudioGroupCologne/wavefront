@@ -146,6 +146,8 @@ pub fn draw_egui(
     egui_extras::install_image_loaders(ctx);
     // disable window shadows
     ctx.style_mut(|style| style.visuals.window_shadow = egui::epaint::Shadow::NONE);
+    // ctx.set_zoom_factor(2.0);
+    // println!("zoom factor: {}", ctx.zoom_factor());
 
     // Quick Settings
     egui::TopBottomPanel::bottom("quick_settings_bottom_panel").show(ctx, |ui| {
@@ -598,6 +600,4 @@ pub fn draw_egui(
                 }
             }
         });
-
-    ui_state.collapse_header = false;
 }
