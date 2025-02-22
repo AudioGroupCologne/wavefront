@@ -2,8 +2,5 @@
 linker = "clang"
 rustflags = ["-C", "link-arg=-fuse-ld=/usr/bin/mold", "-Z", "share-generics"]
 
-[target.wasm32-unknown-unknown]
-runner = "wasm-server-runner"
-
 [build]
 rustflags = ["--cfg=web_sys_unstable_apis"]
