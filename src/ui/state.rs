@@ -101,7 +101,7 @@ impl Default for UiState {
             boundary_width: 50,
             render_abc_area: false,
             image_rect: egui::Rect::NOTHING,
-            current_tool: ToolType::Place(PlaceType::Source),
+            current_tool: ToolType::Select,
             cur_place_type: PlaceType::Source,
             wall_reflection_factor: 1.,
             wall_is_hollow: false,

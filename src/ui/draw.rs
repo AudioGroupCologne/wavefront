@@ -4,7 +4,6 @@ use bevy::prelude::*;
 use bevy_pixel_buffer::bevy_egui::egui::{Color32, Frame, Margin, Vec2};
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::prelude::*;
-use egui::ImageSource;
 use egui_plot::{Line, Plot, PlotBounds, PlotPoints};
 
 use crate::components::gizmo::GizmoComponent;
@@ -15,7 +14,6 @@ use crate::components::wall::{CircWall, RectWall};
 use crate::events::{LoadScene, LoadWav, New, Reset, Save, UpdateWalls};
 use crate::math::constants::*;
 use crate::render::gradient::Gradient;
-use crate::simulation::grid::Grid;
 use crate::ui::state::*;
 use crate::undo::UndoEvent;
 
@@ -112,25 +110,15 @@ pub const CTRL_KEY_TEXT: &str = if cfg!(target_os = "macos") {
     "Ctrl"
 };
 
-pub const IMAGES: [ImageSource; 4] = [
-    egui::include_image!("../../assets/select.png"),
-    egui::include_image!("../../assets/place.png"),
-    egui::include_image!("../../assets/move.png"),
-    egui::include_image!("../../assets/resize_wall.png"),
-];
-
 pub fn draw_egui(
-    mut commands: Commands,
     pixel_buffer: QueryPixelBuffer,
     mut egui_context: EguiContexts,
     mut ui_state: ResMut<UiState>,
-    mut grid: ResMut<Grid>,
     gradient: ResMut<Gradient>,
     mut events: EventSystemParams,
     sets: QuerySystemParams,
     sim_time: Res<SimTime>,
     diagnostics: Res<DiagnosticsStore>,
-    mut tool_settings_height: Local<f32>,
 ) {
     let QuerySystemParams {
         mut rect_wall_set,
@@ -145,161 +133,6 @@ pub fn draw_egui(
     ctx.style_mut(|style| style.visuals.window_shadow = egui::epaint::Shadow::NONE);
     // ctx.set_zoom_factor(2.0);
     // println!("zoom factor: {}", ctx.zoom_factor());
-
-    // Tool Options
-    // egui::TopBottomPanel::bottom("tool_options_panel").show(ctx, |ui| {
-    //     *tool_settings_height = ui.available_height();
-
-    //     ui.add_space(3.);
-    //     ui.heading("Tool Options");
-    //     ui.separator();
-
-    //     if ui_state.render_abc_area {
-    //         ui.disable();
-    //     }
-
-    //     match ui_state.current_tool {
-    //         ToolType::Place(_) => {
-    //             egui::ComboBox::from_label("Select object to place")
-    //                 .selected_text(format!("{}", ui_state.cur_place_type))
-    //                 .show_ui(ui, |ui| {
-    //                     ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Wrap);
-    //                     ui.selectable_value(
-    //                         &mut ui_state.cur_place_type,
-    //                         PlaceType::Source,
-    //                         "Source",
-    //                     );
-    //                     ui.selectable_value(
-    //                         &mut ui_state.cur_place_type,
-    //                         PlaceType::Mic,
-    //                         "Microphone",
-    //                     );
-    //                     ui.selectable_value(
-    //                         &mut ui_state.cur_place_type,
-    //                         PlaceType::RectWall,
-    //                         "Rectangular Wall",
-    //                     );
-    //                     ui.selectable_value(
-    //                         &mut ui_state.cur_place_type,
-    //                         PlaceType::CircWall,
-    //                         "Circular Wall",
-    //                     );
-    //                 });
-
-    //             if matches!(
-    //                 ui_state.cur_place_type,
-    //                 PlaceType::RectWall | PlaceType::CircWall
-    //             ) {
-    //                 ui.add(
-    //                     egui::Slider::new(&mut ui_state.wall_reflection_factor, 0.0..=1.0)
-    //                         .text("Reflection factor"),
-    //                 );
-    //                 ui.checkbox(&mut ui_state.wall_is_hollow, "Hollow");
-    //             }
-    //             ui_state.current_tool = ToolType::Place(ui_state.cur_place_type);
-    //         }
-    //         _ => {
-    //             ui.add_space(10.);
-    //             ui.vertical_centered(|ui| ui.label("Select another tool to see its options"));
-    //         }
-    //     }
-
-    //     ui.add_space(10.);
-    // });
-
-    // Tool Panel
-    egui::TopBottomPanel::bottom("tool_panel")
-        .frame(
-            Frame::default()
-                .inner_margin(Margin {
-                    left: 8., //looks better
-                    right: 10.,
-                    top: 10.,
-                    bottom: 10.,
-                })
-                .fill(Color32::from_rgb(25, 25, 25)),
-        )
-        // .default_width(35.)
-        .resizable(false)
-        .show(ctx, |ui| {
-            if !ui_state.tools_enabled {
-                ui.disable();
-            }
-
-            let select_icon = &IMAGES[0];
-            let place_icon = &IMAGES[1];
-            let move_icon = &IMAGES[2];
-            //let resize_wall_icon = &IMAGES[3];
-
-            ui.horizontal(|ui| {
-                ui.columns(3, |columns| {
-                    columns[0].vertical_centered(|ui| {
-                        if ui
-                            .add(
-                                egui::Button::image(
-                                    egui::Image::new(select_icon.clone())
-                                        .fit_to_exact_size(Vec2::new(50., 50.)),
-                                )
-                                .fill(if matches!(ui_state.current_tool, ToolType::Select) {
-                                    Color32::DARK_GRAY
-                                } else {
-                                    Color32::TRANSPARENT
-                                })
-                                .min_size(Vec2::new(150., 150.))
-                                .rounding(15.),
-                            )
-                            .on_hover_text(format!("{}", ToolType::Select))
-                            .clicked()
-                        {
-                            ui_state.current_tool = ToolType::Select;
-                        }
-                    });
-                    columns[1].vertical_centered(|ui| {
-                        if ui
-                            .add(
-                                egui::Button::image(
-                                    // TODO: change image depending on cur_place_type??
-                                    egui::Image::new(place_icon.clone())
-                                        .fit_to_exact_size(Vec2::new(50., 50.)),
-                                )
-                                .fill(if matches!(ui_state.current_tool, ToolType::Place(..)) {
-                                    Color32::DARK_GRAY
-                                } else {
-                                    Color32::TRANSPARENT
-                                })
-                                .min_size(Vec2::new(150., 150.))
-                                .rounding(15.),
-                            )
-                            .on_hover_text(format!("{}", ToolType::Place(PlaceType::Source)))
-                            .clicked()
-                        {
-                            ui_state.current_tool = ToolType::Place(ui_state.cur_place_type);
-                        }
-                    });
-                    columns[2].vertical_centered(|ui| {
-                        if ui
-                            .add(
-                                egui::Button::image(
-                                    egui::Image::new(move_icon.clone())
-                                        .fit_to_exact_size(Vec2::new(50., 50.)),
-                                )
-                                .fill(if matches!(ui_state.current_tool, ToolType::Edit) {
-                                    Color32::DARK_GRAY
-                                } else {
-                                    Color32::TRANSPARENT
-                                })
-                                .min_size(Vec2::new(150., 150.))
-                                .rounding(15.),
-                            )
-                            .on_hover_text(format!("{}", ToolType::Edit))
-                            .clicked()
-                        {
-                            ui_state.current_tool = ToolType::Edit;
-                        }
-                    });
-                });
-            });
-        });
 
     // Quick Settings
     egui::TopBottomPanel::bottom("quick_settings_bottom_panel").show(ctx, |ui| {
