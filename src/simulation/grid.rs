@@ -335,20 +335,18 @@ impl Grid {
         ui_state: &UiState,
         time_since_start: f64,
     ) {
-        if ui_state.show_plots {
-            for mut mic in microphones.iter_mut() {
-                let x = mic.x;
-                let y = mic.y;
+        for mut mic in microphones.iter_mut() {
+            let x = mic.x;
+            let y = mic.y;
 
-                mic.record.push([
-                    time_since_start,
-                    self.pressure[coords_to_index(
-                        x + ui_state.boundary_width,
-                        y + ui_state.boundary_width,
-                        ui_state.boundary_width,
-                    )] as f64,
-                ]);
-            }
+            mic.record.push([
+                time_since_start,
+                self.pressure[coords_to_index(
+                    x + ui_state.boundary_width,
+                    y + ui_state.boundary_width,
+                    ui_state.boundary_width,
+                )] as f64,
+            ]);
         }
     }
 

@@ -8,10 +8,12 @@ use egui::{Align2, Color32, Pos2, Rect, TextFormat};
 use serde::{Deserialize, Serialize};
 
 use super::gizmo::GizmoComponent;
+use crate::events::UpdateWalls;
 use crate::math::constants::{SIMULATION_HEIGHT, SIMULATION_WIDTH};
 use crate::math::rect::WRect;
 use crate::math::transformations::grid_to_image;
 use crate::render::gradient::Gradient;
+use crate::simulation::plugin::ComponentIDs;
 use crate::ui::state::{PlaceType, ToolType};
 
 #[derive(Debug, Default, Clone)]
@@ -443,6 +445,23 @@ impl RectWall {
             .with_angle(-std::f32::consts::FRAC_PI_2),
         );
     }
+
+    pub fn spawn_initial_rectwalls(
+        mut commands: Commands,
+        mut component_ids: ResMut<ComponentIDs>,
+        mut wall_update_ev: EventWriter<UpdateWalls>,
+    ) {
+        commands.spawn(RectWall::new(
+            25,
+            25,
+            50,
+            50,
+            false,
+            1.,
+            component_ids.get_new_wall_id(),
+        ));
+        wall_update_ev.send(UpdateWalls);
+    }
 }
 
 #[derive(Component, Serialize, Deserialize, Clone, PartialEq, Copy)]
@@ -646,6 +665,22 @@ impl CircWall {
             galley.size(),
         );
         painter.add(TextShape::new(rect.min, galley, Color32::BLACK));
+    }
+
+    pub fn spawn_initial_circwalls(
+        mut commands: Commands,
+        mut component_ids: ResMut<ComponentIDs>,
+        mut wall_update_ev: EventWriter<UpdateWalls>,
+    ) {
+        commands.spawn(CircWall::new(
+            500,
+            500,
+            25,
+            false,
+            1.,
+            component_ids.get_new_wall_id(),
+        ));
+        wall_update_ev.send(UpdateWalls);
     }
 }
 

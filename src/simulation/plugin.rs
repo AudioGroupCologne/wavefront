@@ -21,17 +21,19 @@ impl Plugin for GridPlugin {
                 (calc_system, apply_system, update_system).chain(),
             );
 
-        #[cfg(debug_assertions)]
         {
             use bevy::app::Startup;
 
             use crate::components::microphone::Microphone;
             use crate::components::source::Source;
+            use crate::components::wall::{CircWall, RectWall};
             app.add_systems(
                 Startup,
                 (
                     Source::spawn_initial_sources,
                     Microphone::spawn_initial_microphones,
+                    RectWall::spawn_initial_rectwalls,
+                    CircWall::spawn_initial_circwalls,
                 ),
             );
         }

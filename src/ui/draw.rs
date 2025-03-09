@@ -5,8 +5,8 @@ use bevy_pixel_buffer::bevy_egui::egui::{Color32, Frame, Margin, Vec2};
 use bevy_pixel_buffer::bevy_egui::EguiContexts;
 use bevy_pixel_buffer::prelude::*;
 use egui::ImageSource;
+use egui_plot::{Line, Plot, PlotBounds, PlotPoints};
 
-use super::tabs::{DockState, PlotTabs};
 use crate::components::gizmo::GizmoComponent;
 use crate::components::microphone::*;
 use crate::components::source::*;
@@ -128,13 +128,10 @@ pub fn draw_egui(
     gradient: ResMut<Gradient>,
     mut events: EventSystemParams,
     sets: QuerySystemParams,
-    mut dock_state: ResMut<DockState>,
     sim_time: Res<SimTime>,
-    time: Res<Time>,
     diagnostics: Res<DiagnosticsStore>,
     mut tool_settings_height: Local<f32>,
 ) {
-
     let QuerySystemParams {
         mut rect_wall_set,
         mut circ_wall_set,
@@ -151,61 +148,74 @@ pub fn draw_egui(
 
     // Quick Settings
     egui::TopBottomPanel::bottom("quick_settings_bottom_panel").show(ctx, |ui| {
-
-        ui.add_space(3.);
-        ui.heading("Quick Settings");
-
+        ui.add_space(12.);
         ui.horizontal(|ui| {
-            if ui
-                .button(if ui_state.is_running { "Stop" } else { "Start" })
-                .clicked()
-            {
-                ui_state.is_running = !ui_state.is_running;
-            }
+            ui.columns(3, |columns| {
+                columns[0].vertical_centered(|ui| {
+                    if ui
+                        .add(
+                            egui::Button::new(
+                                egui::RichText::new(if ui_state.is_running {
+                                    "Stop"
+                                } else {
+                                    "Start"
+                                })
+                                .size(30.),
+                            )
+                            .min_size(Vec2::new(100., 50.))
+                            .rounding(10.),
+                        )
+                        .clicked()
+                    {
+                        ui_state.is_running = !ui_state.is_running;
+                    }
+                });
+                columns[1].vertical_centered(|ui| {
+                    if ui
+                        .add(
+                            egui::Button::new(egui::RichText::new("Reset").size(30.))
+                                .min_size(Vec2::new(100., 50.))
+                                .rounding(10.),
+                        )
+                        .clicked()
+                    {
+                        events.reset_ev.send(Reset { force: true });
+                    }
+                });
+                columns[2].vertical_centered(|ui| {
+                    if ui
+                        .add(
+                            egui::Button::new(egui::RichText::new("Delete all").size(30.))
+                                .min_size(Vec2::new(100., 50.))
+                                .rounding(10.),
+                        )
+                        .clicked()
+                    {
+                        for (e, _) in source_set.p0().iter() {
+                            commands.entity(e).despawn();
+                        }
+                        for (e, _) in rect_wall_set.p0().iter() {
+                            commands.entity(e).despawn();
+                        }
+                        for (e, _) in circ_wall_set.p0().iter() {
+                            commands.entity(e).despawn();
+                        }
+                        for (e, _) in mic_set.p0().iter() {
+                            commands.entity(e).despawn();
+                        }
 
-            if ui.button("Reset").clicked() {
-                events.reset_ev.send(Reset { force: true });
-            }
-
-            if ui
-                .add(egui::Button::new("Delete all").fill(Color32::DARK_RED))
-                .clicked()
-            {
-                for (e, _) in source_set.p0().iter() {
-                    commands.entity(e).despawn();
-                }
-                for (e, _) in rect_wall_set.p0().iter() {
-                    commands.entity(e).despawn();
-                }
-                for (e, _) in circ_wall_set.p0().iter() {
-                    commands.entity(e).despawn();
-                }
-                for (e, _) in mic_set.p0().iter() {
-                    commands.entity(e).despawn();
-                }
-
-                grid.reset_cells(ui_state.boundary_width);
-                events.wall_update_ev.send(UpdateWalls);
-            }
-
-            if ui
-                .checkbox(&mut ui_state.show_plots, "Show plots")
-                .clicked()
-            {
-                for (_, mut mic) in mic_set.p0().iter_mut() {
-                    mic.clear();
-                }
-            }
+                        grid.reset_cells(ui_state.boundary_width);
+                        events.wall_update_ev.send(UpdateWalls);
+                    }
+                });
+            });
         });
 
         ui.add_space(5.);
 
         if cfg!(debug_assertions) {
             ui.horizontal(|ui| {
-                ui.label(format!(
-                    "Time: {:.5} ms",
-                    sim_time.time_since_start * 1000.
-                ));
+                ui.label(format!("Time: {:.5} ms", sim_time.time_since_start * 1000.));
 
                 ui.add(egui::Separator::default().vertical());
                 ui.label(format!(
@@ -228,110 +238,65 @@ pub fn draw_egui(
     });
 
     // Tool Options
-    egui::TopBottomPanel::bottom("tool_options_panel").show(ctx, |ui| {
-        *tool_settings_height = ui.available_height();
+    // egui::TopBottomPanel::bottom("tool_options_panel").show(ctx, |ui| {
+    //     *tool_settings_height = ui.available_height();
 
-        ui.add_space(3.);
-        ui.heading("Tool Options");
-        ui.separator();
+    //     ui.add_space(3.);
+    //     ui.heading("Tool Options");
+    //     ui.separator();
 
-        if ui_state.render_abc_area {
-            ui.disable();
-        }
+    //     if ui_state.render_abc_area {
+    //         ui.disable();
+    //     }
 
-        match ui_state.current_tool {
-            ToolType::Place(_) => {
-                egui::ComboBox::from_label("Select object to place")
-                    .selected_text(format!("{}", ui_state.cur_place_type))
-                    .show_ui(ui, |ui| {
-                        ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Wrap);
-                        ui.selectable_value(
-                            &mut ui_state.cur_place_type,
-                            PlaceType::Source,
-                            "Source",
-                        );
-                        ui.selectable_value(
-                            &mut ui_state.cur_place_type,
-                            PlaceType::Mic,
-                            "Microphone",
-                        );
-                        ui.selectable_value(
-                            &mut ui_state.cur_place_type,
-                            PlaceType::RectWall,
-                            "Rectangular Wall",
-                        );
-                        ui.selectable_value(
-                            &mut ui_state.cur_place_type,
-                            PlaceType::CircWall,
-                            "Circular Wall",
-                        );
-                    });
+    //     match ui_state.current_tool {
+    //         ToolType::Place(_) => {
+    //             egui::ComboBox::from_label("Select object to place")
+    //                 .selected_text(format!("{}", ui_state.cur_place_type))
+    //                 .show_ui(ui, |ui| {
+    //                     ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Wrap);
+    //                     ui.selectable_value(
+    //                         &mut ui_state.cur_place_type,
+    //                         PlaceType::Source,
+    //                         "Source",
+    //                     );
+    //                     ui.selectable_value(
+    //                         &mut ui_state.cur_place_type,
+    //                         PlaceType::Mic,
+    //                         "Microphone",
+    //                     );
+    //                     ui.selectable_value(
+    //                         &mut ui_state.cur_place_type,
+    //                         PlaceType::RectWall,
+    //                         "Rectangular Wall",
+    //                     );
+    //                     ui.selectable_value(
+    //                         &mut ui_state.cur_place_type,
+    //                         PlaceType::CircWall,
+    //                         "Circular Wall",
+    //                     );
+    //                 });
 
-                if matches!(
-                    ui_state.cur_place_type,
-                    PlaceType::RectWall | PlaceType::CircWall
-                ) {
-                    ui.add(
-                        egui::Slider::new(&mut ui_state.wall_reflection_factor, 0.0..=1.0)
-                            .text("Reflection factor"),
-                    );
-                    ui.checkbox(&mut ui_state.wall_is_hollow, "Hollow");
-                }
-                ui_state.current_tool = ToolType::Place(ui_state.cur_place_type);
-            }
-            _ => {
-                ui.add_space(10.);
-                ui.vertical_centered(|ui| {
-                    ui.label("Select another tool to see its options")
-                });
-            }
-        }
+    //             if matches!(
+    //                 ui_state.cur_place_type,
+    //                 PlaceType::RectWall | PlaceType::CircWall
+    //             ) {
+    //                 ui.add(
+    //                     egui::Slider::new(&mut ui_state.wall_reflection_factor, 0.0..=1.0)
+    //                         .text("Reflection factor"),
+    //                 );
+    //                 ui.checkbox(&mut ui_state.wall_is_hollow, "Hollow");
+    //             }
+    //             ui_state.current_tool = ToolType::Place(ui_state.cur_place_type);
+    //         }
+    //         _ => {
+    //             ui.add_space(10.);
+    //             ui.vertical_centered(|ui| ui.label("Select another tool to see its options"));
+    //         }
+    //     }
 
-        ui.add_space(10.);
-    });
-       
-
-    // Plot tabs
-    if ui_state.show_plots {
-        egui::TopBottomPanel::bottom("plot_tabs")
-            .resizable(true)
-            .default_height(400.)
-            .max_height(ctx.screen_rect().height() / 2.)
-            .frame(Frame::default().inner_margin(Margin {
-                left: -1.,
-                right: 0.,
-                top: 0.,
-                bottom: 0.,
-            }))
-            .show(ctx, |ui| {
-                let mut binding = mic_set.p0();
-
-                let mut mics = binding
-                    .iter_mut()
-                    .map(|(_, mic)| mic.into_inner())
-                    .collect::<Vec<_>>();
-                mics.sort_by_cached_key(|mic| mic.id);
-
-                let mut style = egui_dock::Style::from_egui(ui.style());
-                style.tab_bar.bg_fill = Color32::from_rgb(27, 27, 27);
-
-                egui_dock::DockArea::new(&mut dock_state.tree)
-                    .allowed_splits(egui_dock::AllowedSplits::None)
-                    .draggable_tabs(false)
-                    .style(style)
-                    .show_inside(
-                        ui,
-                        &mut PlotTabs::new(
-                            &mut mics,
-                            &mut commands.reborrow(),
-                            grid.delta_t,
-                            sim_time.time_since_start as f64,
-                            time.delta_seconds_f64(),
-                            &mut ui_state,
-                        ),
-                    );
-            });
-    }
+    //     ui.add_space(10.);
+    // });
 
     // Tool Panel
     egui::TopBottomPanel::bottom("tool_panel")
@@ -357,65 +322,143 @@ pub fn draw_egui(
             let move_icon = &IMAGES[2];
             //let resize_wall_icon = &IMAGES[3];
 
-            ui.horizontal_centered(|ui| {
-                if ui
-                    .add(
-                        egui::Button::image(
-                            egui::Image::new(select_icon.clone())
-                                .fit_to_exact_size(Vec2::new(24., 24.)),
-                        )
-                        .fill(if matches!(ui_state.current_tool, ToolType::Select) {
-                            Color32::DARK_GRAY
-                        } else {
-                            Color32::TRANSPARENT
-                        })
-                        .min_size(Vec2::new(0., 35.)),
-                    )
-                    .on_hover_text(format!("{}", ToolType::Select))
-                    .clicked()
-                {
-                    ui_state.current_tool = ToolType::Select;
-                }
-                ui.add_space(4.);
-
-                if ui
-                    .add(
-                        egui::Button::image(
-                            // TODO: change image depending on cur_place_type??
-                            egui::Image::new(place_icon.clone()).fit_to_exact_size(Vec2::new(24., 24.)),
-                        )
-                        .fill(if matches!(ui_state.current_tool, ToolType::Place(..)) {
-                            Color32::DARK_GRAY
-                        } else {
-                            Color32::TRANSPARENT
-                        })
-                        .min_size(Vec2::new(0., 35.)),
-                    )
-                    .on_hover_text(format!("{}", ToolType::Place(PlaceType::Source)))
-                    .clicked()
-                {
-                    ui_state.current_tool = ToolType::Place(ui_state.cur_place_type);
-                }
-                ui.add_space(4.);
-
-                if ui
-                    .add(
-                        egui::Button::image(
-                            egui::Image::new(move_icon.clone()).fit_to_exact_size(Vec2::new(24., 24.)),
-                        )
-                        .fill(if matches!(ui_state.current_tool, ToolType::Edit) {
-                            Color32::DARK_GRAY
-                        } else {
-                            Color32::TRANSPARENT
-                        })
-                        .min_size(Vec2::new(0., 35.)),
-                    )
-                    .on_hover_text(format!("{}", ToolType::Edit))
-                    .clicked()
-                {
-                    ui_state.current_tool = ToolType::Edit;
-                }
+            ui.horizontal(|ui| {
+                ui.columns(3, |columns| {
+                    columns[0].vertical_centered(|ui| {
+                        if ui
+                            .add(
+                                egui::Button::image(
+                                    egui::Image::new(select_icon.clone())
+                                        .fit_to_exact_size(Vec2::new(50., 50.)),
+                                )
+                                .fill(if matches!(ui_state.current_tool, ToolType::Select) {
+                                    Color32::DARK_GRAY
+                                } else {
+                                    Color32::TRANSPARENT
+                                })
+                                .min_size(Vec2::new(100., 100.))
+                                .rounding(15.),
+                            )
+                            .on_hover_text(format!("{}", ToolType::Select))
+                            .clicked()
+                        {
+                            ui_state.current_tool = ToolType::Select;
+                        }
+                    });
+                    columns[1].vertical_centered(|ui| {
+                        if ui
+                            .add(
+                                egui::Button::image(
+                                    // TODO: change image depending on cur_place_type??
+                                    egui::Image::new(place_icon.clone())
+                                        .fit_to_exact_size(Vec2::new(50., 50.)),
+                                )
+                                .fill(if matches!(ui_state.current_tool, ToolType::Place(..)) {
+                                    Color32::DARK_GRAY
+                                } else {
+                                    Color32::TRANSPARENT
+                                })
+                                .min_size(Vec2::new(100., 100.))
+                                .rounding(15.),
+                            )
+                            .on_hover_text(format!("{}", ToolType::Place(PlaceType::Source)))
+                            .clicked()
+                        {
+                            ui_state.current_tool = ToolType::Place(ui_state.cur_place_type);
+                        }
+                    });
+                    columns[2].vertical_centered(|ui| {
+                        if ui
+                            .add(
+                                egui::Button::image(
+                                    egui::Image::new(move_icon.clone())
+                                        .fit_to_exact_size(Vec2::new(50., 50.)),
+                                )
+                                .fill(if matches!(ui_state.current_tool, ToolType::Edit) {
+                                    Color32::DARK_GRAY
+                                } else {
+                                    Color32::TRANSPARENT
+                                })
+                                .min_size(Vec2::new(100., 100.))
+                                .rounding(15.),
+                            )
+                            .on_hover_text(format!("{}", ToolType::Edit))
+                            .clicked()
+                        {
+                            ui_state.current_tool = ToolType::Edit;
+                        }
+                    });
+                });
             });
+        });
+
+    egui::TopBottomPanel::bottom("plot_panel")
+        .frame(
+            Frame::default()
+                .inner_margin(Margin {
+                    left: 8., //looks better
+                    right: 10.,
+                    top: 10.,
+                    bottom: 10.,
+                })
+                .fill(Color32::from_rgb(25, 25, 25)),
+        )
+        .default_height(420.)
+        .resizable(false)
+        .show(ctx, |ui| {
+            let scroll_volume_plot = ui_state.scroll_volume_plot;
+
+            let mut binding = mic_set.p0();
+
+            let mut mics = binding
+                .iter_mut()
+                .map(|(_, mic)| mic.into_inner())
+                .collect::<Vec<_>>();
+            mics.sort_by_cached_key(|mic| mic.id);
+
+            Plot::new("mic_plot")
+                .allow_zoom([!scroll_volume_plot, !scroll_volume_plot])
+                .allow_drag(!scroll_volume_plot)
+                .allow_scroll(!scroll_volume_plot)
+                .x_axis_label("Simulation time (ms)")
+                .y_axis_label("Amplitude")
+                .label_formatter(|_, value| {
+                    format!("Amplitude: {:.2}\nTime: {:.4} ms", value.y, value.x)
+                })
+                .legend(egui_plot::Legend::default())
+                .show(ui, |plot_ui| {
+                    if scroll_volume_plot {
+                        let highest_x = sim_time.time_since_start as f64;
+                        let highest_y = mics
+                            .iter()
+                            .map(|mic| mic.record.last().unwrap_or(&[0., 0.])[1])
+                            .reduce(f64::max)
+                            .unwrap_or(0.)
+                            .abs();
+
+                        if highest_y > ui_state.highest_y_volume_plot {
+                            ui_state.highest_y_volume_plot = highest_y;
+                        }
+
+                        plot_ui.set_plot_bounds(PlotBounds::from_min_max(
+                            [
+                                highest_x * 1000. - 5.,
+                                -(ui_state.highest_y_volume_plot + 0.2),
+                            ],
+                            [highest_x * 1000., ui_state.highest_y_volume_plot + 0.2],
+                        ));
+                    }
+
+                    for mic in &mut *mics {
+                        let values = mic.record.iter().map(|x| [x[0] * 1000., x[1]]).collect();
+                        let points = PlotPoints::new(values);
+                        let line = Line::new(points);
+                        plot_ui.line(line.name(format!(
+                            "Microphone {} (x: {}, y: {})",
+                            mic.id, mic.x, mic.y
+                        )));
+                    }
+                });
         });
 
     // Main Render Area

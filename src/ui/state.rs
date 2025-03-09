@@ -77,7 +77,6 @@ pub struct UiState {
     pub boundary_width: u32,
     pub render_abc_area: bool,
     pub image_rect: egui::Rect,
-    pub show_plots: bool,
     pub current_tool: ToolType,
     pub cur_place_type: PlaceType,
     pub wall_reflection_factor: f32,
@@ -85,28 +84,23 @@ pub struct UiState {
     pub tools_enabled: bool,
     pub reset_on_change: bool,
     pub tool_use_enabled: bool,
-    pub fft_scaling: FftScaling,
     pub framerate: f64,
     pub scroll_volume_plot: bool,
     pub highest_y_volume_plot: f64,
-    pub show_fft_approx: bool,
-    pub fft_window_size: usize,
     pub max_gradient: f32,
     pub min_gradient: f32,
     pub hide_gizmos: bool,
-    pub show_frequencies: bool,
 }
 
 impl Default for UiState {
     fn default() -> Self {
         Self {
-            is_running: cfg!(debug_assertions),
+            is_running: true,
             // set to result in a sample rate of 48kHz
             delta_l: 0.00715,
             boundary_width: 50,
             render_abc_area: false,
             image_rect: egui::Rect::NOTHING,
-            show_plots: false,
             current_tool: ToolType::Place(PlaceType::Source),
             cur_place_type: PlaceType::Source,
             wall_reflection_factor: 1.,
@@ -114,16 +108,12 @@ impl Default for UiState {
             tools_enabled: true,
             reset_on_change: true,
             tool_use_enabled: true,
-            fft_scaling: FftScaling::Normalized,
             framerate: 30.,
             scroll_volume_plot: true,
             highest_y_volume_plot: 0.,
-            show_fft_approx: false,
-            fft_window_size: 1024,
             max_gradient: 1.25,
             min_gradient: -1.25,
             hide_gizmos: false,
-            show_frequencies: false,
         }
     }
 }
