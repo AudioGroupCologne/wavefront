@@ -146,97 +146,6 @@ pub fn draw_egui(
     // ctx.set_zoom_factor(2.0);
     // println!("zoom factor: {}", ctx.zoom_factor());
 
-    // Quick Settings
-    egui::TopBottomPanel::bottom("quick_settings_bottom_panel").show(ctx, |ui| {
-        ui.add_space(12.);
-        ui.horizontal(|ui| {
-            ui.columns(3, |columns| {
-                columns[0].vertical_centered(|ui| {
-                    if ui
-                        .add(
-                            egui::Button::new(
-                                egui::RichText::new(if ui_state.is_running {
-                                    "Stop"
-                                } else {
-                                    "Start"
-                                })
-                                .size(30.),
-                            )
-                            .min_size(Vec2::new(100., 50.))
-                            .rounding(10.),
-                        )
-                        .clicked()
-                    {
-                        ui_state.is_running = !ui_state.is_running;
-                    }
-                });
-                columns[1].vertical_centered(|ui| {
-                    if ui
-                        .add(
-                            egui::Button::new(egui::RichText::new("Reset").size(30.))
-                                .min_size(Vec2::new(100., 50.))
-                                .rounding(10.),
-                        )
-                        .clicked()
-                    {
-                        events.reset_ev.send(Reset { force: true });
-                    }
-                });
-                columns[2].vertical_centered(|ui| {
-                    if ui
-                        .add(
-                            egui::Button::new(egui::RichText::new("Delete all").size(30.))
-                                .min_size(Vec2::new(100., 50.))
-                                .rounding(10.),
-                        )
-                        .clicked()
-                    {
-                        for (e, _) in source_set.p0().iter() {
-                            commands.entity(e).despawn();
-                        }
-                        for (e, _) in rect_wall_set.p0().iter() {
-                            commands.entity(e).despawn();
-                        }
-                        for (e, _) in circ_wall_set.p0().iter() {
-                            commands.entity(e).despawn();
-                        }
-                        for (e, _) in mic_set.p0().iter() {
-                            commands.entity(e).despawn();
-                        }
-
-                        grid.reset_cells(ui_state.boundary_width);
-                        events.wall_update_ev.send(UpdateWalls);
-                    }
-                });
-            });
-        });
-
-        ui.add_space(5.);
-
-        if cfg!(debug_assertions) {
-            ui.horizontal(|ui| {
-                ui.label(format!("Time: {:.5} ms", sim_time.time_since_start * 1000.));
-
-                ui.add(egui::Separator::default().vertical());
-                ui.label(format!(
-                    "Size: {:.5} m",
-                    ui_state.delta_l * SIMULATION_WIDTH as f32
-                ));
-
-                ui.add(egui::Separator::default().vertical());
-                ui.label(format!(
-                    "FPS: {:.1}",
-                    diagnostics
-                        .get(&FrameTimeDiagnosticsPlugin::FPS)
-                        .and_then(|fps| fps.smoothed())
-                        .unwrap_or(0.0)
-                ));
-            });
-
-            ui.add_space(5.);
-        }
-    });
-
     // Tool Options
     // egui::TopBottomPanel::bottom("tool_options_panel").show(ctx, |ui| {
     //     *tool_settings_height = ui.available_height();
@@ -336,7 +245,7 @@ pub fn draw_egui(
                                 } else {
                                     Color32::TRANSPARENT
                                 })
-                                .min_size(Vec2::new(100., 100.))
+                                .min_size(Vec2::new(150., 150.))
                                 .rounding(15.),
                             )
                             .on_hover_text(format!("{}", ToolType::Select))
@@ -358,7 +267,7 @@ pub fn draw_egui(
                                 } else {
                                     Color32::TRANSPARENT
                                 })
-                                .min_size(Vec2::new(100., 100.))
+                                .min_size(Vec2::new(150., 150.))
                                 .rounding(15.),
                             )
                             .on_hover_text(format!("{}", ToolType::Place(PlaceType::Source)))
@@ -379,7 +288,7 @@ pub fn draw_egui(
                                 } else {
                                     Color32::TRANSPARENT
                                 })
-                                .min_size(Vec2::new(100., 100.))
+                                .min_size(Vec2::new(150., 150.))
                                 .rounding(15.),
                             )
                             .on_hover_text(format!("{}", ToolType::Edit))
@@ -391,6 +300,71 @@ pub fn draw_egui(
                 });
             });
         });
+
+    // Quick Settings
+    egui::TopBottomPanel::bottom("quick_settings_bottom_panel").show(ctx, |ui| {
+        ui.add_space(12.);
+        ui.horizontal(|ui| {
+            ui.columns(2, |columns| {
+                columns[0].vertical_centered(|ui| {
+                    if ui
+                        .add(
+                            egui::Button::new(
+                                egui::RichText::new(if ui_state.is_running {
+                                    "Stop"
+                                } else {
+                                    "Start"
+                                })
+                                .size(60.),
+                            )
+                            .min_size(Vec2::new(200., 100.))
+                            .rounding(10.),
+                        )
+                        .clicked()
+                    {
+                        ui_state.is_running = !ui_state.is_running;
+                    }
+                });
+                columns[1].vertical_centered(|ui| {
+                    if ui
+                        .add(
+                            egui::Button::new(egui::RichText::new("Reset").size(60.))
+                                .min_size(Vec2::new(200., 100.))
+                                .rounding(10.),
+                        )
+                        .clicked()
+                    {
+                        events.reset_ev.send(Reset { force: true });
+                    }
+                });
+            });
+        });
+
+        ui.add_space(5.);
+
+        if cfg!(debug_assertions) {
+            ui.horizontal(|ui| {
+                ui.label(format!("Time: {:.5} ms", sim_time.time_since_start * 1000.));
+
+                ui.add(egui::Separator::default().vertical());
+                ui.label(format!(
+                    "Size: {:.5} m",
+                    ui_state.delta_l * SIMULATION_WIDTH as f32
+                ));
+
+                ui.add(egui::Separator::default().vertical());
+                ui.label(format!(
+                    "FPS: {:.1}",
+                    diagnostics
+                        .get(&FrameTimeDiagnosticsPlugin::FPS)
+                        .and_then(|fps| fps.smoothed())
+                        .unwrap_or(0.0)
+                ));
+            });
+
+            ui.add_space(5.);
+        }
+    });
 
     egui::TopBottomPanel::bottom("plot_panel")
         .frame(

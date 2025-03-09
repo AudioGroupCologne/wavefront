@@ -452,10 +452,10 @@ impl RectWall {
         mut wall_update_ev: EventWriter<UpdateWalls>,
     ) {
         commands.spawn(RectWall::new(
-            25,
-            25,
-            50,
-            50,
+            75,
+            200,
+            375,
+            225,
             false,
             1.,
             component_ids.get_new_wall_id(),
@@ -673,8 +673,8 @@ impl CircWall {
         mut wall_update_ev: EventWriter<UpdateWalls>,
     ) {
         commands.spawn(CircWall::new(
-            500,
-            500,
+            300,
+            300,
             25,
             false,
             1.,
