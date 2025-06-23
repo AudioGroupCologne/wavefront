@@ -63,14 +63,17 @@ _For more examples, please refer to the [Documentation]()_
 
 <!-- ROADMAP -->
 
-<!-- ## Roadmap -->
+## Roadmap
+
+
+- [ ] Full rewrite in React and WebGL
+  - [ ] New grid architecture
+    - [ ] remove objects
+    - [ ] cell types (solids, gases, liquids?)
+    - [ ] individual cell propagation speed
+       
 
 <!--
-- [ ] Feature 1
-- [ ] Feature 2
-- [ ] Feature 3
-    - [ ] Nested Feature
-
 See the [open issues](https://github.com/AudioGroupCologne/wavefront/issues) for a full list of proposed features (and known issues).
 
 -->
