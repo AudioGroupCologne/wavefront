@@ -506,24 +506,30 @@ impl Wall for CircWall {
         self.center.x = x;
         self.center.y = y;
 
+        //change to i32: center - radius can be negative for large circles
+        let (cx, cy, r) = (x as i32, y as i32, self.radius as i32);
+        let max_x = SIMULATION_WIDTH as i32 - 1;
+        let max_y = SIMULATION_HEIGHT as i32 - 1;
+
         if new_resize_point_x < 0 {
-            new_resize_point_x = (self.radius + self.center.x) as i32;
-            new_resize_point_y = self.center.y as i32;
-        } else if new_resize_point_x > 699 {
-            new_resize_point_x = (self.center.x - self.radius) as i32;
-            new_resize_point_y = self.center.y as i32;
+            new_resize_point_x = cx + r;
+            new_resize_point_y = cy;
+        } else if new_resize_point_x > max_x {
+            new_resize_point_x = cx - r;
+            new_resize_point_y = cy;
         }
 
         if new_resize_point_y < 0 {
-            new_resize_point_x = self.center.x as i32;
-            new_resize_point_y = (self.radius + self.center.y) as i32;
-        } else if new_resize_point_y > 699 {
-            new_resize_point_x = self.center.x as i32;
-            new_resize_point_y = (self.center.y - self.radius) as i32;
+            new_resize_point_x = cx;
+            new_resize_point_y = cy + r;
+        } else if new_resize_point_y > max_y {
+            new_resize_point_x = cx;
+            new_resize_point_y = cy - r;
         }
 
-        self.resize_point.x = new_resize_point_x as u32;
-        self.resize_point.y = new_resize_point_y as u32;
+        //keep the handle on the grid
+        self.resize_point.x = new_resize_point_x.clamp(0, max_x) as u32;
+        self.resize_point.y = new_resize_point_y.clamp(0, max_y) as u32;
     }
 
     fn get_reflection_factor(&self) -> f32 {
